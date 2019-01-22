@@ -258,7 +258,7 @@
         },
         {
           "key": "invitation-reminder-time",
-          "name": "<b>Invitation Reminder Times</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
+          "name": "<b>Invitation Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
           "required": false,
           "type": "number"
         },
