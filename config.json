@@ -23,6 +23,7 @@
   ],
 
   "permissions": [
+    "redcap_save_record"
   ],
 
   "enable-every-page-hooks-on-system-pages": true,
@@ -41,6 +42,12 @@
     "project": [
     ]
   },
+
+  "no-auth-pages": [
+    "portal",
+    "cron",
+    "incoming"
+  ],
 
   "system-settings": [
     {
