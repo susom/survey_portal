@@ -147,6 +147,12 @@
           "type": "field-list"
         },
         {
+          "key": "personal-hash-field",
+          "name": "<b>Personal Hash Field</b><br>This hash encodes the record_id AND the specific config for the survey portal",
+          "required": false,
+          "type": "field-list"
+        },
+        {
           "key": "personal-url-field",
           "name": "<b>Personal URL Field</b><br>This url is unique to this portal config and this user",
           "required": false,
