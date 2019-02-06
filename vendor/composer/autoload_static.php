@@ -54,7 +54,7 @@ class ComposerStaticInitfd481cfcf467620644c5eefb361f4c25
         ),
         'Stanford\\SurveyPortal\\' => 
         array (
-            0 => __DIR__ . '/../..' . '/src/RepeatingSurveyPortal',
+            0 => __DIR__ . '/../..',
         ),
         'Doctrine\\Instantiator\\' => 
         array (

@@ -23,7 +23,8 @@
   ],
 
   "permissions": [
-    "redcap_save_record"
+    "redcap_save_record",
+    "redcap_module_save_configuration"
   ],
 
   "enable-every-page-hooks-on-system-pages": true,
@@ -44,9 +45,9 @@
   },
 
   "no-auth-pages": [
-    "portal",
-    "cron",
-    "incoming"
+    "web/landing",
+    "web/cron",
+    "web/incoming"
   ],
 
   "system-settings": [
@@ -79,6 +80,12 @@
           "type": "textarea"
         },
         {
+          "key": "config-id",
+          "name": "<b>Unique Config ID</b><br>Using set will work, but delete will not",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "enable-portal",
           "name": "<b>Enable Portal</b><br>Must be checked for portal to function",
           "required": false,
@@ -95,6 +102,12 @@
           "name": "<b>Main Config Event Name</b><br>Name of event where fields below are stored (leave blank if classical)",
           "required": false,
           "type": "event-list"
+        },
+        {
+          "key": "main-config-form-name",
+          "name": "<b>Main Config Form Name</b><br>Name of form where config fields are stored",
+          "required": false,
+          "type": "form-list"
         },
         {
           "key": "email-field",
@@ -181,7 +194,19 @@
           "key": "survey-day-number-field",
           "name": "<b>Survey Day Number Field</b>",
           "required": false,
-          "type": "text"
+          "type": "field-list"
+        },
+        {
+          "key": "survey-date-field",
+          "name": "<b>Survey Date Field</b>",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "survey-launch-ts-field",
+          "name": "<b>Survey Launch Timestamp</b>Field to capture actual timestamp of survey launch",
+          "required": false,
+          "type": "field-list"
         },
         {
           "key": "survey-instrument",
@@ -218,7 +243,7 @@
           "key": "earliest-time-allowed",
           "name": "<b>Earliest Time Allowed</b><br>Do not allow responses for 'today' before this time (leave blank for any time)",
           "required": false,
-          "type": ""
+          "type": "text"
         },
         {
           "key": "landing-page-header",
