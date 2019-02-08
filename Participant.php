@@ -110,8 +110,7 @@ class Participant
 
         //set up the participant survey map
 
-        //$this->valid_day_array = $valid_day_array;
-
+        $this->valid_day_array = $valid_day_array;
 
         //get all Surveys for this particpant and determine status
         $this->survey_status = $this->getAllSurveyStatus($this->participant_id,min($valid_day_array), max($valid_day_array));
@@ -147,6 +146,7 @@ class Participant
         $all_surveys = $this->getAllSurveys($this->participant_id);
         $this->max_instance = max(array_keys($all_surveys));
         //$module->emDebug($all_surveys, $max_instance); exit;
+        //$module->emDebug($this->valid_day_array); exit;
 
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
         $date = $start_date;
@@ -275,8 +275,61 @@ class Participant
 
     }
 
+    public function getFirstDate() {
+        global $module;
+        $dates = array_keys($this->survey_status);
+
+        return min($dates);
+    }
+
+    public function getLastDate() {
+        global $module;
+        $dates = array_keys($this->survey_status);
+        return max($dates);
+    }
+
+    /**
+     * Return array of 'valid' survey dates
+     * Current guess is that the desired format is
+     *   [date]['STATUS'] = 1/2/0 - REDCap completion status?
+     *
+     * @return array
+     */
+    public function getValidDates() {
+        global $module;
+        $module->emDebug($this->survey_status);
+        $valid_dates = array();
+        foreach ($this->survey_status as $date => $status) {
+            if ($status['valid']) {
+                $valid_dates[$date]['STATUS'] = $status['completed'] ? $status['completed'] : 0;
+            }
+        }
+        $module->emDebug($valid_dates);
+        return $valid_dates;
+
+    }
 
 
+    /**
+     * Return array of 'invalid' survey dates
+     *  - not in valid days list described in config
+     *  - todo: also exclude time window considerations??
+     *  - todo: also exclude if completed?  I think no; already handeled by completed
+     * @return array
+     */
+    public function getInvalidDates() {
+        global $module;
+        $module->emDebug($this->survey_status);
+        $invalid_dates = array();
+        foreach ($this->survey_status as $date => $status) {
+            if (!$status['valid']) {
+                $invalid_dates[$date] = '1';
+            }
+        }
+        $module->emDebug($invalid_dates);
+        return array_keys($invalid_dates);
+
+    }
 
     /**
      * // METHOD:   x()

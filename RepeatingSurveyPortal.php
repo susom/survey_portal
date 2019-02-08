@@ -244,6 +244,52 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
+
+    /**
+     * Get the bookmark html
+     * @return string
+     */
+    static function getBookmarkHelp() {
+        $html=<<<EOD
+    <div class='container text-center'>
+        <p>You may bookmark this page to your home screen for faster access in the future.</p>
+        <div class='text-center'>
+            <span><a href='#Instructions' class='btn btn-default' data-toggle='collapse'>Show Instructions</a></span>
+            <div id='Instructions' class='collapse'>
+                <br/>
+                <div class='panel panel-default'>
+                    <div class='panel-body text-left'>
+                        <p><strong>On an iOS phone</strong></p>
+                         <ol>
+                             <li>If you do not see the toolbar at the bottom of your Safari window, tap once at the bottom of your screen</li>
+                             <li>Click on the Action button in the center of the toolbar (a square box with an upward arrow)</li>
+                             <li>Scroll the lower row of options to the right until you see 'Add to Home Screen' (a box with a plus sign).</li>
+                         </ol>
+                         <p><strong>On an Android phone</strong></p>
+                         <ol>
+                             <li>Open the Chrome menu <img src="//lh3.googleusercontent.com/vOgJaWNbkf_Y0kOEQXe4wSlufkMuTb8NqGMIXSP-mRm72oR4ABGkR1L4sXyMmb7lBHnz=h18" width="auto" height="18" alt="More" title="More">.</li>
+                             <li>Tap the star icon <img src="//lh3.ggpht.com/SEdDjoaQ-qufNcDGhJh5KXW0q3-tABnuWjM5fpqE9kbOyJaXN3co5MEcQu7kqoCIqHA5O84=w20" width="20" height="18" alt="Bookmark" title="Bookmark">.</li>
+                             <li>Optional: If you want to edit the bookmark's name and URL or change the folder, go to the bottom bar and tap&nbsp;<strong>Edit</strong>.</li>
+                             <li>When you're done, tap the checkmark .</li>
+                             <li>Optional:  If you want to make the bookmark appear on your home screen (like an app) open the bookmarks folder and <strong>press and hold</strong> your finger on the bookmark.  A new menu will appear with an option to Add to Home screen</li>
+                         </ol>
+                         <p><strong>On an Android tablet</strong></p>
+                         <ol>
+                             <li>In the address bar at the top, tap the star icon&nbsp;<img src="//lh3.ggpht.com/SEdDjoaQ-qufNcDGhJh5KXW0q3-tABnuWjM5fpqE9kbOyJaXN3co5MEcQu7kqoCIqHA5O84=w20" width="20" height="18" alt="Bookmark" title="Bookmark">.</li>
+                             <li>Optional: If you want to edit the bookmark's name and URL or change the folder, go to the bottom bar and tap&nbsp;<strong>Edit</strong>.</li>
+                             <li>When you're done, tap the checkmark .</li>
+                             <li>Optional:  If you want to make the bookmark appear on your home screen (like an app) open the bookmarks folder and <strong>press and hold</strong> your finger on the bookmark.  A new menu will appear with an option to Add to Home screen</li>
+                         </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+EOD;
+        return $html;
+    }
+
+
     function emLog()
     {
         global $module;
