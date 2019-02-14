@@ -4,15 +4,21 @@ namespace Stanford\RepeatingSurveyPortal;
 
 use \ExternalModules;
 use \REDCap;
+use \DateTime;
+use \Message;
+use Exception;
+use Stanford\RepeatingSurveyPortal\Participant;
+
+require_once 'Participant.php';
 
 /**
- * Class RepeatingSurveyPortal2
- * @package Stanford\RepeatingSurveyPortal2
+ * Class RepeatingSurveyPortal
+ * @package Stanford\RepeatingSurveyPortal
  *
  *
  * WEB
  *
- * Portal2 Landing Page
+ * Portal Landing Page
  *
  * web/landing.php   NOAUTH
  * web/forecast.php (tries to show what will happen based on certain dates)
@@ -25,14 +31,233 @@ use \REDCap;
  */
 class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 {
-
-
     // CRON METHOD
     /**
      * 1) Determine projects that are using this EM
      * 2) Instantiate instance of EM for each project
      * 3)
      */
+    public function inviteCron() {
+
+        //* 1) Determine projects that are using this EM
+        //get all projects that are enabled for this module
+        $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
+
+        //get the noAuth api endpoint for Cron job.
+        $url = $this->getUrl('web/InviteCron.php', true, true);
+
+        while ($proj = db_fetch_assoc($enabled)) {
+            $pid = $proj['project_id'];
+
+            //check scheduled hour of send
+            $scheduled_hour = $this->getProjectSetting('invitation-time', $pid);
+            $current_hour = date('H');
+
+            //iterate through all the sub settings
+            foreach ($scheduled_hour as $sub => $invite_time) {
+                $this->emDebug("project $pid - $sub scheduled at this hour $invite_time vs current hour: $current_hour");
+
+
+                //if not hour, continue
+                if ($scheduled_hour != $current_hour) continue;
+
+                $this_url = $url . '&pid=' . $pid . "&c=" . $sub;
+                $this->emDebug("CRON URL IS " . $this_url);
+
+                $resp = http_get($this_url);
+                //$this->cronAttendanceReport($pid);
+                $this->emDebug("cron for text reminder: " . $resp);
+            }
+        }
+
+    }
+
+    /**
+     *
+     * Called by cron method - process for the current project for this subsetting
+     *
+     * @param $sub  SubSetting number
+     */
+    public function sendInvitations($sub) {
+        $from = 'no-reply@stanford.edu';  // hard code this?
+        $subject = "survey portal invite";
+        //Sanity test printouts
+        //$this->emDebug($sub, $this->getProjectSettings(), $this->getProjectSetting('config-id')); exit;
+
+        //1. from the $sub ID derive the Config ID
+        $config_id = ($this->getProjectSetting('config-id'))[$sub];
+        $config_field = ($this->getProjectSetting('survey-config-id-field'))[$sub];
+        $email_field = ($this->getProjectSetting('email-field'))[$sub];  // using non-blank email field to trigger send?
+        $phone_field = ($this->getProjectSetting('phone-field'))[$sub];  // using non-blank phone field to trigger send?
+        $email_text = ($this->getProjectSetting('invitation-email-text'))[$sub];
+        $sms_text = ($this->getProjectSetting('invitation-sms-text'))[$sub];
+        $invitation_days = ($this->getProjectSetting('invitation-days'))[$sub];
+        $start_str = ($this->getProjectSetting('start-date-field'))[$sub];
+        $url = ($this->getProjectSetting('personal-url-field'))[$sub];
+        $hash = ($this->getProjectSetting('personal-hash-field'))[$sub];
+
+        //$this->emDebug($config_id, ($this->getProjectSetting('config-id'))[$sub],"CONFIG ID"); exit;
+
+
+        //1. Obtain all records where this 'config-id' matches the in the patient record
+        $params = array(
+                'return_format' => 'json',
+                'fields' => array(
+                    REDCap::getRecordIdField(),
+                    $url,
+                    $start_str,
+                    $email_field,
+                    $phone_field,
+                    $hash
+                ),
+                'events' => ($this->getProjectSetting('main-config-event-name'))[$sub],
+                'filterLogic'  => "[".$config_field."] = '$config_id'"
+            );
+        //$this->emDebug($params, "PARAMS"); exit;
+        $q = REDCap::getData($params);
+        $result = json_decode($q, true);
+//                'array', NULL, array($cfg['MAIN_SURVEY_HASH_FIELD']), $config_event[$sub],
+//                NULL,FALSE,FALSE,FALSE,$filter);
+        $this->emDebug($result, "COUNT IS ".count($result));
+
+        //iterate over and check if the phone/email
+        foreach ($result as $candidate) {
+            //if neither phone or email is set, continue
+            if (empty($candidate[$email_field]) && empty($candidate[$phone_field])) {
+                $this->emDebug("both email and text are not set, carry on and skip ".$candidate[REDCap::getRecordIdField()]);
+                continue;
+            }
+
+            //check if today is an invitation day
+            $valid_day_array = self::parseRangeString($invitation_days);
+            $valid_day = $this->checkIfDateValid($candidate[$start_str],$valid_day_array );
+            $this->emDebug($valid_day, $valid_day_array, "IN ARRAY");
+
+            if ($valid_day != null) {
+                //check if valid (multiple allowed, widow )
+
+                //send invite to email OR SMS
+                if (isset($candidate[$email_field])) {
+
+
+
+                    //set up the new record and prefill it with survey data
+                    //create participant object. we need it to know the next instance.
+                    try {
+                        $participant = new Participant($sub, $candidate[$hash], $valid_day_array);
+                    } catch (Exception $e) {
+                        $this->emError($e);
+                        continue;
+                    }
+                    $participant->newSurveyEntry($valid_day, new DateTime());
+
+                    $next_id = $participant->max_instance + 1;
+
+                    //create url
+                    $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
+                        $participant->surveyEventName, $next_id);
+
+                    $msg = $this->formatEmailMessage($email_text, $survey_link);
+
+                    //send email
+                    $send_status = $this->sendEmail($candidate[$email_field], $from, $subject."  1" , $msg);
+
+                }
+
+                if (isset($candidate[$phone_field])) {
+                    //send text
+                }
+
+            }
+
+
+
+
+
+        }
+
+            //if today is an invitation day
+            // and if valid (window, multiple)
+        //send invite to email OR SMS
+
+    }
+
+    /**
+     * Given start date and valid_day_number array, check if date is a valid survey date
+     *
+     * @param $start
+     * @param $valid_day_number
+     */
+    public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
+
+
+        //use today
+        $date = new DateTime($date_str);
+        $start = new DateTime($start_str);
+
+        $this->emDebug($start, $date);
+
+        $interval = $date->diff($start);
+        $this->emDebug("DIFF in Days", $interval->days, $valid_day_number);
+
+        if (in_array($interval->days, $valid_day_number)) {
+            return $interval->days;
+        }
+        return null;
+
+    }
+
+    /**
+     * Replace the url tag [invitation-url] with the $survey-link passed in as parameter
+     * If url tag not embedded in $msg, add link to bottom of the email
+     *
+     * TODO: get wording for the link at the bottom of the email.
+     *
+     * @param $msg
+     * @param $survey_link
+     * @return mixed|string
+     */
+    function formatEmailMessage($msg, $survey_link) {
+        $target_str = "[invitation-url]";
+
+        //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
+        $this->emDebug($msg, $target_str);
+
+        if (strpos($msg, $target_str) !== false) {
+            $msg = str_replace($target_str, $survey_link, $msg);
+        } else {
+            $msg = $msg . "<br>".$target_str;
+        }
+
+        return $msg;
+    }
+
+
+    function sendEmail($to, $from, $subject, $msg) {
+        $this->emDebug($to, $from, $subject, $msg);
+
+        // Prepare message
+        $email = new Message();
+        $email->setTo($to);
+        $email->setFrom($from);
+        $email->setSubject($subject);
+        $email->setBody($msg); //format message??
+
+       //logIt("about to send " . print_r($email,true), "DEBUG");
+
+        $result = $email->send();
+        $this->emDebug($to, $from, $subject, $msg, $result);
+        $this->emDebug("RESULT IS ". $result);
+
+    // Send Email
+        if ($result == false) {
+            $this->emLog('Error sending mail: ' . $email->getSendError() . ' with ' . json_encode($email));
+            return false;
+        }
+
+    return true;
+}
+
 
     // SAVE CONFIG HOOK
     // if config-id is null, then generate a config id for that the configs...
@@ -75,8 +300,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function redcap_save_record($project_id, $record = NULL, $instrument)  {
         //If instrument is the right one, create the portal url and save it to the designated field
-        $this->emDebug($record . "In Hook Save Record");
-        $this->emDebug($instrument.  "Instrument:", $this->getProjectSetting('main-config-form-name'));
 
         //iterate through all of the sub_settings
         $personal_hash_field = $this->getProjectSetting('personal-hash-field');
@@ -243,7 +466,191 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
+    /**
+     * Returns all surveys for a given record id
+     *
+     * @param $id  participant_id (if null, return all)
+     * @param $cfg
+     * @return mixed
+     */
+    public function getAllSurveys($id = null) {
 
+        //get fields of each hash - separately? can't assume that they will be in the same event.
+        $survey_config_field= $this->getProjectSetting('survey-config-field');
+        $enable_portal = $this->getProjectSetting('enable-portal');
+        $config_ids = $this->getProjectSetting('config-id');
+
+        //run these separately by $sub (subsetting)
+        $all_surveys = array();
+        foreach ($enable_portal as $sub => $enabled) {
+
+            //only execute if enabled
+            if ($enabled) {
+                $config_id = $config_ids[$sub];
+                //$this->emDebug($config_id . " for " . $sub);
+                $all_surveys[$sub] = $this->getSurveysForConfig($sub);
+            }
+        }
+
+        //$this->emDebug($all_surveys); exit;
+        return $all_surveys;
+    }
+
+    public function getSurveysForConfig($sub) {
+        //get the config id and filter surveys on the config
+        $config_id = ($this->getProjectSetting('config-id'))[$sub];
+        $survey_config_field = ($this->getProjectSetting('survey-config-field'))[$sub];
+        $survey_event_id = ($this->getProjectSetting('survey-event-name'))[$sub];
+        $survey_event_arm_name = REDCap::getEventNames(true, false, $survey_event_id);
+        $survey_event_prefix = empty($survey_event_arm_name) ? "" : "[" . $survey_event_arm_name . "]";
+
+
+        if ($config_id == null) {
+            $filter = null; //get all ids
+        } else {
+            $filter = $survey_event_prefix . "[$survey_config_field]='$config_id'";
+        }
+
+
+        $get_data = array(
+            REDCap::getRecordIdField(),
+            ($this->getProjectSetting('survey-config-field'))[$sub],
+            ($this->getProjectSetting('survey-day-number-field'))[$sub],
+            ($this->getProjectSetting('survey-date-field'))[$sub],
+            ($this->getProjectSetting('survey-launch-ts-field'))[$sub],
+            ($this->getProjectSetting('valid-day-number'))[$sub],
+            ($this->getProjectSetting('survey-instrument'))[$sub] . '_complete'
+        );
+
+        $params = array(
+            'return_format' => 'json',
+            'fields'        => $get_data,
+            'events'        => $survey_event_id,
+            'filterLogic'   => $filter
+        );
+
+
+        $q = REDCap::getData($params);
+        $results = json_decode($q,true);
+
+        $arranged = $this->arrangeSurveyByID($sub, $results);
+        return $arranged;
+
+    }
+
+
+    public function getPortalData() {
+        $enable_portal = $this->getProjectSetting('enable-portal');
+
+        //run these separately by $sub (subsetting)
+        $portal_data = array();
+        foreach ($enable_portal as $sub => $enabled) {
+
+            //only execute if enabled
+            if ($enabled) {
+                $portal_data[$sub] = $this->getPortalDataForConfig($sub);
+            }
+
+        }
+        return $portal_data;
+
+    }
+
+
+
+    public function getPortalDataForConfig($sub) {
+
+
+        $portal_fields = array(
+            REDCap::getRecordIdField(),
+            ($this->getProjectSetting('start-date-field'))[$sub],
+            ($this->getProjectSetting('survey-config-id-field'))[$sub]
+        );
+
+        $portal_params = array(
+            'return_format' => 'json',
+            'fields'        =>$portal_fields,
+            'events'        => ($this->getProjectSetting('main-config-event-name'))[$sub]
+        );
+        $q = REDCap::getData($portal_params);
+        $portal_data = json_decode($q, true);
+
+
+        //rearrange so that the id is the key
+        $portal_data = $this->makeFieldArrayKey($portal_data, REDCap::getRecordIdField());
+        //$this->emDebug($portal_data); exit;
+
+        return $portal_data;
+
+    }
+
+
+
+    public function arrangeSurveyByID($sub, $surveys ) {
+
+         $survey_date_field = $this->getProjectSetting('survey-date-field')[$sub];
+         $survey_day_number_field = $this->getProjectSetting('survey-day-number-field')[$sub];
+         $survey_form_name_complete= $this->getProjectSetting('survey-instrument')[$sub] . '_complete';
+
+        $arranged = array();
+
+        foreach ($surveys as $k => $v) {
+            $id = $v[REDCap::getRecordIdField()];
+            $day_number = $v[$survey_day_number_field];
+
+            //$this->emDebug($k, $v, $id, $day_number, $survey_day_number_field, $survey_form_name_complete); exit;
+
+            $arranged[$id][$day_number] = array(
+                "SURVEY_DATE"  => $v[$survey_date_field],
+                "STATUS"       => $v[$survey_form_name_complete]
+            );
+        }
+
+        return $arranged;
+
+    }
+
+    public function dumpResource($name) {
+        $file =  $this->getModulePath() . $name;
+        if (file_exists($file)) {
+            $contents = file_get_contents($file);
+            echo $contents;
+        } else {
+            $this->emError("Unable to find $file");
+        }
+    }
+
+    /**
+     * @param $input    A string like 1,2,3-55,44,67
+     * @return mixed    An array with each number enumerated out [1,2,3,4,5,...]
+     */
+    static function parseRangeString($input) {
+        $input = preg_replace('/\s+/', '', $input);
+        $string = preg_replace_callback('/(\d+)-(\d+)/', function ($m) {
+            return implode(',', range($m[1], $m[2]));
+        }, $input);
+        $array = explode(",",$string);
+        return empty($array) ? false : $array;
+    }
+
+
+
+
+    /**
+     * Make key_field as key
+     *
+     * @param $data
+     * @param $key_field
+     * @return array
+     */
+    static function makeFieldArrayKey($data, $key_field) {
+        $r = array();
+        foreach ($data as $d) {
+            $r[$d[$key_field]] = $d;
+        }
+        return $r;
+
+    }
 
     /**
      * Get the bookmark html

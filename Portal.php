@@ -98,7 +98,7 @@ class Portal
         //set event_name to the participant event from id
         $event_name = REDCap::getEventNames(true, false, $this->mainConfigEventName);
 
-        $valid_day_array = self::parseRangeString($this->validDayNumber);
+        $valid_day_array = RepeatingSurveyPortal::parseRangeString($this->validDayNumber);
         //$module->emDebug($valid_day_array, $this->validDayNumber, $config['valid-day-number']['value'][$sub],"VALID DAY"); exit;
         //setup the participant
         $this->participant = new Participant($sub, $hash,$valid_day_array);

@@ -391,6 +391,11 @@ $module->emDebug($error_msg, ($error_msg != null));
             <?php } ?>
 
 
+                    //bind button for create new user
+            $('#cal_submit').on('click', function() {
+                console.log("clicked search participant");
+                console.log("this", $(this));
+            });
         });
 
     </script>

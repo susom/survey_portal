@@ -34,19 +34,26 @@
 
   "links": {
     "control-center": [
-      {
-        "name": "API Whitelist",
-        "icon": "gear",
-        "url": "config.php"
-      }
+
     ],
     "project": [
+      {
+        "name": "RSP: Test Cron Links",
+        "icon": "gear",
+        "url": "web/DisplayCronLinks.php"
+      },
+      {
+        "name": "RSP: Survey Schedule Report",
+        "icon": "gear",
+        "url": "web/forecast.php"
+      }
     ]
   },
 
   "no-auth-pages": [
     "web/landing",
-    "web/cron",
+    "web/InviteCron",
+    "web/ReminderCron",
     "web/incoming"
   ],
 
@@ -179,6 +186,12 @@
           "type": "field-list"
         },
         {
+          "key": "survey-config-id-field",
+          "name": "<b>Config ID field</b><br>Field to identify which config applies to the record",
+          "required": false,
+          "type": "field-list"
+        },
+        {
           "key": "survey-desc",
           "name": "<b>Survey Settings</b>",
           "required": false,
@@ -189,6 +202,12 @@
           "name": "<b>Survey Event Name</b><br>Name of event where survey instrument is enabled (leave blank if classical)",
           "required": false,
           "type": "event-list"
+        },
+        {
+          "key": "survey-config-field",
+          "name": "<b>Survey Config ID Field</b>",
+          "required": false,
+          "type": "field-list"
         },
         {
           "key": "survey-day-number-field",
@@ -321,7 +340,7 @@
         },
         {
           "key": "invitation-reminder",
-          "name": "<b>Invitation Days</b><br>Days on which to send custom invitations (<i>e.g.</i> 0-10,15-20,25)",
+          "name": "<b>Invitation ReminderDays</b><br>Days on which to send  invitation reminders(<i>e.g.</i> 0-10,15-20,25)",
           "required": false,
           "type": "text"
         }

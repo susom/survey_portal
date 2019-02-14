@@ -1,5 +1,7 @@
 <?php
 
+
+
 namespace Stanford\RepeatingSurveyPortal;
 
 
@@ -7,10 +9,11 @@ namespace Stanford\RepeatingSurveyPortal;
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
 
-require_once $module->getModulePath().'Portal.php';
+//require_once $module->getModulePath().'Portal.php';
 
 use REDCap;
 use DateTime;
+use Exception;
 
 class Participant
 {
@@ -20,6 +23,8 @@ class Participant
     /** @var string Descriptive text for landing page */
     public $landingPageDesc;
     /** @var string Name of event where email and sms fields are stored */
+    public $configID;
+
     public $mainConfigEventName;
     public $mainConfigFormName;
     public $emailField;
@@ -33,6 +38,7 @@ class Participant
     public $surveyEventName;
     public $surveyDateField;
     public $surveyLaunchTSField;
+    public $surveyConfigIDField;
     public $surveyDayNumberField;
     public $surveyInstrument;
     public $validDayNumber;
@@ -52,6 +58,7 @@ class Participant
     public $invitationReminder;
 
     private $map = array(
+        'config-id'               => 'configID',
         'landing-page-desc'      => 'landingPageDesc',
         'landing-page-header'    => 'landingPageHeader',
         'main-config-event-name' => 'mainConfigEventName',
@@ -64,6 +71,7 @@ class Participant
         'survey-event-name'       => 'surveyEventName',
         'survey-date-field'       => 'surveyDateField',
         'survey-launch-ts-field' => 'surveyLaunchTSField',
+        'survey-config-field'     => 'surveyConfigIDField',
         'survey-day-number-field' => 'surveyDayNumberField',
         'survey-instrument'       => 'surveyInstrument',
         'valid-day-number'        => '$validDayNumber',
@@ -89,6 +97,7 @@ class Participant
     public $survey_status;    //survey from start_date to endate with date / day_number/ valid/ completed
     public $event_name;
     public $valid_day_array;
+    public $config_id;      // subsetting config ID
     public $max_instance;   //last instance number
 
 
@@ -104,9 +113,17 @@ class Participant
 
         $this->event_name = REDCap::getEventNames(true, false, $this->surveyEventName);
 
+
         //setup the participant surveys
         //given the hash, find the participant and set id and start date in object
         $this->participant_id =  $this->locateParticipantFromHash($hash);
+
+        //$module->emDebug($this->participant_id, $hash);
+
+        if ($this->participant_id == null) {
+            throw new Exception("Participant not found from this hash: ".$hash);
+
+        }
 
         //set up the participant survey map
 
@@ -121,6 +138,21 @@ class Participant
         // Get the status' for each date in the window array
         //$window_dates = $module->getSurveyStatusArray($participant, $window_dates, $cfg);
 
+    }
+
+    public function setParticipantFields() {
+        $p_fields = array(
+
+        );
+         $params = array(
+            'return_format' => 'json',
+            'events'        => $event_name,
+            'fields'        => array( REDCap::getRecordIdField(), $this->personalHashField, $this->startDateField),
+            'filterLogic'   => $filter
+        );
+
+        $q = REDCap::getData($params);
+        $records = json_decode($q, true);
     }
 
     /**
@@ -146,7 +178,7 @@ class Participant
         $all_surveys = $this->getAllSurveys($this->participant_id);
         $this->max_instance = max(array_keys($all_surveys));
         //$module->emDebug($all_surveys, $max_instance); exit;
-        //$module->emDebug($this->valid_day_array); exit;
+        $module->emDebug($this->valid_day_array, $this->start_date);
 
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
         $date = $start_date;
@@ -218,7 +250,8 @@ class Participant
         //$survey_date_3 = array_search($day_number, array_column( $this->survey_status, "[day_number]"));
 
         foreach ($this->survey_status as $survey_date => $val) {
-            if ($val['day_number'] === $day_number) {
+
+            if ($val['day_number'] == $day_number) {
 
                 return new DateTime($survey_date);
             }
@@ -238,7 +271,11 @@ class Participant
         global $module;
         //$filter = "[" . $this->event_name . "][" . $this->surveyFKField . "] = '$id'";
 
-        $get_array = array( REDCap::getRecordIdField(),$this->surveyDayNumberField,$this->surveyDateField,
+        $get_array = array(
+            REDCap::getRecordIdField(),
+            $this->configID,
+            $this->surveyDayNumberField,
+            $this->surveyDateField,
             $this->surveyInstrument . '_complete');
 
         $params = array(
@@ -266,6 +303,7 @@ class Participant
             "redcap_event_name"        => $this->event_name,
             "redcap_repeat_instrument" => $this->surveyInstrument,
             "redcap_repeat_instance"   => $this->max_instance + 1,
+            $this->surveyConfigIDField => $this->configID,
             $this->surveyDayNumberField => $day_number,
             $this->surveyDateField      => $survey_date->format('Y-m-d'),
             $this->surveyLaunchTSField  => date("Y-m-d H:i:s")
@@ -329,6 +367,37 @@ class Participant
         $module->emDebug($invalid_dates);
         return array_keys($invalid_dates);
 
+    }
+
+    /**
+     * TODO: not used.
+     * @param $from
+     * @param $subject
+     * @param $msg
+     * @return bool
+     */
+    public function sendEmail($from, $subject, $msg) {
+        global $module;
+
+        // Prepare message
+        $email = new Message();
+        //$email->setTo($this->);
+        $email->setFrom($from);
+        $email->setSubject($subject);
+        $email->setBody($msg);
+
+
+        $result = $email->send();
+        $module->emDebug( $from, $subject, $msg, $result);
+        $module->emDebug("RESULT IS ". $result);
+
+    // Send Email
+        if (!$email->send()) {
+            $this->emLog('Error sending mail: ' . $email->getSendError() . ' with ' . json_encode($email));
+            return false;
+        }
+
+    return true;
     }
 
     /**
