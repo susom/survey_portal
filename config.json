@@ -117,14 +117,26 @@
           "type": "form-list"
         },
         {
+          "key": "invitation-email-field",
+          "name": "<b>Invitation By Email Field</b><BR>Field to select invitation by email.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "invitation-sms-field",
+          "name": "<b>Reminder By Text Field</b><BR>Field with select invitation by text.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
           "key": "email-field",
-          "name": "<b>Email Field</b><BR>If record has a valid email in this field, invitations will be sent via email.  (Leave blank if not using email invitations)",
+          "name": "<b>Email Field</b><BR>If record has a valid email in this field, invitations will be sent via email. ",
           "required": false,
           "type": "field-list"
         },
         {
           "key": "phone-field",
-          "name": "<b>Portal Phone Field</b><br>If record has a valid phone number in this field, SMS invitations will be sent. (Leave blank if not using SMS messaging)",
+          "name": "<b>Portal Phone Field</b><br>If record has a valid phone number in this field, SMS invitations will be sent. ",
           "required": false,
           "type": "field-list"
         },

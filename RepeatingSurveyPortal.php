@@ -85,7 +85,11 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //$this->emDebug($sub, $this->getProjectSettings(), $this->getProjectSetting('config-id')); exit;
 
         //1. from the $sub ID derive the Config ID
-        $config_id = ($this->getProjectSetting('config-id'))[$sub];
+        $config_id             = ($this->getProjectSetting('config-id'))[$sub];
+        $invitation_email_field  = ($this->getProjectSetting('invitation-email-field'))[$sub];
+        $invitation_sms_field  = ($this->getProjectSetting('invitation-sms-field'))[$sub];
+        $event_id                 = ($this->getProjectSetting('main-config-event-name'))[$sub];
+
         $config_field = ($this->getProjectSetting('survey-config-id-field'))[$sub];
         $email_field = ($this->getProjectSetting('email-field'))[$sub];  // using non-blank email field to trigger send?
         $phone_field = ($this->getProjectSetting('phone-field'))[$sub];  // using non-blank phone field to trigger send?
@@ -99,20 +103,37 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //$this->emDebug($config_id, ($this->getProjectSetting('config-id'))[$sub],"CONFIG ID"); exit;
 
 
+
+
         //1. Obtain all records where this 'config-id' matches the in the patient record
+        //Also filter that either invitation_method_field is populated.
+
+        $filter = "(".
+            "([".$config_field."] = '$config_id') AND ".
+            "(".
+            "(([".$invitation_email_field."(1)] = 1) and  ([".$email_field."] <> ''))".
+            " OR ".
+            "(([".$invitation_sms_field."(1)] =1) and  ([".$phone_field."] <> ''))"
+            .")"
+            .")";
+        $filter1 =  "([".$config_field."] = '$config_id')";
+        $this->emDebug($filter);
         $params = array(
                 'return_format' => 'json',
                 'fields' => array(
                     REDCap::getRecordIdField(),
+                    $invitation_email_field,
+                    $invitation_sms_field,
                     $url,
                     $start_str,
                     $email_field,
                     $phone_field,
                     $hash
                 ),
-                'events' => ($this->getProjectSetting('main-config-event-name'))[$sub],
-                'filterLogic'  => "[".$config_field."] = '$config_id'"
+                'events' => $event_id,
+                'filterLogic'  => $filter
             );
+
         //$this->emDebug($params, "PARAMS"); exit;
         $q = REDCap::getData($params);
         $result = json_decode($q, true);
@@ -122,11 +143,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         //iterate over and check if the phone/email
         foreach ($result as $candidate) {
-            //if neither phone or email is set, continue
-            if (empty($candidate[$email_field]) && empty($candidate[$phone_field])) {
-                $this->emDebug("both email and text are not set, carry on and skip ".$candidate[REDCap::getRecordIdField()]);
-                continue;
-            }
 
             //check if today is an invitation day
             $valid_day_array = self::parseRangeString($invitation_days);
@@ -136,49 +152,44 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             if ($valid_day != null) {
                 //check if valid (multiple allowed, widow )
 
+                //set up the new record and prefill it with survey data
+                //create participant object. we need it to know the next instance.
+                try {
+                    $participant = new Participant($sub, $candidate[$hash], $valid_day_array);
+                } catch (Exception $e) {
+                    $this->emError($e);
+                    continue;
+                }
+                $participant->newSurveyEntry($valid_day, new DateTime());
+
+                $next_id = $participant->max_instance + 1;
+
+                //create url
+                $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
+                    $participant->surveyEventName, $next_id);
+
+
                 //send invite to email OR SMS
-                if (isset($candidate[$email_field])) {
+                if ($candidate[$invitation_email_field."___1"] == '1') {
 
-
-
-                    //set up the new record and prefill it with survey data
-                    //create participant object. we need it to know the next instance.
-                    try {
-                        $participant = new Participant($sub, $candidate[$hash], $valid_day_array);
-                    } catch (Exception $e) {
-                        $this->emError($e);
-                        continue;
-                    }
-                    $participant->newSurveyEntry($valid_day, new DateTime());
-
-                    $next_id = $participant->max_instance + 1;
-
-                    //create url
-                    $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
-                        $participant->surveyEventName, $next_id);
+                    $this->emDebug("Sending email invite to ".$candidate[REDCap::getRecordIdField()]);
 
                     $msg = $this->formatEmailMessage($email_text, $survey_link);
 
                     //send email
+
                     $send_status = $this->sendEmail($candidate[$email_field], $from, $subject."  1" , $msg);
 
                 }
 
-                if (isset($candidate[$phone_field])) {
-                    //send text
+                if ($candidate[$invitation_text_field."___1"] == '1') {
+                    $this->emDebug("Sending text invite to ".$candidate[REDCap::getRecordIdField()]);
+                    //TODO: implement text sending of URL
                 }
 
             }
 
-
-
-
-
         }
-
-            //if today is an invitation day
-            // and if valid (window, multiple)
-        //send invite to email OR SMS
 
     }
 
@@ -194,8 +205,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //use today
         $date = new DateTime($date_str);
         $start = new DateTime($start_str);
-
-        $this->emDebug($start, $date);
 
         $interval = $date->diff($start);
         $this->emDebug("DIFF in Days", $interval->days, $valid_day_number);
