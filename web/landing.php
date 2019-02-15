@@ -79,6 +79,18 @@ $participant = $portal->getParticipant();
 $today = new DateTime();
 $error_msg = null;
 
+if(isset($_POST['cal_submit'])) {
+    $survey_date = DateTime::createFromFormat('Y-m-d', $_POST['cal_date']);
+
+    if (isset($survey_date)) {
+        $module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
+        $day_number = $participant->getDayNumberFromDate($survey_date);
+    }
+
+}
+
+
+
 if ($portal->autoStartSurvey) {
     $module->emDebug("Autostarting Survey");
     if ($p_daynumber == "") {
@@ -101,33 +113,8 @@ if ($portal->autoStartSurvey) {
         $module->emDebug($survey_date, "Day number is set, so confirm in allowed window and start: " . $day_number);
     }
 
-    //confirm valid window
-    if (!$portal->validTimeWindow($survey_date)) {
-        $error_msg[] = "This day is not a valid window.";
-    }
 
 
-    $module->emDebug($error_msg, ($error_msg != null));
-    //$survey_date_str = $survey_date->format('Y-m-d');
-
-    if ($error_msg == null) {
-        $next_id = $participant->max_instance + 1;
-        //$module->emDebug($participant->max_instance,"NEXT ID IS ".$next_id );exit;
-        //setup survey link for the correct survey
-        //prefill new survey with day_number / date/
-        $participant->newSurveyEntry($day_number, $survey_date);
-
-
-        // surveyDayNumberField: Day number
-        // surveyDateField : this should be day of day number not actual day
-        $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName,
-            $next_id);
-
-        //$module->emDebug($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName, $survey_link, "SURVEY LINK");
-        //start
-        header("Location: " . $survey_link);
-        exit;
-    }
 
 
 } elseif ($portal->showCalendar) {
@@ -138,7 +125,34 @@ if ($portal->autoStartSurvey) {
     $error_msg[] = "There is no survey to auto-start today.";
 }
 
-$module->emDebug($error_msg, ($error_msg != null));
+//confirm valid window
+if (!$portal->validTimeWindow($survey_date)) {
+    $error_msg[] = "This day is not a valid window.";
+}
+
+//$module->emDebug($error_msg, ($error_msg != null));
+
+//$survey_date_str = $survey_date->format('Y-m-d');
+
+if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
+    $next_id = $participant->max_instance + 1;
+    //$module->emDebug($participant->max_instance,"NEXT ID IS ".$next_id );exit;
+
+    //setup survey link for the correct survey
+    //prefill new survey with day_number / date/
+    $participant->newSurveyEntry($day_number, $survey_date);
+
+    // surveyDayNumberField: Day number
+    // surveyDateField : this should be day of day number not actual day
+    $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName,
+        $next_id);
+
+    //$module->emDebug($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName, $survey_link, "SURVEY LINK");
+    //start
+    header("Location: " . $survey_link);
+    exit;
+}
+
 
 
 /**

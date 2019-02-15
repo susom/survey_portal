@@ -140,20 +140,6 @@ class Participant
 
     }
 
-    public function setParticipantFields() {
-        $p_fields = array(
-
-        );
-         $params = array(
-            'return_format' => 'json',
-            'events'        => $event_name,
-            'fields'        => array( REDCap::getRecordIdField(), $this->personalHashField, $this->startDateField),
-            'filterLogic'   => $filter
-        );
-
-        $q = REDCap::getData($params);
-        $records = json_decode($q, true);
-    }
 
     /**
      * Construct a status array using startdate and final date
@@ -178,7 +164,7 @@ class Participant
         $all_surveys = $this->getAllSurveys($this->participant_id);
         $this->max_instance = max(array_keys($all_surveys));
         //$module->emDebug($all_surveys, $max_instance); exit;
-        $module->emDebug($this->valid_day_array, $this->start_date);
+        //$module->emDebug($this->valid_day_array, $this->start_date);
 
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
         $date = $start_date;
@@ -335,14 +321,14 @@ class Participant
      */
     public function getValidDates() {
         global $module;
-        $module->emDebug($this->survey_status);
+        //$module->emDebug($this->survey_status);
         $valid_dates = array();
         foreach ($this->survey_status as $date => $status) {
             if ($status['valid']) {
                 $valid_dates[$date]['STATUS'] = $status['completed'] ? $status['completed'] : 0;
             }
         }
-        $module->emDebug($valid_dates);
+        //$module->emDebug($valid_dates);
         return $valid_dates;
 
     }
@@ -357,14 +343,14 @@ class Participant
      */
     public function getInvalidDates() {
         global $module;
-        $module->emDebug($this->survey_status);
+        //$module->emDebug($this->survey_status);
         $invalid_dates = array();
         foreach ($this->survey_status as $date => $status) {
             if (!$status['valid']) {
                 $invalid_dates[$date] = '1';
             }
         }
-        $module->emDebug($invalid_dates);
+        //$module->emDebug($invalid_dates);
         return array_keys($invalid_dates);
 
     }
