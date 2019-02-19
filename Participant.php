@@ -280,9 +280,30 @@ class Participant
 
     }
 
-
-    public function newSurveyEntry($day_number, $survey_date) {
+    public function getCountOfDayNumber($id, $day_number) {
         global $module;
+
+        $filter = '';
+        $params = array(
+            'return_format' => 'json',
+            'records'       => $id
+
+        );
+    }
+
+
+    public function newSurveyEntry($day_number, $survey_date, $max_response_per_day = null) {
+        global $module;
+
+        //check max-response-per-day
+        if (($max_response_per_day != null) or ($max_response_per_day == 0)) {
+
+            //see how many responses already exist for this day_number
+
+
+
+        }
+
 
         $params = array(
             REDCap::getRecordIdField() => $this->participant_id,

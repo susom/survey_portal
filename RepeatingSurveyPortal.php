@@ -7,9 +7,9 @@ use \REDCap;
 use \DateTime;
 use \Message;
 use Exception;
-use Stanford\RepeatingSurveyPortal\Participant;
 
 require_once 'Participant.php';
+require_once 'TextManager.php';
 
 /**
  * Class RepeatingSurveyPortal
@@ -31,6 +31,8 @@ require_once 'Participant.php';
  */
 class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 {
+
+
     // CRON METHOD
     /**
      * 1) Determine projects that are using this EM
@@ -74,13 +76,24 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     /**
      *
+     * TODO: add send status to REDCap logging
+     *
      * Called by cron method - process for the current project for this subsetting
      *
      * @param $sub  SubSetting number
      */
     public function sendInvitations($sub) {
+        $sid = $this->getProjectSetting("twilio-sid")[$sub];
+        $token = $this->getProjectSetting("twilio-token")[$sub];
+        $number = $this->getProjectSetting("twilio-number")[$sub];
+
+//$this->emDebug($sid, $token, $number); exit;
+
+        $text_manager = new TextManager($sid, $token, $number);
+
         $from = 'no-reply@stanford.edu';  // hard code this?
-        $subject = "survey portal invite";
+        $from = $this->getProjectSetting("invitation-email-from")[$sub];
+        $subject = $this->getProjectSetting("invitation-email-subject")[$sub];
         //Sanity test printouts
         //$this->emDebug($sub, $this->getProjectSettings(), $this->getProjectSetting('config-id')); exit;
 
@@ -139,7 +152,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $result = json_decode($q, true);
 //                'array', NULL, array($cfg['MAIN_SURVEY_HASH_FIELD']), $config_event[$sub],
 //                NULL,FALSE,FALSE,FALSE,$filter);
-        $this->emDebug($result, "COUNT IS ".count($result));
+        $this->emDebug("Count of invitations to be sent:  ".count($result));
 
         //iterate over and check if the phone/email
         foreach ($result as $candidate) {
@@ -147,7 +160,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             //check if today is an invitation day
             $valid_day_array = self::parseRangeString($invitation_days);
             $valid_day = $this->checkIfDateValid($candidate[$start_str],$valid_day_array );
-            $this->emDebug($valid_day, $valid_day_array, "IN ARRAY");
+            //$this->emDebug($valid_day, $valid_day_array, "IN ARRAY");
 
             if ($valid_day != null) {
                 //check if valid (multiple allowed, widow )
@@ -168,7 +181,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
                     $participant->surveyEventName, $next_id);
 
-
                 //send invite to email OR SMS
                 if ($candidate[$invitation_email_field."___1"] == '1') {
 
@@ -180,11 +192,24 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                     $send_status = $this->sendEmail($candidate[$email_field], $from, $subject."  1" , $msg);
 
+                    //TODO: log send status to REDCap Logging?
+
                 }
 
-                if ($candidate[$invitation_text_field."___1"] == '1') {
+                if ($candidate[$invitation_sms_field."___1"] == '1') {
                     $this->emDebug("Sending text invite to ".$candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
+                    $msg = $this->formatEmailMessage($sms_text, $survey_link);
+
+                    //$sms_status = $this->sms_messager->sendText($candidate[$phone_field], $msg);
+                    $twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
+
+                    if (!$twilio_status) {
+                        $this->emError("TWILIO Failed to send to ". $candidate[$phone_field] . " with status ". $twilio_status);
+                    }
+
+
+
                 }
 
             }
@@ -207,7 +232,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $start = new DateTime($start_str);
 
         $interval = $date->diff($start);
-        $this->emDebug("DIFF in Days", $interval->days, $valid_day_number);
+        //$this->emDebug("DIFF in Days", $interval->days, $valid_day_number);
 
         if (in_array($interval->days, $valid_day_number)) {
             return $interval->days;
@@ -230,7 +255,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $target_str = "[invitation-url]";
 
         //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
-        $this->emDebug($msg, $target_str);
+
 
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $survey_link, $msg);
@@ -243,7 +268,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
 
     function sendEmail($to, $from, $subject, $msg) {
-        $this->emDebug($to, $from, $subject, $msg);
 
         // Prepare message
         $email = new Message();
@@ -252,11 +276,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $email->setSubject($subject);
         $email->setBody($msg); //format message??
 
-       //logIt("about to send " . print_r($email,true), "DEBUG");
-
         $result = $email->send();
-        $this->emDebug($to, $from, $subject, $msg, $result);
-        $this->emDebug("RESULT IS ". $result);
+        //$this->emDebug($to, $from, $subject, $msg, $result);
 
     // Send Email
         if ($result == false) {
