@@ -126,31 +126,51 @@ if ($portal->autoStartSurvey) {
 }
 
 //confirm valid window
-if (!$portal->validTimeWindow($survey_date)) {
-    $error_msg[] = "This day is not a valid window.";
+//todo: should i split this up to get better error messages?
+//if (!$participant->newSurveyValidNow($day_number, $survey_date)) {
+//    $error_msg[] = "This date/time is not a valid window.";
+//}
+
+
+if (isset($survey_date)) {
+    if (!$participant->isDayLagValid($survey_date)) {
+        $error_msg[] = "The survey is past the allowed day lag: ". $participant->validDayLag . ' days';
+    }
+
+    if (!$participant->isStartTimeValid($survey_date)) {
+        $error_msg[] = "The earliest allowed start time  to take the survey is " . $participant->earliestTimeAllowed . ':00';
+    }
+
+    if (!$participant->checkMaxResponsePerDay($day_number, $survey_date)) {
+        $error_msg[] = "The survey for this date has exceeded the allowed count:  " . $participant->maxResponsePerDay;
+    }
+
 }
 
-//$module->emDebug($error_msg, ($error_msg != null));
+//$module->emDebug($error_msg, ($error_msg == null), empty($error_msg), isset($error_msg));
 
 //$survey_date_str = $survey_date->format('Y-m-d');
 
 if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
+
     $next_id = $participant->max_instance + 1;
     //$module->emDebug($participant->max_instance,"NEXT ID IS ".$next_id );exit;
 
-    //setup survey link for the correct survey
-    //prefill new survey with day_number / date/
-    $participant->newSurveyEntry($day_number, $survey_date);
+        //setup survey link for the correct survey
+        //prefill new survey with day_number / date/
+        $participant->newSurveyEntry($day_number, $survey_date);
 
-    // surveyDayNumberField: Day number
-    // surveyDateField : this should be day of day number not actual day
-    $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName,
-        $next_id);
 
-    //$module->emDebug($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName, $survey_link, "SURVEY LINK");
-    //start
-    header("Location: " . $survey_link);
-    exit;
+        // surveyDayNumberField: Day number
+        // surveyDateField : this should be day of day number not actual day
+        $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName,
+            $next_id);
+
+        //$module->emDebug($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName, $survey_link, "SURVEY LINK");
+        //start
+        header("Location: " . $survey_link);
+        exit;
+
 }
 
 
@@ -344,7 +364,6 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
         }
 
         // Example format:  var survey_dates = { '2016-02-04': 'some description', '2016-02-25': 'some other description' };
-        //var survey_dates = <?php echo json_encode($cfg->calendar_survey_dates) ?>;
         var survey_dates = <?php echo json_encode($participant->getValidDates()) ?>;
         var invalid_dates = <?php echo json_encode($participant->getInvalidDates()) ?>;
 

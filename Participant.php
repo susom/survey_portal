@@ -74,14 +74,14 @@ class Participant
         'survey-config-field'     => 'surveyConfigIDField',
         'survey-day-number-field' => 'surveyDayNumberField',
         'survey-instrument'       => 'surveyInstrument',
-        'valid-day-number'        => '$validDayNumber',
-        'max-response-per-day'    => '$maxResponsePerDay',
-        'valid-day-lag'           => '$validDayLag',
+        'valid-day-number'        => 'validDayNumber',
+        'max-response-per-day'    => 'maxResponsePerDay',
+        'valid-day-lag'           => 'validDayLag',
         'earliest-time-allowed'   => 'earliestTimeAllowed',
         'show-calendar'            => 'showCalendar',
         'show-missing-day-buttons' => 'showMissingDayButtons',
-        'auto-start-survey'        => '$autoStartSurvey',
-        'survey-complete-redirect' => '$surveyCompleteRedirect',
+        'auto-start-survey'        => 'autoStartSurvey',
+        'survey-complete-redirect' => 'surveyCompleteRedirect',
         'invitation-days'          => 'invitationDays',
         'invitation-time'          => 'invitationTime',
         'invitation-reminder-time' => 'invitationReminderTime',
@@ -291,18 +291,102 @@ class Participant
         );
     }
 
+    public function newSurveyValidNow($day_number, $survey_date) {
+        global $module;
+        $valid = false;
 
-    public function newSurveyEntry($day_number, $survey_date, $max_response_per_day = null) {
+        //check if survey already exists for this $survey_date
+
+        $this->validDayLag;
+        $this->maxResponsePerDay;
+        $this->earliestTimeAllowed;
+
+        //check whether it's within bounds of validDayLag
+        //check if time is okay for earliest Time allowed
+        if (($this->isDayLagValid($survey_date)) && ($this->isStartTimeValid($survey_date)) && ($this->checkMaxResponsePerDay($day_number, $survey_date))) {
+            $valid = true;
+        }
+
+
+        //check if within maxResponsePerDay
+
+        $module->emDebug("REturnign. ".$valid);
+        return $valid;
+    }
+
+    public function isDayLagValid($survey_date) {
+        global $module;
+        if (!isset($this->validDayLag)) {
+            $module->emDebug("not set");
+            return true;
+        } else {
+            $today = new DateTime();
+
+            $date_diff = $today->diff($survey_date)->days;
+            if ($date_diff <= $this->validDayLag ) {
+                $module->emDebug("valid day lag".  $date_diff, $today, $survey_date);
+                return true;
+            }
+        }
+        $module->emDebug("FAILED in valid day lag. Date DIff : ". $date_diff, $today, $survey_date);
+        return false;
+    }
+
+    public function isStartTimeValid($survey_date) {
+        global $module;
+        if (!isset($this->earliestTimeAllowed)) {
+            $module->emDebug("not set", $survey_date);
+            return true;
+        } else {
+            $allowed_earliest = $survey_date->setTime($this->earliestTimeAllowed , 0);
+            $module->emDebug($allowed_earliest);
+
+            $now = new DateTime();
+
+
+            if ($now >= $allowed_earliest ) {
+                $module->emDebug("valid time ".  $allowed_earliest->format('Y-m-d H:i:s'), $now->format('Y-m-d  H:i:s'));
+                return true;
+            }
+        }
+        $module->emDebug("FAILED with invalid start time. Date DIff : ". $now->format('Y-m-d H:i:s') . " vs " . $allowed_earliest->format('Y-m-d H:i:s'));
+        return false;
+    }
+
+
+    /** This version only allows one */
+    public function checkMaxResponsePerDay($day_number, $survey_date) {
+        global $module;
+        $survey_date_str = $survey_date->format('Y-m-d');
+        $survey_complete = $this->survey_status[$survey_date_str]['complete'];
+
+        $module->emDebug($this->survey_status[$survey_date_str]);
+
+        if (($survey_complete) == 2) {
+            return false;
+        }
+        return true;
+
+    }
+
+
+    public function newSurveyEntry($day_number, $survey_date) {
         global $module;
 
-        //check max-response-per-day
-        if (($max_response_per_day != null) or ($max_response_per_day == 0)) {
+        //check max-response-per-day / base case is 1
+        if ($this->maxResponsePerDay == 1) {
 
             //see how many responses already exist for this day_number
 
+            //TODO: refresh survey_status?? is this overkill?  should refresh happen at end of survey hook?
+            $this->survey_status = $this->getAllSurveyStatus($this->participant_id, min($this->valid_day_array), max($this->valid_day_array));
+
+            //get the status for the survey_date
+            $this->survey_status[$survey_date->format('Y-m-d')]['completed'];
 
 
         }
+
 
 
         $params = array(
@@ -376,36 +460,7 @@ class Participant
 
     }
 
-    /**
-     * TODO: not used.
-     * @param $from
-     * @param $subject
-     * @param $msg
-     * @return bool
-     */
-    public function sendEmail($from, $subject, $msg) {
-        global $module;
 
-        // Prepare message
-        $email = new Message();
-        //$email->setTo($this->);
-        $email->setFrom($from);
-        $email->setSubject($subject);
-        $email->setBody($msg);
-
-
-        $result = $email->send();
-        $module->emDebug( $from, $subject, $msg, $result);
-        $module->emDebug("RESULT IS ". $result);
-
-    // Send Email
-        if (!$email->send()) {
-            $this->emLog('Error sending mail: ' . $email->getSendError() . ' with ' . json_encode($email));
-            return false;
-        }
-
-    return true;
-    }
 
     /**
      * // METHOD:   x()

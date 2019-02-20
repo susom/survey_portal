@@ -101,7 +101,13 @@ class Portal
         $valid_day_array = RepeatingSurveyPortal::parseRangeString($this->validDayNumber);
         //$module->emDebug($valid_day_array, $this->validDayNumber, $config['valid-day-number']['value'][$sub],"VALID DAY"); exit;
         //setup the participant
-        $this->participant = new Participant($sub, $hash,$valid_day_array);
+
+        //TODO: if multiple response per day is allowed, then use different class, ParticipantMultipleResponse
+        if ($this->maxResponsePerDay != 1) {
+            $this->participant = new Participant($sub, $hash, $valid_day_array);
+        } else {
+            $this->participant = new ParticipantMultipleResponse($sub, $hash, $valid_day_array);
+        }
         $this->participant_id = $this->participant->participant_id;
 
 
@@ -130,17 +136,6 @@ class Portal
 
     public function getParticipant() {
         return $this->participant;
-    }
-
-
-    public function validTimeWindow($survey_date) {
-        //check time to enter
-
-        //check if too early
-
-        //check if entry already exists and if multiple entries on same dayare allowed
-
-        return true;
     }
 
     /**

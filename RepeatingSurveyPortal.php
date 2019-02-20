@@ -9,7 +9,6 @@ use \Message;
 use Exception;
 
 require_once 'Participant.php';
-require_once 'TextManager.php';
 
 /**
  * Class RepeatingSurveyPortal
@@ -35,6 +34,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     // CRON METHOD
     /**
+     * TODO: Add cron to config.json
+     *
      * 1) Determine projects that are using this EM
      * 2) Instantiate instance of EM for each project
      * 3)
@@ -74,6 +75,43 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     }
 
+
+    /**
+     * * TODO: Add cron to config.json
+     */
+    public function reminderCron() {
+        //* 1) Determine projects that are using this EM
+        //get all projects that are enabled for this module
+        $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
+
+        //get the noAuth api endpoint for Cron job.
+        $url = $this->getUrl('web/ReminderCron.php', true, true);
+
+        while ($proj = db_fetch_assoc($enabled)) {
+            $pid = $proj['project_id'];
+
+            //check scheduled hour of send
+            $scheduled_hour = $this->getProjectSetting('invitation-reminder-time', $pid);
+            $current_hour = date('H');
+
+            //iterate through all the sub settings
+            foreach ($scheduled_hour as $sub => $invite_time) {
+                $this->emDebug("project $pid - $sub scheduled at this hour $invite_time vs current hour: $current_hour");
+
+
+                //if not hour, continue
+                if ($scheduled_hour != $current_hour) continue;
+
+                $this_url = $url . '&pid=' . $pid . "&c=" . $sub;
+                $this->emDebug("CRON URL IS " . $this_url);
+
+                $resp = http_get($this_url);
+                //$this->cronAttendanceReport($pid);
+                $this->emDebug("cron for text reminder: " . $resp);
+            }
+        }
+    }
+
     /**
      *
      * TODO: add send status to REDCap logging
@@ -83,15 +121,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $sub  SubSetting number
      */
     public function sendInvitations($sub) {
-        $sid = $this->getProjectSetting("twilio-sid")[$sub];
-        $token = $this->getProjectSetting("twilio-token")[$sub];
-        $number = $this->getProjectSetting("twilio-number")[$sub];
 
-//$this->emDebug($sid, $token, $number); exit;
-
-        $text_manager = new TextManager($sid, $token, $number);
-
-        $from = 'no-reply@stanford.edu';  // hard code this?
         $from = $this->getProjectSetting("invitation-email-from")[$sub];
         $subject = $this->getProjectSetting("invitation-email-subject")[$sub];
         //Sanity test printouts
@@ -114,9 +144,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $hash = ($this->getProjectSetting('personal-hash-field'))[$sub];
 
         //$this->emDebug($config_id, ($this->getProjectSetting('config-id'))[$sub],"CONFIG ID"); exit;
-
-
-
 
         //1. Obtain all records where this 'config-id' matches the in the patient record
         //Also filter that either invitation_method_field is populated.
@@ -202,7 +229,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     $msg = $this->formatEmailMessage($sms_text, $survey_link);
 
                     //$sms_status = $this->sms_messager->sendText($candidate[$phone_field], $msg);
-                    $twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
+                    //$twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
+                    $twilio_status = $this->emText($candidate[$phone_field], $msg);
 
                     if (!$twilio_status) {
                         $this->emError("TWILIO Failed to send to ". $candidate[$phone_field] . " with status ". $twilio_status);
@@ -215,6 +243,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             }
 
         }
+
+    }
+
+    public function sendReminders($sub) {
 
     }
 
@@ -724,6 +756,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     </div>
 EOD;
         return $html;
+    }
+
+    function emText($number, $text) {
+        global $module;
+
+        $emTexter = ExternalModules\ExternalModules::getModuleInstance('twilio_utility');
+        $text_status = $emTexter->emSendSms($number, $text);
+        return $text_status;
     }
 
 

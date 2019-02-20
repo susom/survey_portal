@@ -304,7 +304,7 @@
         },
         {
           "key": "twilio-sid",
-          "name": "<b>Twilio SID</b>",
+          "name": "<b>NO LONGER USED - moved to external EM Twilio SID</b>",
           "required": false,
           "type": "text",
           "branchingLogic": {
@@ -315,7 +315,7 @@
         },
         {
           "key": "twilio-token",
-          "name": "<b>Twilio Token</b>",
+          "name": "<b>NO LONGER USED - moved to external EM Twilio Token</b>",
           "required": false,
           "type": "text",
           "branchingLogic": {
@@ -326,7 +326,7 @@
         },
         {
           "key": "twilio-number",
-          "name": "<b>Twilio Number</b>",
+          "name": "<b>NO LONGER USED - moved to external EM Twilio Number</b>",
           "required": false,
           "type": "text",
           "branchingLogic": {
