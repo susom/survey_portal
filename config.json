@@ -100,6 +100,16 @@
           "type": "checkbox"
         },
         {
+          "key": "portal-disabled-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>PORTAL IS NOT ACTIVE</h3></div>",
+          "required": false,
+          "type": "descriptive",
+          "branchingLogic": {
+            "field": "enable-portal",
+            "value": false
+          }
+        },
+        {
           "key": "landing-page-desc",
           "name": "<b>Landing Page Settings</b>",
           "required": false,
@@ -117,8 +127,18 @@
           "required": false,
           "type": "form-list"
         },
-
-
+        {
+          "key": "participant-settings-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>PARTICIPANT SETTINGS</h3></div>",
+          "required": false,
+          "type": "descriptive"
+        },
+        {
+          "key": "participant-disabled",
+          "name": "<b>Participant Disabled Field</b><br>If specified and the value is '1', the participant will be disabled and will not be able to create any new survey entries.",
+          "required": false,
+          "type": "field-list"
+        },
         {
           "key": "start-date-field",
           "name": "<b>Start Date Field</b><br>This is day 0 when day numbers are enabled",
@@ -139,7 +159,7 @@
         },
         {
           "key": "survey-config-id-field",
-          "name": "<b>Config ID field</b><br>Field to identify which config applies to the record",
+          "name": "<b>TODO: TO BE DELETED Config ID field</b><br>Field to identify which config applies to the record",
           "required": false,
           "type": "field-list"
         },
@@ -150,14 +170,26 @@
           "type": "field-list"
         },
         {
+          "key": "disable-participant-email-field",
+          "name": "<b>Participant Level: Disable Email Invites and Reminders Field</b><br>If set to 1 (calc or text field) then emails will be disabled for this participant.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
           "key": "phone-field",
           "name": "<b>Phone Field</b><br>Field where phone is recorded for this participant (to be used for survey invtes/reminders ",
           "required": false,
           "type": "field-list"
         },
         {
+          "key": "disable-participant-sms-field",
+          "name": "<b>Participant Level:  Disable SMS Invites and Reminders Field</b><br>If set to 1 (calc or text field) then SMS will be disabled for this participant.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
           "key": "survey-desc",
-          "name": "<b>Survey Settings</b>",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>Repeating Survey Configuration</h3></div>",
           "required": false,
           "type": "descriptive"
         },
@@ -168,38 +200,38 @@
           "type": "event-list"
         },
         {
+          "key": "survey-instrument",
+          "name": "<b>Name of Survey Instrument</b><br>This instrument must be repeating.  If the four fields below are NOT part of this instrument, then this instrument and the one containing the four fields below must be part of the same repeating event.",
+          "required": false,
+          "type": "form-list"
+        },
+        {
           "key": "survey-config-field",
-          "name": "<b>Survey Config ID Field</b>",
+          "name": "<b>Survey Config ID Field</b><br>This TEXT field stores which config was used in cases where you have multiple repeating configurations in a single project",
           "required": false,
           "type": "field-list"
         },
         {
           "key": "survey-day-number-field",
-          "name": "<b>Survey Day Number Field</b>",
+          "name": "<b>Survey Day Number Field</b><br>This TEXT field is the number of days from the Start Date Field defined above for this survey instance",
           "required": false,
           "type": "field-list"
         },
         {
           "key": "survey-date-field",
-          "name": "<b>Survey Date Field</b>",
+          "name": "<b>Survey Date Field</b><br>This TEXT field is the date that corresponds to the day number selected in the calendar landing page",
           "required": false,
           "type": "field-list"
         },
         {
           "key": "survey-launch-ts-field",
-          "name": "<b>Survey Launch Timestamp</b>Field to capture actual timestamp of survey launch",
+          "name": "<b>Survey Launch Timestamp</b><br>This TEXT field captures the actual timestamp of survey launch",
           "required": false,
           "type": "field-list"
         },
         {
-          "key": "survey-instrument",
-          "name": "<b>Name of Survey Instrument</b>",
-          "required": false,
-          "type": "form-list"
-        },
-        {
           "key": "portal-settings-desc",
-          "name": "<b>Additional Portal Settings</b>",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>ADDITIONAL SURVEY PORTAL SETTINGS</h3></div>",
           "required": false,
           "type": "descriptive"
         },
@@ -236,7 +268,7 @@
         },
         {
           "key": "show-calendar",
-          "name": "<b>Show Calendar</b><br>Show the date-picker calendar to allow participants to select dates for responses",
+          "name": "<b>Show Calendar</b><br>Show the date-picker calendar to allow participants to select dates for responses.  This is required if you want to allow people to enter data for days in the past",
           "required": false,
           "type": "checkbox"
         },
@@ -248,46 +280,25 @@
         },
         {
           "key": "auto-start-survey",
-          "name": "<b>Auto-Start Survey</b><br>When clicking on invitation, start survey without showing landing page",
+          "name": "<b>Auto-Start Survey</b><br>When clicking on invitation, start survey without showing landing page.",
           "required": false,
           "type": "checkbox"
         },
         {
           "key": "survey-complete-redirect",
-          "name": "<b>Survey Complete Redirect</b><br>When response is complete redirect participant to landing page (do not check if using autocontinue or survey queue)",
-          "default": "1",
+          "name": "<b>Survey Complete Redirect</b><br>Select a survey name here if you wish to redirect participants to the portal upon completion of the survey.",
           "required": false,
-          "type": "checkbox"
+          "type": "form-list"
         },
         {
           "key": "enable-invitations",
-          "name": "<b>Enable Email/Text Invitations</b><br>Enable the sending of survey invitations on valid invitation days",
+          "name": "<b>Enable Email/Text Invitations</b><br>Enable the sending of survey invitations on valid invitation days.  The invitation contains the config name and the day number encoded in the url.",
           "required": false,
           "type": "checkbox"
         },
         {
-          "key": "invitation-email-field",
-          "name": "<b>Participant Level:  Allow Invitation By Email Field</b><BR>Field at participant level to turn off emails. You can turn off emails to participant by unselecting this field in their record",
-          "required": false,
-          "type": "field-list",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
-        },
-        {
-          "key": "invitation-sms-field",
-          "name": "<b>Participant Level: Allow Invitation By Text Field</b><BR>Field at participant level to turn off texts. You can turn off texting to participant by unselecting this field in their record",
-          "required": false,
-          "type": "field-list",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
-        },
-        {
           "key": "invitation-days",
-          "name": "<b>Invitation Days</b><br>Days on which to send custom invitations (<i>e.g.</i> 0-10,15-20,25).  These days should be a subset of valid day numbers.",
+          "name": "<b>Invitation Days</b><br>Days on which to send invitations (<i>e.g.</i> 0-10,15-20,25).  These days should be a subset of valid day numbers.",
           "required": false,
           "type": "text",
           "branchingLogic": {
@@ -363,8 +374,27 @@
           }
         },
         {
+          "key": "sms-twilio-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>The use of SMS invitations REQUIRES that a separate EM (Twilio Utility) be installed and enabled globally.</h3></div>",
+          "required": false,
+          "type": "descriptive",
+          "branchingLogic": {
+            "conditions": [
+              {
+                "field": "enable-invitations",
+                "value": true
+              },
+              {
+                "field": "phone-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
+          }
+        },
+        {
           "key": "invitation-sms-text",
-          "name": "<b>Invitation SMS Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
+          "name": "<b>Invitation SMS Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message.  Messages over 160 characters may result in multiple text segments.",
           "required": false,
           "type": "textarea",
           "branchingLogic": {
@@ -380,6 +410,12 @@
               }
             ]
           }
+        },
+        {
+          "key": "survey-reminders-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>SURVEY REMINDER SETTINGS</h3><br>In some studies, rather than sending an invitation each day, subjects learn to submit every day on their own (for example, after dinner using the shortcut on their mobile device).  In these cases, one can use survey reminders to ONLY notify them if they haven't yet submitted a survey for the current day later on in the day.<br>Survey reminders can also be used with survey invitations as a 'reminder' email similar to the REDCap ASI Reminder function.</div>",
+          "required": false,
+          "type": "descriptive"
         },
         {
           "key": "enable-reminders",
@@ -399,7 +435,7 @@
         },
         {
           "key": "invitation-reminder-days",
-          "name": "<b>Invitation ReminderDays</b><br>Days on which to send  invitation reminders(<i>e.g.</i> 0-10,15-20,25)",
+          "name": "<b>Invitation ReminderDays</b><br>Days on which to send invitation reminders(<i>e.g.</i> 0-10,15-20,25).  This should be a subset of valid days.",
           "required": false,
           "type": "text",
           "branchingLogic": {
