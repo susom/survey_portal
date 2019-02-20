@@ -24,6 +24,7 @@
 
   "permissions": [
     "redcap_save_record",
+    "redcap_survey_complete",
     "redcap_module_save_configuration"
   ],
 

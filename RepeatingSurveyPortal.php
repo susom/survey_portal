@@ -351,6 +351,21 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
+    //REDCap_survey_complete
+    public function redcap_survey_complete($project_id, $record, $instrument, $event_id, $group_id,  $survey_hash,  $response_id,  $repeat_instance) {
+        $cookie_key = $this->PREFIX."_".$project_id."_".$record;  //this won't work if mother/child are on same machine at same time.
+            //$module->PREFIX."_".$project_id."_".$portal->getParticipantId()
+        $p_cookie = $_COOKIE[$cookie_key];
+        $this->emDebug($p_cookie, $_COOKIE, "FROM COOKIE");
+
+
+
+
+
+
+
+
+    }
 
     // SAVE_RECORD HOOK
     // make portal objects and verify that current record has hash and personal url saved
@@ -370,10 +385,11 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $target_form        = $this->getProjectSetting('main-config-form-name');
 
         foreach ($target_form as $sub => $candidate_target) {
+            $config_id = $this->getConfgIDFromSubID($sub);
 
             if ($instrument == $candidate_target) {
 
-                $this->emDebug("Saving record with this sub: ". $sub . " and this hash field " . $personal_hash_field[$sub]
+                $this->emDebug("Saving record with this sub: ". $sub. " config_id:".$config_id . " and this hash field " . $personal_hash_field[$sub]
                     . " is it empty?" .empty($personal_hash_field[$sub]));
 
                 if (empty($personal_hash_field[$sub])) {
@@ -397,7 +413,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     //generate a new URL
                     $new_hash     = $this->generateUniquePersonalHash($project_id, $personal_hash_field[$sub], $config_event[$sub]);
                     $portal_url   = $this->getUrl("web/landing.php", true,true);
-                    $new_hash_url = $portal_url. "&h=" . $new_hash . "&c=" . $sub;
+                    $new_hash_url = $portal_url. "&h=" . $new_hash . "&c=" . $config_id;
 
                     $this->emDebug("this is new hash: ". $new_hash_url);
                     // Save it to the record (both as hash and hash_url for piping)
@@ -456,6 +472,21 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         }
         return $max + 1;
 
+    }
+
+    public function getSubIDFromConfigID($config_id) {
+        $config_ids = $this->getProjectSetting('config-id');
+
+        $this->emDebug($config_ids,$config_ids[$config_id],$config_id, "CONFIG_IDS");
+        return array_search($config_id, $config_ids);
+
+
+    }
+
+    public function getConfgIDFromSubID($sub) {
+        $config_ids = $this->getProjectSetting('config-id');
+
+        return $config_ids[$sub];
     }
 
     /**

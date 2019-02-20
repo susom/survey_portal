@@ -1,6 +1,7 @@
 <?php
 
 
+
 namespace Stanford\RepeatingSurveyPortal;
 
 use REDCap;
@@ -26,8 +27,16 @@ $p_config = isset($_REQUEST['c']) ? $_REQUEST['c'] : "";
 $p_daynumber = isset($_REQUEST['d']) ? $_REQUEST['d'] : "";
 
 
+//todo bail if no hash , no config
+$module->emDebug($_SESSION, "SESSION AT LANDING ");
+
 $portal = new Portal($p_config, $p_hash);
 $participant = $portal->getParticipant();
+
+$_COOKIE[$module->PREFIX."_".$project_id."_".$participant->participant_id] = $p_config;
+$module->emDebug($_COOKIE,"IN LANDING");
+
+
 
 /**
  * How do we handle the content of hte landing page?
@@ -142,7 +151,7 @@ if (isset($survey_date)) {
     }
 
     if (!$participant->checkMaxResponsePerDay($day_number, $survey_date)) {
-        $error_msg[] = "The survey for this date has exceeded the allowed count:  " . $participant->maxResponsePerDay;
+        $error_msg[] = "The number of survey entries for this date has exceeded the allowed count:  " . $participant->maxResponsePerDay;
     }
 
 }

@@ -358,9 +358,9 @@ class Participant
     public function checkMaxResponsePerDay($day_number, $survey_date) {
         global $module;
         $survey_date_str = $survey_date->format('Y-m-d');
-        $survey_complete = $this->survey_status[$survey_date_str]['complete'];
+        $survey_complete = $this->survey_status[$survey_date_str]['completed'];
 
-        $module->emDebug($this->survey_status[$survey_date_str]);
+        $module->emDebug($this->survey_status[$survey_date_str], $survey_complete, "SURVEY COMPLETED?");
 
         if (($survey_complete) == 2) {
             return false;

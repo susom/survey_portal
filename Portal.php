@@ -84,8 +84,12 @@ class Portal
     public $valid_day_array;
 
 
-    public function __construct($sub, $hash) {
+    public function __construct($config_id, $hash) {
         global $module;
+
+        $sub = $module->getSubIDFromConfigID($config_id);
+        $module->emDebug("Using SUB:  ". $sub . 'for CONFIG_ID: '. $config_id);
+
         $config = $module->getProjectSettings();
 
         //setup parameters from the config
