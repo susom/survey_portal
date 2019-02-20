@@ -1,7 +1,5 @@
 <?php
 
-
-
 namespace Stanford\RepeatingSurveyPortal;
 
 use REDCap;
@@ -42,16 +40,15 @@ $module->emDebug($_COOKIE,"IN LANDING");
  * How do we handle the content of hte landing page?
  *
  * What is encoded in the url for a landing page?
- *  - pid
- *  - record  |  hash??
- *  - which config (if multiple)
- *  - day number (optional) - from invitations
- * https://redcap.stanford.edu/api/?type=module&id=11&page=web%20Portal.php&pid=12067&record=1234&config=?      &day=x
+ *  - pid        (REQUIRED)
+ *  - hash       (REQUIRED) -> used to get the record_id
+ *  - config     (REQUIRED)
+ *  - day number (OPTIONAL) - from invitations/reminders but not present in status participant url
+ * https://redcap.stanford.edu/api/?type=module&prefix=survey_portal &page=web%20landing.php &pid=12067 &record=1234 &c=YYY &day=x
  *
  *
  * Personal URL:
- *  https://redcap.stanford.edu/api/?type=module&id=11&page=web%20Portal.php&pid=12067 + h = XXXX
- * Issues - need to obfuscate record...
+ *  https://redcap.stanford.edu/api/?type=module&prefix=survey_portal &page=web%20landing.php &pid=12067 &h=XXXX &c=YYY &NOAUTH
  *
  * 1) each url generated is unique, we store it in the em_logs with parameters....
  * 1. retrieve record for this hash
