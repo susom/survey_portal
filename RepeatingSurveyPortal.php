@@ -200,13 +200,16 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     $this->emError($e);
                     continue;
                 }
-                $participant->newSurveyEntry($valid_day, new DateTime());
+                //$participant->newSurveyEntry($valid_day, new DateTime());
 
                 $next_id = $participant->max_instance + 1;
 
-                //create url
-                $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
-                    $participant->surveyEventName, $next_id);
+                //create url. Nope ue the &d= version of portal (so it will check daynumber)
+                //$survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
+                //$participant->surveyEventName, $next_id);
+                $config_id = $this->getConfgIDFromSubID($sub);
+                $portal_url   = $this->getUrl("web/landing.php", true,true);
+                $survey_link = $portal_url. "&h=" . $candidate[$hash] . "&c=" . $config_id ."&d=" . $valid_day;
 
                 //send invite to email OR SMS
                 if ($candidate[$invitation_email_field."___1"] == '1') {
