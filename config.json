@@ -143,6 +143,18 @@
           "type": "field-list"
         },
         {
+          "key": "email-field",
+          "name": "<b>Email Field</b><BR>Field where email is recorded for this participant (to be used for survey invtes/reminders ",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "phone-field",
+          "name": "<b>Phone Field</b><br>Field where phone is recorded for this participant (to be used for survey invtes/reminders ",
+          "required": false,
+          "type": "field-list"
+        },
+        {
           "key": "survey-desc",
           "name": "<b>Survey Settings</b>",
           "required": false,
@@ -211,7 +223,7 @@
         },
         {
           "key": "earliest-time-allowed",
-          "name": "<b>Earliest Time Allowed</b><br>Do not allow responses for 'today' before this time (leave blank for any time)",
+          "name": "<b>Earliest Time Allowed</b><br>Earliest allowed hour of the day (0-24) to collect surveys (e.g. 22 for 8PM)  <br>Do not allow responses for 'today' before this time (leave blank for any time)",
           "required": false,
           "type": "text"
         },
@@ -248,23 +260,13 @@
         },
         {
           "key": "enable-invitations",
-          "name": "<b>Send survey invitations by phone or email</b><br>Enable the sending of survey invitations on valid invitation days",
+          "name": "<b>Enable Email/Text Invitations</b><br>Enable the sending of survey invitations on valid invitation days",
           "required": false,
           "type": "checkbox"
         },
         {
-          "key": "invitation-desc",
-          "name": "<b>Invitation Settings</b><br>An invitation is sent with the day number encoded in the url",
-          "required": false,
-          "type": "descriptive",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
-        },
-        {
           "key": "invitation-email-field",
-          "name": "<b>Invitation By Email Field</b><BR>Field to select invitation by email to participant.",
+          "name": "<b>Participant Level:  Allow Invitation By Email Field</b><BR>Field at participant level to turn off emails. You can turn off emails to participant by unselecting this field in their record",
           "required": false,
           "type": "field-list",
           "branchingLogic": {
@@ -274,65 +276,12 @@
         },
         {
           "key": "invitation-sms-field",
-          "name": "<b>Reminder By Text Field</b><BR>Field with select invitation by text to participant.",
+          "name": "<b>Participant Level: Allow Invitation By Text Field</b><BR>Field at participant level to turn off texts. You can turn off texting to participant by unselecting this field in their record",
           "required": false,
           "type": "field-list",
           "branchingLogic": {
             "field": "enable-invitations",
             "value": true
-          }
-        },
-        {
-          "key": "email-field",
-          "name": "<b>Email Field</b><BR>If record has a valid email in this field, invitations will be sent via email. ",
-          "required": false,
-          "type": "field-list",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
-        },
-        {
-          "key": "phone-field",
-          "name": "<b>Portal Phone Field</b><br>If record has a valid phone number in this field, SMS invitations will be sent. ",
-          "required": false,
-          "type": "field-list",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
-        },
-        {
-          "key": "twilio-sid",
-          "name": "<b>NO LONGER USED - moved to external EM Twilio SID</b>",
-          "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "field": "phone-field",
-            "op": "<>",
-            "value": ""
-          }
-        },
-        {
-          "key": "twilio-token",
-          "name": "<b>NO LONGER USED - moved to external EM Twilio Token</b>",
-          "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "field": "phone-field",
-            "op": "<>",
-            "value": ""
-          }
-        },
-        {
-          "key": "twilio-number",
-          "name": "<b>NO LONGER USED - moved to external EM Twilio Number</b>",
-          "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "field": "phone-field",
-            "op": "<>",
-            "value": ""
           }
         },
         {
@@ -356,23 +305,22 @@
           }
         },
         {
-          "key": "invitation-reminder-time",
-          "name": "<b>Invitation Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
-          "required": false,
-          "type": "number",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
-        },
-        {
           "key": "invitation-email-text",
           "name": "<b>Invitation Email Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
           "required": false,
           "type": "textarea",
           "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
+            "conditions": [
+              {
+                "field": "enable-invitations",
+                "value": true
+              },
+              {
+                "field": "email-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
           }
         },
         {
@@ -381,8 +329,17 @@
           "required": false,
           "type": "text",
           "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
+            "conditions": [
+              {
+                "field": "enable-invitations",
+                "value": true
+              },
+              {
+                "field": "email-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
           }
         },
         {
@@ -391,8 +348,17 @@
           "required": false,
           "type": "text",
           "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
+            "conditions": [
+              {
+                "field": "enable-invitations",
+                "value": true
+              },
+              {
+                "field": "email-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
           }
         },
         {
@@ -401,19 +367,119 @@
           "required": false,
           "type": "textarea",
           "branchingLogic": {
-            "field": "phone-field",
-            "op": "<>",
-            "value": ""
+            "conditions": [
+              {
+                "field": "enable-invitations",
+                "value": true
+              },
+              {
+                "field": "phone-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
           }
         },
         {
-          "key": "invitation-reminder",
+          "key": "enable-reminders",
+          "name": "<b>Enable Reminders</b><br>Send survey reminders by phone or email if survey has not been completed for a valid day",
+          "required": false,
+          "type": "checkbox"
+        },
+        {
+          "key": "invitation-reminder-time",
+          "name": "<b>Invitation Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
+          "required": false,
+          "type": "number",
+          "branchingLogic": {
+            "field": "enable-reminders",
+            "value": true
+          }
+        },
+        {
+          "key": "invitation-reminder-days",
           "name": "<b>Invitation ReminderDays</b><br>Days on which to send  invitation reminders(<i>e.g.</i> 0-10,15-20,25)",
           "required": false,
           "type": "text",
           "branchingLogic": {
-            "field": "enable-invitations",
+            "field": "enable-reminders",
             "value": true
+          }
+        },
+        {
+          "key": "reminder-email-text",
+          "name": "<b>Reminder Email Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
+          "required": false,
+          "type": "textarea",
+          "branchingLogic": {
+            "conditions": [
+              {
+                "field": "enable-reminders",
+                "value": true
+              },
+              {
+                "field": "email-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
+          }
+        },
+        {
+          "key": "reminder-email-subject",
+          "name": "<b>Reminder Email Subject</b>",
+          "required": false,
+          "type": "text",
+          "branchingLogic": {
+            "conditions": [
+              {
+                "field": "enable-reminders",
+                "value": true
+              },
+              {
+                "field": "email-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
+          }
+        },
+        {
+          "key": "reminder-email-from",
+          "name": "<b>Reminder Email From</b><br>Enter an email address  to use for from field",
+          "required": false,
+          "type": "text",
+          "branchingLogic": {
+            "conditions": [
+              {
+                "field": "enable-reminders",
+                "value": true
+              },
+              {
+                "field": "email-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
+          }
+        },
+        {
+          "key": "reminder-sms-text",
+          "name": "<b>Reminder SMS Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
+          "required": false,
+          "type": "textarea",
+          "branchingLogic": {
+            "conditions": [
+              {
+                "field": "enable-reminders",
+                "value": true
+              },
+              {
+                "field": "phone-field",
+                "op": "<>",
+                "value": ""
+              }
+            ]
           }
         }
       ]
