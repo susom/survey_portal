@@ -31,6 +31,25 @@ require_once 'Participant.php';
 class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 {
 
+    const KEY_VALID_CONFIGURATION = "survey_portal_config_valid";
+
+
+    public function redcap_module_system_enable() {
+        // SET THE
+        // Do Nothing
+    }
+
+
+    public function redcap_module_link_check_display($project_id, $link) {
+        // TODO: Loop through each portal config that is enabled and see if they are all valid.
+        if ($this->getSystemSetting(self::KEY_VALID_CONFIGURATION) == 1) {
+            // Do nothing - no need to show the link
+        } else {
+            $link['icon'] = "exclamation";
+        }
+        return $link;
+    }
+
 
     // CRON METHOD
     /**
