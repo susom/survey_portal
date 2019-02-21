@@ -33,7 +33,7 @@ $module->emDebug($_SESSION, "SESSION AT LANDING ");
 $portal = new Portal($p_config, $p_hash);
 $participant = $portal->getParticipant();
 
-$_COOKIE[$module->PREFIX."_".$project_id."_".$participant->participant_id] = $p_config;
+setcookie($module->PREFIX."_".$project_id."_".$participant->participant_id, $p_config, time()+(12*3600), "/");
 $module->emDebug($_COOKIE,"IN LANDING");
 
 

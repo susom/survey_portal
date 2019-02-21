@@ -34,7 +34,8 @@ class ParticipantMultipleResponse extends Participant
     public function checkMaxResponsePerDay() {
 
         $module->emDebug("Not implemented yet. just use parent method for now");
-        return true;
+        $status = parent::checkMaxResponsePerDay();
+        return $status;
     }
 
 }
