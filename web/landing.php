@@ -155,8 +155,7 @@ if (isset($survey_date)) {
 if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
     //check for partial survey today
-        $next_id = $participant->getPartialResponseInstanceID($day_number, $survey_date);
-    //$next_id = $participant->max_instance + 1;
+    $next_id = $participant->getPartialResponseInstanceID($day_number, $survey_date);
 
     //setup survey link for the correct survey
     //prefill new survey with day_number / date/

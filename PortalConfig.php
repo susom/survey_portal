@@ -115,6 +115,8 @@ class PortalConfig {
 
     public $subSettingID;
     public $validDayArray;
+    public $inviteValidDayArray;
+    public $reminderValidDayArray;
     public $config;
 
     public function __construct($configID) {
@@ -138,25 +140,14 @@ class PortalConfig {
 
 
 
-        //setup the valid day array
+        //setup the valid day arrays
         $this->validDayArray = PortalConfig::parseRangeString($this->validDayNumber);
+        $this->inviteValidDayArray = PortalConfig::parseRangeString($this->invitationDays);
+        $this->reminderValidDayArray = PortalConfig::parseRangeString($this->reminderDays);
 
         //set event_name to the participant and survey event from id
         $this->mainConfigEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
         $this->surveyEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
-
-    }
-
-
-
-
-    public function getSubIDFromConfigID($config_id) {
-        global $module;
-
-        $config_ids = $module->getProjectSettings('config-id');
-        //$config_ids = $this->config['value']['config-id'];
-
-        return array_search($config_id, $config_ids);
 
     }
 
@@ -177,15 +168,6 @@ class PortalConfig {
 
 
     /**  GETTER METHODS */
-
-
-    public function getConfgIDFromSubID($sub) {
-        global $module;
-
-        $config_ids = $module->getProjectSetting('config-id');
-
-        return $config_ids[$sub];
-    }
 
     public function getConfigID() {
         return $this->configID;
