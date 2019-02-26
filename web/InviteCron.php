@@ -15,4 +15,6 @@ echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id
 
 $inviteMgr = new InvitationManager($project_id, $sub);
 
-$inviteMgr->sendInvitations($sub);
+if (isset($inviteMgr)) {
+    $inviteMgr->sendInvitations($sub);
+}

@@ -28,8 +28,15 @@ class InvitationManager {
 
         //get the config id from the passed in hash
         $this->configID = $module->getConfigIDFromSubID($sub);
-        $module->emDebug("in construct with ". $project_id, $pid);
-        $this->portalConfig = new PortalConfig($configID);
+        $module->emDebug("in construct with ". $project_id, $sub, $this->configID);
+
+        if ($this->configID != null) {
+
+            $this->portalConfig = new PortalConfig($configID);
+        } else {
+            $module->emError("Cron job to send invitations attempted for a non-existent configId: ". $this->configID .
+                " in this subsetting :  ". $sub);
+        }
 
     }
 
@@ -122,6 +129,11 @@ class InvitationManager {
 
     public function getInviteCandidates() {
         global $module;
+
+        if ($this->portalConfig->configID  == null) {
+            $module->emError("config ID is not set!");
+            return false;
+        }
 
         //1. Obtain all records where this 'config-id' matches the in the patient record
         //Also filter that either invitation_method_field is populated.
