@@ -791,7 +791,18 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         }
     }
 
-
+    /**
+     * @param $input    A string like 1,2,3-55,44,67
+     * @return mixed    An array with each number enumerated out [1,2,3,4,5,...]
+     */
+    static function parseRangeString($input) {
+        $input = preg_replace('/\s+/', '', $input);
+        $string = preg_replace_callback('/(\d+)-(\d+)/', function ($m) {
+            return implode(',', range($m[1], $m[2]));
+        }, $input);
+        $array = explode(",",$string);
+        return empty($array) ? false : $array;
+    }
 
 
     /**

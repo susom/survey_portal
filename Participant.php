@@ -8,12 +8,14 @@ namespace Stanford\RepeatingSurveyPortal;
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
+/** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
 
 //require_once $module->getModulePath().'Portal.php';
 
 use REDCap;
 use DateTime;
 use Exception;
+use DateInterval;
 
 class Participant
 {
@@ -58,7 +60,26 @@ class Participant
             min($this->portalConfig->validDayArray),
             max($this->portalConfig->validDayArray));
 
-        //$module->emDebug($this->getValidDates()); exit;
+        //update the survey_status to reflect day lag validity. have to do it in separate steps
+        if ( isset($this->portalConfig->validDayLag)) {
+            $today = new DateTime();
+            $day_lag = clone $today;
+            $day_lag->sub(new DateInterval('P'.$this->portalConfig->validDayLag.'D'));
+
+            foreach ($this->survey_status as $date => $status) {
+                //if date within allowed dates
+                if (($date >= $day_lag->format('Y-m-d')) && ($date <= $today->format('Y-m-d'))){
+
+                    if ($status['valid'] == true) {
+                        $this->survey_status[$date]['valid_day_lag'] = true;
+                    }
+
+                }
+            }
+        }
+
+
+        //$module->emDebug($this->survey_status, $this->getValidDates()); exit;
         //$window_dates = $module->getValidDayNumbers($participant, $project_id, $cfg['START_DATE_FIELD'], $cfg['START_DATE_EVENT'], $valid_day_number_array);
 
 
@@ -106,7 +127,18 @@ class Participant
 
             $date_str = $date->format('Y-m-d');
             $survey_status[$date_str]['day_number']  = $i;
-            $survey_status[$date_str]['valid']       = in_array($i, $this->portalConfig->validDayArray);
+            $survey_status[$date_str]['valid']        = in_array($i, $this->portalConfig->validDayArray);
+
+            //if valid day lag is not set, set all to 'valid', otherwise set all to false
+            if (isset($this->portalConfig->validDayLag)) {
+                $survey_status[$date_str]['valid_day_lag']    = false;
+            } else {
+                $survey_status[$date_str]['valid_day_lag']    = $survey_status[$date_str]['valid'];
+
+
+            }
+
+
             if (!($found_survey_key === false)) { //because one of the found keys is 0 which reads as false.
                 $survey_status[$date_str]['completed'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyInstrument . '_complete'];
                 $survey_status[$date_str]['survey_date'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyDateField];
@@ -115,6 +147,7 @@ class Participant
             $date = $start_date->modify('+ 1 days');
         }
 
+        //$module->emDebug($survey_status);
 
         return $survey_status;
 
@@ -459,7 +492,7 @@ class Participant
         //$module->emDebug($this->survey_status);
         $valid_dates = array();
         foreach ($this->survey_status as $date => $status) {
-            if ($status['valid']) {
+            if ($status['valid_day_lag']) {
                 $valid_dates[$date]['STATUS'] = $status['completed'] ? $status['completed'] : 0;
             }
         }
@@ -481,7 +514,7 @@ class Participant
         //$module->emDebug($this->survey_status);
         $invalid_dates = array();
         foreach ($this->survey_status as $date => $status) {
-            if (!$status['valid']) {
+            if (!$status['valid_day_lag']) {
                 $invalid_dates[$date] = '1';
             }
         }
