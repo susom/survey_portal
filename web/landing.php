@@ -26,15 +26,13 @@ $p_daynumber = isset($_REQUEST['d']) ? $_REQUEST['d'] : "";
 
 
 //todo bail if no hash , no config
-$module->emDebug($_SESSION, "SESSION AT LANDING ");
+$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber);
 
 $portal = new Portal($p_config, $p_hash);
-$participant = $portal->getParticipant();
+$participant = $portal->participant; //$portal->getParticipant();
+$portalConfig = $portal->portalConfig;
 
-setcookie($module->PREFIX."_".$project_id."_".$participant->participant_id, $p_config, time()+(12*3600), "/");
-$module->emDebug($_COOKIE,"IN LANDING");
-
-
+setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config, time()+(12*3600), "/");
 
 /**
  * How do we handle the content of hte landing page?
@@ -91,13 +89,13 @@ if(isset($_POST['cal_submit'])) {
     if (isset($survey_date)) {
         $module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
         $day_number = $participant->getDayNumberFromDate($survey_date);
+        $module->emDebug("From Calendar launch: Starting with date: ", $survey_date, $day_number);
     }
 
 }
 
 
-
-if ($portal->autoStartSurvey) {
+if ($portalConfig->autoStartSurvey) {
     $module->emDebug("Autostarting Survey");
     if ($p_daynumber == "") {
         $module->emDebug("No day number is set, so find day number, confirm valid day and start");
@@ -123,7 +121,7 @@ if ($portal->autoStartSurvey) {
 
 
 
-} elseif ($portal->showCalendar) {
+} elseif ($portalConfig->showCalendar) {
 
 
 } else {
@@ -139,40 +137,41 @@ if ($portal->autoStartSurvey) {
 
 
 if (isset($survey_date)) {
+    $module->emDebug(get_class($participant));
     if (!$participant->isDayLagValid($survey_date)) {
-        $error_msg[] = "The survey is past the allowed day lag: ". $participant->validDayLag . ' days';
+        $error_msg[] = "The survey is past the allowed day lag: ". $participant->portalConfig->validDayLag . ' days';
     }
 
     if (!$participant->isStartTimeValid($survey_date)) {
-        $error_msg[] = "The earliest allowed start time  to take the survey is " . $participant->earliestTimeAllowed . ':00';
+        $error_msg[] = "The earliest allowed start time  to take the survey is " . $participant->portalConfig->earliestTimeAllowed . ':00';
     }
 
-    if (!$participant->checkMaxResponsePerDay($day_number, $survey_date)) {
-        $error_msg[] = "The number of survey entries for this date has exceeded the allowed count:  " . $participant->maxResponsePerDay;
+    if (!$participant->isMaxResponsePerDayValid($day_number, $survey_date)) {
+        $error_msg[] = "The number of survey entries for this date has exceeded the allowed count of  " . $participant->portalConfig->maxResponsePerDay;
     }
 
 }
 
-//$module->emDebug($error_msg, ($error_msg == null), empty($error_msg), isset($error_msg));
-
-//$survey_date_str = $survey_date->format('Y-m-d');
-
 if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
-    $next_id = $participant->max_instance + 1;
-    //$module->emDebug($participant->max_instance,"NEXT ID IS ".$next_id );exit;
+    //check for partial survey today
+        $next_id = $participant->getPartialResponseInstanceID($day_number, $survey_date);
+    //$next_id = $participant->max_instance + 1;
 
-        //setup survey link for the correct survey
-        //prefill new survey with day_number / date/
-        $participant->newSurveyEntry($day_number, $survey_date);
+    //setup survey link for the correct survey
+    //prefill new survey with day_number / date/
+    $participant->newSurveyEntry($day_number, $survey_date,$next_id);
 
 
         // surveyDayNumberField: Day number
         // surveyDateField : this should be day of day number not actual day
-        $survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName,
+    // REDCap::getSurveyLink ( string $record, string $instrument [, int $event_id = NULL [, int $repeat_instance = 1 ]] )
+        $survey_link = REDCap::getSurveyLink(
+            $participant->participantID,
+            $participant->portalConfig->surveyInstrument,
+            $participant->portalConfig->surveyEventID,
             $next_id);
 
-        //$module->emDebug($participant->participant_id, $participant->surveyInstrument, $participant->surveyEventName, $survey_link, "SURVEY LINK");
         //start
         header("Location: " . $survey_link);
         exit;
@@ -262,7 +261,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
                 <?php echo implode("<br>", $error_message) ?>
             </div>
         <?php } ?>
-        <p><?php echo "Participant: ".$portal->participant_id; ?></p>
+        <p><?php echo "Participant: ".$portal->participantID; ?></p>
         <div class="container">
             <div class="col-sm-8 col-sm-offset-2 col-xs-12">
                 <form method="POST">
@@ -385,7 +384,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
             <?php }?>
             //fold in project_title into 'project_title' div
-            insertHtml("#project_title", '<?php echo $portal->landingPageHeader;?>');
+            insertHtml("#project_title", '<?php echo $portalConfig->landingPageHeader;?>');
 
 
             // Initialize datepicker
@@ -425,7 +424,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
                 var legend = $('#legend').show().appendTo($('div.datepicker'));
             });
 
-            <?php if ($portal->showCalendar) { ?>
+            <?php if ($portalConfig->showCalendar) { ?>
             $('#cal_date').datepicker('show');
             <?php } ?>
 

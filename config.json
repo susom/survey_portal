@@ -77,6 +77,24 @@
       "type": "checkbox"
     },
     {
+      "key": "main-config-event-name",
+      "name": "<b>Main Config Event Name</b><br>Name of event where fields below are stored (leave blank if classical)",
+      "required": false,
+      "type": "event-list"
+    },
+    {
+      "key": "main-config-form-name",
+      "name": "<b>Main Config Form Name</b><br>Name of form where config fields are stored",
+      "required": false,
+      "type": "form-list"
+    },
+    {
+      "key": "participant-config-id-field",
+      "name": "<b>Participant Config ID field</b><br>Field to identify which config applies to the Participant",
+      "required": false,
+      "type": "field-list"
+    },
+    {
       "key": "survey_portals",
       "name": "Survey Portal Configurations",
       "required": false,
@@ -89,9 +107,10 @@
           "required": false,
           "type": "textarea"
         },
+
         {
           "key": "config-id",
-          "name": "<b>Unique Config ID</b><br>Using set will work, but delete will not",
+          "name": "<b>Unique Config ID</b><br>ID to identify this configuration",
           "required": false,
           "type": "text"
         },
@@ -112,24 +131,6 @@
           }
         },
         {
-          "key": "landing-page-desc",
-          "name": "<b>Landing Page Settings</b>",
-          "required": false,
-          "type": "descriptive"
-        },
-        {
-          "key": "main-config-event-name",
-          "name": "<b>Main Config Event Name</b><br>Name of event where fields below are stored (leave blank if classical)",
-          "required": false,
-          "type": "event-list"
-        },
-        {
-          "key": "main-config-form-name",
-          "name": "<b>Main Config Form Name</b><br>Name of form where config fields are stored",
-          "required": false,
-          "type": "form-list"
-        },
-        {
           "key": "participant-settings-desc",
           "name": "<div class='alert alert-warning'><h3 class='text-center'>PARTICIPANT SETTINGS</h3></div>",
           "required": false,
@@ -147,6 +148,7 @@
           "required": false,
           "type": "field-list"
         },
+
         {
           "key": "personal-hash-field",
           "name": "<b>Personal Hash Field</b><br>This hash encodes the record_id AND the specific config for the survey portal",
@@ -159,12 +161,7 @@
           "required": false,
           "type": "field-list"
         },
-        {
-          "key": "survey-config-id-field",
-          "name": "<b>TODO: TO BE DELETED Config ID field</b><br>Field to identify which config applies to the record",
-          "required": false,
-          "type": "field-list"
-        },
+
         {
           "key": "email-field",
           "name": "<b>Email Field</b><BR>Field where email is recorded for this participant (to be used for survey invtes/reminders ",
@@ -426,7 +423,7 @@
           "type": "checkbox"
         },
         {
-          "key": "invitation-reminder-time",
+          "key": "reminder-time",
           "name": "<b>Invitation Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
           "required": false,
           "type": "number",
@@ -436,7 +433,7 @@
           }
         },
         {
-          "key": "invitation-reminder-days",
+          "key": "reminder-days",
           "name": "<b>Invitation ReminderDays</b><br>Days on which to send invitation reminders(<i>e.g.</i> 0-10,15-20,25).  This should be a subset of valid days.",
           "required": false,
           "type": "text",

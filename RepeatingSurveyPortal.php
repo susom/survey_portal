@@ -9,6 +9,7 @@ use \Message;
 use Exception;
 
 require_once 'Participant.php';
+require_once 'PortalConfig.php';
 
 /**
  * Class RepeatingSurveyPortal
@@ -110,7 +111,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $pid = $proj['project_id'];
 
             //check scheduled hour of send
-            $scheduled_hour = $this->getProjectSetting('invitation-reminder-time', $pid);
+            $scheduled_hour = $this->getProjectSetting('reminder-time', $pid);
             $current_hour = date('H');
 
             //iterate through all the sub settings
@@ -152,7 +153,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $invitation_sms_field  = ($this->getProjectSetting('invitation-sms-field'))[$sub];
         $event_id                 = ($this->getProjectSetting('main-config-event-name'))[$sub];
 
-        $config_field = ($this->getProjectSetting('survey-config-id-field'))[$sub];
+        $config_field = ($this->getProjectSetting('participant-config-id-field'))[$sub];
         $email_field = ($this->getProjectSetting('email-field'))[$sub];  // using non-blank email field to trigger send?
         $phone_field = ($this->getProjectSetting('phone-field'))[$sub];  // using non-blank phone field to trigger send?
         $email_text = ($this->getProjectSetting('invitation-email-text'))[$sub];
@@ -377,14 +378,34 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     public function redcap_survey_complete($project_id, $record, $instrument, $event_id, $group_id,  $survey_hash,  $response_id,  $repeat_instance) {
         $cookie_key = $this->PREFIX."_".$project_id."_".$record;  //this won't work if mother/child are on same machine at same time.
             //$module->PREFIX."_".$project_id."_".$portal->getParticipantId()
-        $p_cookie = $_COOKIE[$cookie_key];
-        $this->emDebug($p_cookie, $_COOKIE, "FROM COOKIE");
+        $cookie_config = $_COOKIE[$cookie_key];
 
 
+        //if redirect has been turned on redirect to the landing page
 
+        $sub = $this->getSubIDFromConfigID($cookie_config);
 
+        $redirect = $this->getProjectSetting('survey-complete-redirect')[$sub];
 
+        if (isset($redirect) && ($redirect == $instrument) ) {
 
+            $config_event_id = $this->getProjectSetting('main-config-event-name');
+            $config_event_name = REDCap::getEventNames(true, false, $config_event_id);
+            $config_field = $this->getProjectSetting('participant-config-id-field');
+            $hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
+            $hash_return  = $this->retrieveParticipantFieldWithFilter($record, $config_event_name, $config_field,$cookie_config, array($hash_field) );
+            $hash = $hash_return[$hash_field];
+
+            $portal_url   = $this->getUrl("web/landing.php", true,true);
+            $return_hash_url = $portal_url. "&h=" . $hash . "&c=" . $cookie_config;
+
+            $this->emDebug("this is new hash: ". $return_hash_url);
+
+            //now redirect back to the landing page
+            header("Location: " . $return_hash_url);
+            exit;
+
+        }
 
 
     }
@@ -397,76 +418,116 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param null $record
      * @param $instrument
      */
-    public function redcap_save_record($project_id, $record = NULL, $instrument)  {
+    public function redcap_save_record($project_id, $record = NULL,  $instrument,  $event_id,  $group_id = NULL,  $survey_hash = NULL,  $response_id = NULL, $repeat_instance) {
         //If instrument is the right one, create the portal url and save it to the designated field
 
         //iterate through all of the sub_settings
-        $personal_hash_field = $this->getProjectSetting('personal-hash-field');
-        $personal_url_field = $this->getProjectSetting('personal-url-field');
-        $config_event       = $this->getProjectSetting('main-config-event-name');
         $target_form        = $this->getProjectSetting('main-config-form-name');
 
-        foreach ($target_form as $sub => $candidate_target) {
-            $config_id = $this->getConfgIDFromSubID($sub);
+        if ($instrument == $target_form) {
+            $config_field       = $this->getProjectSetting('participant-config-id-field');
+            $config_event       = $this->getProjectSetting('main-config-event-name');
 
-            if ($instrument == $candidate_target) {
+            //get the config_id for this participant
+            $config_id          = $this->getFieldValue($record, $event_id, $config_field, $instrument, $repeat_instance);
 
-                $this->emDebug("Saving record with this sub: ". $sub. " config_id:".$config_id . " and this hash field " . $personal_hash_field[$sub]
-                    . " is it empty?" .empty($personal_hash_field[$sub]));
 
-                if (empty($personal_hash_field[$sub])) {
-                    continue; //empty hash field
-                }
-
-                // First check if hashed portal already has been created
-                $f_value = $this->getFieldValue($record, $config_event[$sub], $personal_hash_field[$sub]);
-
-                $this->emDebug("Saving record with this sub: ". $sub . " and this hash field " . $personal_hash_field[$sub]
-                    . " is it empty?" .empty($personal_hash_field[$sub]) .  " ahs this value: " . $f_value);
-
-                if ($f_value === null) {
-
-                    //  What should be encoded in the url for a landing page?
-                    //  - pid
-                    //  - record | hash?
-                    //  - which config (if multiple)
-                    //  - day number (optional) - from invitations
-
-                    //generate a new URL
-                    $new_hash     = $this->generateUniquePersonalHash($project_id, $personal_hash_field[$sub], $config_event[$sub]);
-                    $portal_url   = $this->getUrl("web/landing.php", true,true);
-                    $new_hash_url = $portal_url. "&h=" . $new_hash . "&c=" . $config_id;
-
-                    $this->emDebug("this is new hash: ". $new_hash_url);
-                    // Save it to the record (both as hash and hash_url for piping)
-                    $result[$personal_hash_field] = $new_hash;
-                    $result[$personal_url_field]  = $new_hash_url;
-
-                    $event_name = REDCap::getEventNames(true,false, $config_event[$sub]);
-
-                    $data = array(
-                        REDCap::getRecordIdField() => $record,
-                        'redcap_event_name'        => $event_name,
-                        $personal_url_field[$sub]  => $new_hash_url,
-                        $personal_hash_field[$sub] => $new_hash
-                    );
-                    $response = REDCap::saveData('json', json_encode(array($data)));
-                    //$this->emDebug($response,  "Save Response for count");
-
-                    if (!empty($response['errors'])) {
-                        $msg = "Error creating record - ask administrator to review logs: " . json_encode($response);
-                        $this->emError($msg);
-                    }
-                    $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
-                } else {
-                    continue; //leave and setup the other sub_settings
-                }
+            if ($config_id == null) {
+                $this->emError("Config ID for record $record is not set.");
+                return;
+                $this->exitAfterHook();  //todo: ask andy, this doesn't seem to exit?
             }
 
+            $sub = $this->getSubIDFromConfigID($config_id);
+
+            //if sub is empty, then the participant is using a config_id that doesn't exist.
+            if ($sub === false) {
+                $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
+                return;
+                $this->exitAfterHook(); //todo: ask andy, this doesn't seem to exit?
+            }
+
+            $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
+            $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
+
+            // First check if hashed portal already has been created
+            $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
+            //$this->emDebug("Saving record with this sub: ". $sub . " and this hash field " . $personal_hash_field
+            //    . " is it empty?" .empty($personal_hash_field) .  " ahs this value: " . $f_value);
+
+            if ($f_value == null) {
+                //generate a new URL
+                $new_hash     = $this->generateUniquePersonalHash($project_id, $personal_hash_field, $config_event);
+                $portal_url   = $this->getUrl("web/landing.php", true,true);
+                $new_hash_url = $portal_url. "&h=" . $new_hash . "&c=" . $config_id;
+
+                $this->emDebug("this is new hash: ". $new_hash_url);
+
+                // Save it to the record (both as hash and hash_url for piping)
+                $event_name = REDCap::getEventNames(true,false, $config_event);
+                $this->emDebug($event_id, $event_name, $config_event);
+
+                $data = array(
+                    REDCap::getRecordIdField() => $record,
+                    'redcap_event_name'        => $event_name,
+                    'redcap_repeat_instrument' => $instrument,
+                    'redcap_repeat_instance'   => $repeat_instance,
+                    $personal_url_field        => $new_hash_url,
+                    $personal_hash_field       => $new_hash
+                );
+                $response = REDCap::saveData('json', json_encode(array($data)));
+                //$this->emDebug($response,  "Save Response for count"); exit;
+
+                if (!empty($response['errors'])) {
+                    $msg = "Error creating record - ask administrator to review logs: " . json_encode($response);
+                    $this->emError($msg, $response['errors']);
+                }
+                $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+            }
         }
     }
 
+    public function getConfgIDFromSubID($sub) {
 
+        $config_ids = $this->getProjectSetting('config-id');
+
+        return $config_ids[$sub];
+    }
+
+    /**
+     * @param $record
+     * @param $filter_event : event NAME not id
+     * @param $filter_field
+     * @param $filter_value
+     * @param null $retrieve_array
+     */
+    public function retrieveParticipantFieldWithFilter($record, $filter_event,  $filter_field, $filter_value, $retrieve_array = null) {
+
+        $filter = "[" . $filter_event . "][" . $filter_field . "] = '$filter_value'";
+
+        $params = array(
+            'return_format'    => 'json',
+            'events'           => $filter_event,
+            'fields'           => $retrieve_array,
+            'filterLogic'      => $filter
+        );
+
+        $q = REDCap::getData($params);
+        $records = json_decode($q, true);
+
+        //$this->emDebug("RETRIEVE", $filter,$retrieve_array,  $records); exit;
+
+        return current($records);
+
+
+    }
+
+
+    public function getSubIDFromConfigID($config_id) {
+        $config_ids = $this->getProjectSetting('config-id');
+        return array_search($config_id, $config_ids);
+
+    }
     /**
      *
      *
@@ -496,20 +557,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     }
 
-    public function getSubIDFromConfigID($config_id) {
-        $config_ids = $this->getProjectSetting('config-id');
-
-        $this->emDebug($config_ids,$config_ids[$config_id],$config_id, "CONFIG_IDS");
-        return array_search($config_id, $config_ids);
-
-
-    }
-
-    public function getConfgIDFromSubID($sub) {
-        $config_ids = $this->getProjectSetting('config-id');
-
-        return $config_ids[$sub];
-    }
 
     /**
      *
@@ -556,29 +603,37 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $target_field
      * @return |null
      */
-    public function getFieldValue($record, $event, $target_field) {
+    public function getFieldValue($record, $event, $target_field, $instrument, $repeat_instance = 1) {
+
+        $this->emDebug($record, $event, $target_field, $instrument, $repeat_instance);
 
         //Right instrument, carry on
         // First check if hashed portal already has been created
         $params = array(
-            'return_format' => 'json',
-            'records' => $record,
-            'fields' => array($target_field),
-            'events' => $event
+            'return_format'       => 'json',
+            'records'             => $record,
+            'fields'              => array($target_field),
+            'events'              => $event,
+            'redcap_repeat_instrument' => $instrument,
+            'redcap_repeat_instance'   => $repeat_instance
+        );
+        $params = array(
+            'return_format'       => 'json',
+            'records'             => $record,
+            //'fields'              => array($target_field, 'redcap_repeat_instance'),
+            'events'              => $event,
+            'redcap_repeat_instrument' => $instrument,
+            'redcap_repeat_instance'   => $repeat_instance   //this doesn't seem to do anything!
         );
 
         $q = REDCap::getData($params);
         $results = json_decode($q, true);
-        $result = current($results);
 
-        //$this->emDebug("Current Record", $result, $result[$target_field], empty($result[$target_field]), isset($result[$target_field]));
+        //get the key for this repeat_instance
+        $key = array_search($repeat_instance, array_column($results, 'redcap_repeat_instance'));
+        $target = $results[$key][$target_field];
 
-        //url field already has a value, so punt
-        if (empty($result[$target_field])) {
-            return null;
-        } else {
-            return $result[$target_field];
-        }
+        return $target;
     }
 
     /**
@@ -673,13 +728,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
 
 
+
     public function getPortalDataForConfig($sub) {
 
 
         $portal_fields = array(
             REDCap::getRecordIdField(),
             ($this->getProjectSetting('start-date-field'))[$sub],
-            ($this->getProjectSetting('survey-config-id-field'))[$sub]
+            ($this->getProjectSetting('participant-config-id-field'))[$sub]
         );
 
         $portal_params = array(
@@ -733,19 +789,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         } else {
             $this->emError("Unable to find $file");
         }
-    }
-
-    /**
-     * @param $input    A string like 1,2,3-55,44,67
-     * @return mixed    An array with each number enumerated out [1,2,3,4,5,...]
-     */
-    static function parseRangeString($input) {
-        $input = preg_replace('/\s+/', '', $input);
-        $string = preg_replace_callback('/(\d+)-(\d+)/', function ($m) {
-            return implode(',', range($m[1], $m[2]));
-        }, $input);
-        $array = explode(",",$string);
-        return empty($array) ? false : $array;
     }
 
 

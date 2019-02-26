@@ -18,81 +18,12 @@ use Exception;
 class Participant
 {
 
-    /** @var bool Is portal enabled? */
-    public $enablePortal;
-    /** @var string Descriptive text for landing page */
-    public $landingPageDesc;
-    /** @var string Name of event where email and sms fields are stored */
-    public $configID;
-
-    public $mainConfigEventName;
-    public $mainConfigFormName;
-    public $emailField;
-    public $phoneField;
-    public $twilioSid;
-    public $twilioToken;
-    public $twilioNumber;
-    public $startDateField;
-    public $personalUrlField;
-    public $personalHashField;
-    public $surveyEventName;
-    public $surveyDateField;
-    public $surveyLaunchTSField;
-    public $surveyConfigIDField;
-    public $surveyDayNumberField;
-    public $surveyInstrument;
-    public $validDayNumber;
-    public $maxResponsePerDay;
-    public $validDayLag;
-    public $earliestTimeAllowed;
-    public $landingPageHeader;
-    public $showCalendar;
-    public $showMissingDayButtons;
-    public $autoStartSurvey;
-    public $surveyCompleteRedirect;
-    public $invitationDays;
-    public $invitationTime;
-    public $invitationReminderTime;
-    public $invitationEmailText;
-    public $invitationSmsText;
-    public $invitationReminder;
-
-    private $map = array(
-        'config-id'               => 'configID',
-        'landing-page-desc'      => 'landingPageDesc',
-        'landing-page-header'    => 'landingPageHeader',
-        'main-config-event-name' => 'mainConfigEventName',
-        'main-config-form-name'  => 'mainConfigFormName',
-        'email-field'            => 'emailField',
-        'phone-field'            => 'phoneField',
-        'start-date-field'       => 'startDateField',
-        'personal-hash-field'    => 'personalHashField',
-        'personal-url-field'     => 'personalUrlField',
-        'survey-event-name'       => 'surveyEventName',
-        'survey-date-field'       => 'surveyDateField',
-        'survey-launch-ts-field' => 'surveyLaunchTSField',
-        'survey-config-field'     => 'surveyConfigIDField',
-        'survey-day-number-field' => 'surveyDayNumberField',
-        'survey-instrument'       => 'surveyInstrument',
-        'valid-day-number'        => 'validDayNumber',
-        'max-response-per-day'    => 'maxResponsePerDay',
-        'valid-day-lag'           => 'validDayLag',
-        'earliest-time-allowed'   => 'earliestTimeAllowed',
-        'show-calendar'            => 'showCalendar',
-        'show-missing-day-buttons' => 'showMissingDayButtons',
-        'auto-start-survey'        => 'autoStartSurvey',
-        'survey-complete-redirect' => 'surveyCompleteRedirect',
-        'invitation-days'          => 'invitationDays',
-        'invitation-time'          => 'invitationTime',
-        'invitation-reminder-time' => 'invitationReminderTime',
-        'invitation-email-text'    => 'invitationEmailText',
-        'invitation-sms-text'      => 'invitationSmsText',
-        'invitation-reminder'      => 'invitationReminder'
-    );
+    public $portalConfig;  //config for the subsetting
+    public $module;
 
     //This participant's survey data
     public $participant_hash;
-    public $participant_id;   //PK of this participant
+    public $participantID;   //PK of this participant
     public $start_date;       //starting date of
     public $survey_status;    //survey from start_date to endate with date / day_number/ valid/ completed
     public $event_name;
@@ -101,37 +32,33 @@ class Participant
     public $max_instance;   //last instance number
 
 
-    public function __construct($sub, $hash,$valid_day_array) {
+    public function __construct($portalConfig, $hash) {
         global $module;
-        $config = $module->getProjectSettings();
-
-        //setup parameters from the config
-        foreach ($this->map as $k => $v) {
-
-            $this->{$v} =  $config[$k]['value'][$sub];
-        }
+        $this->portalConfig = $portalConfig;
 
         $this->event_name = REDCap::getEventNames(true, false, $this->surveyEventName);
 
 
         //setup the participant surveys
         //given the hash, find the participant and set id and start date in object
-        $this->participant_id =  $this->locateParticipantFromHash($hash);
+        $this->participantID =  $this->locateParticipantFromHash($hash);
 
-        //$module->emDebug($this->participant_id, $hash);
+        //$module->emDebug($this->participantID, $hash);
 
-        if ($this->participant_id == null) {
+        if ($this->participantID == null) {
             throw new Exception("Participant not found from this hash: ".$hash);
 
         }
 
-        //set up the participant survey map
-
-        $this->valid_day_array = $valid_day_array;
 
         //get all Surveys for this particpant and determine status
-        $this->survey_status = $this->getAllSurveyStatus($this->participant_id,min($valid_day_array), max($valid_day_array));
+        //limit the
+        $this->survey_status = $this->getAllSurveyStatus(
+            $this->participantID,
+            min($this->portalConfig->validDayArray),
+            max($this->portalConfig->validDayArray));
 
+        //$module->emDebug($this->getValidDates()); exit;
         //$window_dates = $module->getValidDayNumbers($participant, $project_id, $cfg['START_DATE_FIELD'], $cfg['START_DATE_EVENT'], $valid_day_number_array);
 
 
@@ -157,34 +84,37 @@ class Participant
      *
      * @param $id
      */
-    public function getAllSurveyStatus($participant_id, $min, $max) {
+    public function getAllSurveyStatus($participantID, $min, $max) {
         global $module;
         $survey_status = array();
 
-        $all_surveys = $this->getAllSurveys($this->participant_id);
-        $this->max_instance = max(array_keys($all_surveys));
-        //$module->emDebug($all_surveys, $max_instance); exit;
+        $all_surveys = $this->getAllSurveys($participantID);
+        //$this->max_instance = max(array_keys($all_surveys));
+        $max_repeat_instance = max(array_column($all_surveys, 'redcap_repeat_instance'));
+        $this->max_instance = $max_repeat_instance;
+
+        //$module->emDebug($all_surveys, $this->max_instance, $max_repeat_instance); exit;
         //$module->emDebug($this->valid_day_array, $this->start_date);
 
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
         $date = $start_date;
 
+        //$module->emDebug($all_surveys, $min, $max); exit;
         for ($i = $min; $i <= $max; $i++) {
 
-
-            $found_survey_key = array_search($i, array_column($all_surveys, $this->surveyDayNumberField));
-            //$module->emDebug($i, $found_survey_key, "FOUND");
+            $found_survey_key = array_search($i, array_column($all_surveys, $this->portalConfig->surveyDayNumberField));
 
             $date_str = $date->format('Y-m-d');
             $survey_status[$date_str]['day_number']  = $i;
-            $survey_status[$date_str]['valid']       = in_array($i, $this->valid_day_array);
-            if ($found_survey_key) {
-                $survey_status[$date_str]['completed'] = $all_surveys[$found_survey_key][$this->surveyInstrument . '_complete'];
-                $survey_status[$date_str]['survey_date'] = $all_surveys[$found_survey_key][$this->surveyDateField];
-                $survey_status[$date_str]['date_taken']  = $all_surveys[$found_survey_key][$this->surveyLaunchTSField];
+            $survey_status[$date_str]['valid']       = in_array($i, $this->portalConfig->validDayArray);
+            if (!($found_survey_key === false)) { //because one of the found keys is 0 which reads as false.
+                $survey_status[$date_str]['completed'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyInstrument . '_complete'];
+                $survey_status[$date_str]['survey_date'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyDateField];
+                $survey_status[$date_str]['date_taken']  = $all_surveys[$found_survey_key][$this->portalConfig->surveyLaunchTSField];
             }
             $date = $start_date->modify('+ 1 days');
         }
+
 
         return $survey_status;
 
@@ -194,14 +124,13 @@ class Participant
     public function locateParticipantFromHash($hash) {
         global $module;
 
-        $event_name = REDCap::getEventNames(true, false, $this->mainConfigEventName);
-        $filter = "[" . $event_name . "][" . $this->personalHashField . "] = '$hash'";
+        $filter = "[" . $this->portalConfig->mainConfigEventName . "][" . $this->portalConfig->personalHashField . "] = '$hash'";
 
         // Use alternative passing of parameters as an associate array
         $params = array(
             'return_format' => 'json',
-            'events'        => $event_name,
-            'fields'        => array( REDCap::getRecordIdField(), $this->personalHashField, $this->startDateField),
+            'events'        =>  $this->portalConfig->mainConfigEventName,
+            'fields'        => array( REDCap::getRecordIdField(), $this->portalConfig->personalHashField, $this->portalConfig->startDateField),
             'filterLogic'   => $filter
         );
 
@@ -211,10 +140,12 @@ class Participant
         // return record_id or false
         $main = current($records);
 
-        $this->participant_id = $main[REDCap::getRecordIdField()];
-        $this->start_date     = $main[$this->startDateField];
-        return ($this->participant_id);
+        $this->participantID = $main[REDCap::getRecordIdField()];
+        $this->start_date    = $main[$this->portalConfig->startDateField];
+        return ($this->participantID);
     }
+
+
 
     /**
      *
@@ -222,6 +153,8 @@ class Participant
      * @param $date
      */
     public function getDayNumberFromDate($date) {
+        global $module;
+
         $date_str = $date->format('Y-m-d');
 
         $day_number = $this->survey_status[$date_str]['day_number'];
@@ -255,26 +188,34 @@ class Participant
      */
     public function getAllSurveys($id) {
         global $module;
+
+        //restrict the getAllSurveys to the config for this participant
+
         //$filter = "[" . $this->event_name . "][" . $this->surveyFKField . "] = '$id'";
+        $filter = "[" . $this->portalConfig->surveyEventName . "][" .$this->portalConfig->surveyConfigField . "] = '{$this->portalConfig->configID}'";
 
         $get_array = array(
             REDCap::getRecordIdField(),
-            $this->configID,
-            $this->surveyDayNumberField,
-            $this->surveyDateField,
-            $this->surveyInstrument . '_complete');
+            $this->portalConfig->configID,
+            $this->portalConfig->surveyDayNumberField,
+            $this->portalConfig->surveyDateField,
+            $this->portalConfig->surveyLaunchTSField,
+            $this->portalConfig->surveyInstrument . '_complete');
 
         $params = array(
             'return_format' => 'json',
             'records'       => $id,
-            'events'        => $this->surveyEventName,
-            'fields'        => $get_array
+            'events'        => $this->portalConfig->surveyEventName,
+            'fields'        => $get_array,
+            'filterLogic'   => $filter
             //how about surveyTimestampField, surveyDateField
         );
 
         $q = REDCap::getData($params);
 
         $results = json_decode($q,true);
+
+        //$module->emDebug($filter, $params,$results, "ALL SURVEY GET");
 
         return $results;
 
@@ -291,39 +232,16 @@ class Participant
         );
     }
 
-    public function newSurveyValidNow($day_number, $survey_date) {
-        global $module;
-        $valid = false;
-
-        //check if survey already exists for this $survey_date
-
-        $this->validDayLag;
-        $this->maxResponsePerDay;
-        $this->earliestTimeAllowed;
-
-        //check whether it's within bounds of validDayLag
-        //check if time is okay for earliest Time allowed
-        if (($this->isDayLagValid($survey_date)) && ($this->isStartTimeValid($survey_date)) && ($this->checkMaxResponsePerDay($day_number, $survey_date))) {
-            $valid = true;
-        }
-
-
-        //check if within maxResponsePerDay
-
-        $module->emDebug("REturnign. ".$valid);
-        return $valid;
-    }
-
     public function isDayLagValid($survey_date) {
         global $module;
-        if (!isset($this->validDayLag)) {
+        if (!isset($this->portalConfig->validDayLag)) {
             $module->emDebug("not set");
             return true;
         } else {
             $today = new DateTime();
 
             $date_diff = $today->diff($survey_date)->days;
-            if ($date_diff <= $this->validDayLag ) {
+            if ($date_diff <= $this->portalConfig->validDayLag ) {
                 $module->emDebug("valid day lag".  $date_diff, $today, $survey_date);
                 return true;
             }
@@ -334,11 +252,11 @@ class Participant
 
     public function isStartTimeValid($survey_date) {
         global $module;
-        if (!isset($this->earliestTimeAllowed)) {
+        if (!isset($this->portalConfig->earliestTimeAllowed)) {
             $module->emDebug("not set", $survey_date);
             return true;
         } else {
-            $allowed_earliest = $survey_date->setTime($this->earliestTimeAllowed , 0);
+            $allowed_earliest = $survey_date->setTime($this->portalConfig->earliestTimeAllowed , 0);
             $module->emDebug($allowed_earliest);
 
             $now = new DateTime();
@@ -354,13 +272,15 @@ class Participant
     }
 
 
+
+
     /** This version only allows one */
-    public function checkMaxResponsePerDay($day_number, $survey_date) {
+    public function isMaxResponsePerDayValid($day_number, $survey_date) {
         global $module;
         $survey_date_str = $survey_date->format('Y-m-d');
         $survey_complete = $this->survey_status[$survey_date_str]['completed'];
 
-        $module->emDebug($this->survey_status[$survey_date_str], $survey_complete, "SURVEY COMPLETED?");
+        $module->emDebug($this->survey_status[$survey_date_str], $survey_complete,  ($survey_complete) == 2, "SURVEY COMPLETED?");
 
         if (($survey_complete) == 2) {
             return false;
@@ -369,43 +289,153 @@ class Participant
 
     }
 
+    /**
+     *
+     */
+    public function getNextInstanceID() {
+        global $module;
+        $record = $this->participantID;
+        $event = $this->portalConfig->surveyEventID;
+        $instrument = $this->portalConfig->surveyInstrument;
 
-    public function newSurveyEntry($day_number, $survey_date) {
+        //$module->emDebug("MAX ID 2", $record, $event, $instrument);
+        //getData for all surveys for this reocrd
+         //get the survey for this day_number and survey_data
+        $params = array(
+            'return_format'       => 'array',
+            //fields'              => $get_fields,
+            'records'             => $this->participantID,
+            'events'              => $this->portalConfig->surveyEventID
+        );
+        $q = REDCap::getData($params);
+        $results = json_decode($q, true);
+
+        /**
+         * array return gives you
+         * [record]
+         *    [event_id]
+         *       ['repeat_instance']
+         *           [event_id]
+         *              [survey_name]
+         *                 [repeat_instance_id]
+         */
+
+        //$used_instance_ids = $q[$this->participantID][$this->portalConfig->surveyEventID]['repeat_instances'][$this->portalConfig->surveyEventID][$this->portalConfig->surveyInstrument];
+        $used_instance_ids = $q[$record]['repeat_instances'][$event][$instrument];
+        if ($used_instance_ids == null) {
+            $max_id = 0;
+        } else {
+            $max_id = max(array_keys($used_instance_ids));
+        }
+        //$module->emDebug($results, $q, $used_instance_ids, $max_id);
+
+        return $max_id + 1;
+
+
+
+
+    }
+
+    public function getPartialResponseInstanceID($day_number, $survey_date) {
+        global $module;
+        $survey_date_str = $survey_date->format('Y-m-d');
+        $survey_complete = $this->survey_status[$survey_date_str]['completed'];
+        $filter  =  "[" . $this->portalConfig->surveyEventName . "][".$this->portalConfig->surveyDayNumberField."] = '$day_number'";  // and config_id is config
+        $filter .= " and [" . $this->portalConfig->surveyEventName . "][" .$this->portalConfig->surveyConfigField . "] = '{$this->portalConfig->configID}'";
+
+        //can only get redcap_repeat_instance if all the fields are retrieved!!
+        $get_fields = array(
+            'redcap_repeat_instance',
+            $this->portalConfig->surveyDayNumber,
+            $this->portalConfig->surveyDateNumber,
+            $this->portalConfig->surveyInstrument . '_complete'
+        );
+
+        //get the survey for this day_number and survey_data
+        $params = array(
+            'return_format'       => 'json',
+            //fields'              => $get_fields,
+            'records'             => $this->portalConfig->participantID,
+            'events'              => $this->portalConfig->surveyEventID,
+            'filterLogic'         => $filter
+        );
+
+        $module->emDebug($params);
+        $q = REDCap::getData($params);
+        $results = json_decode($q, true);
+
+        //just in case there are more than one (shouldn't happen), get the key by the largest timestamp
+        $latest_key = array_keys($results, max($results))[0];
+
+        //if 0 or 1, return the redcap_repeat_instance, otherwise
+        $survey_complete = $results[$latest_key][$this->portalConfig->surveyInstrument . '_complete'];
+        $timestamp       = $results[$latest_key][$this->portalConfig->surveyLaunchTSField];
+
+        //$module->emDebug($results, $q, $this->portalConfig->surveyEventID, $this->participantID); exit;
+        //$module->emDebug($this->portalConfig->surveyInstrument . '_complete',            $survey_complete, $survey_complete == '0', $survey_complete == '1'); exit;
+
+        $max_repeat_instance = 0;
+        //if (($survey_complete == '0') || ($survey_complete == '1')) {
+        if (isset($timestamp)) {
+            $max_repeat_instance =  $results[$latest_key]['redcap_repeat_instance'];
+            $module->emDebug($max_repeat_instance,$results[$latest_key], $survey_complete,  "Existing INSTANCE");
+        } else {
+            //it's new, so just get the next instance id to create new one.
+            //can't return this->max_instance because instance IDs are shared between parent and child.
+            //so need to get max instance ID for this RECORD, instance ids are sequential by record.
+            //$max_repeat_instance = $this->max_instance +1;
+
+            $max_repeat_instance  = $this->getNextInstanceID();
+
+
+            //$module->emDebug($survey_complete, $results[$latest_key], $max_repeat_instance, "NEW INSTANCE");
+        }
+
+        return $max_repeat_instance;
+
+    }
+
+    public function newSurveyEntry($day_number, $survey_date, $instance) {
         global $module;
 
+        /**
         //check max-response-per-day / base case is 1
-        if ($this->maxResponsePerDay == 1) {
+        if ($this->portalConfig->maxResponsePerDay == 1) {
 
             //see how many responses already exist for this day_number
 
             //TODO: refresh survey_status?? is this overkill?  should refresh happen at end of survey hook?
-            $this->survey_status = $this->getAllSurveyStatus($this->participant_id, min($this->valid_day_array), max($this->valid_day_array));
+            $this->survey_status = $this->getAllSurveyStatus(
+                $this->participantID,
+                min($this->portalConfig->validDayArray),
+                max($this->portalConfig->validDayArray));
 
             //get the status for the survey_date
             $this->survey_status[$survey_date->format('Y-m-d')]['completed'];
-
-
         }
-
-
+         */
 
         $params = array(
-            REDCap::getRecordIdField() => $this->participant_id,
-            "redcap_event_name"        => $this->event_name,
-            "redcap_repeat_instrument" => $this->surveyInstrument,
-            "redcap_repeat_instance"   => $this->max_instance + 1,
-            $this->surveyConfigIDField => $this->configID,
-            $this->surveyDayNumberField => $day_number,
-            $this->surveyDateField      => $survey_date->format('Y-m-d'),
-            $this->surveyLaunchTSField  => date("Y-m-d H:i:s")
+            REDCap::getRecordIdField()                => $this->participantID,
+            "redcap_event_name"                       => $this->portalConfig->surveyEventName,
+            "redcap_repeat_instrument"                => $this->portalConfig->surveyInstrument,
+            "redcap_repeat_instance"                  => $instance,
+            $this->portalConfig->surveyConfigField    => $this->portalConfig->configID,
+            $this->portalConfig->surveyDayNumberField => $day_number,
+            $this->portalConfig->surveyDateField      => $survey_date->format('Y-m-d'),
+            $this->portalConfig->surveyLaunchTSField  => date("Y-m-d H:i:s")
         );
 
         $result = REDCap::saveData('json', json_encode(array($params)));
+        if ($result['errors']) {
+            $module->emError($result['errors'], $params);
+        }
 
     }
 
     public function getFirstDate() {
         global $module;
+
         $dates = array_keys($this->survey_status);
 
         return min($dates);

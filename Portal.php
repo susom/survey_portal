@@ -4,7 +4,11 @@ namespace Stanford\RepeatingSurveyPortal;
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 /** @var \Stanford\RepeatingSurveyPortal\Participant $participant */
+/** @var \Stanford\RepeatingSurveyPortal\PortalConfig  $portalConfig */
+
 require_once $module->getModulePath().'Participant.php';
+require_once $module->getModulePath().'ParticipantMultipleResponse.php';
+require_once $module->getModulePath().'PortalConfig.php';
 
 
 
@@ -13,106 +17,43 @@ use REDCap;
 class Portal
 {
 
-    /** @var bool Is portal enabled? */
-    public $enablePortal;
-    /** @var string Descriptive text for landing page */
-    public $landingPageDesc;
-    /** @var string Name of event where email and sms fields are stored */
-    public $mainConfigEventName;
-    public $mainConfigFormName;
-    public $emailField;
-    public $phoneField;
-    public $twilioSid;
-    public $twilioToken;
-    public $twilioNumber;
-    public $startDateField;
-    public $personalUrlField;
-    public $personalHashField;
-    public $surveyEventName;
-    public $surveyDayNumberField;
-    public $surveyInstrument;
-    public $validDayNumber;
-    public $maxResponsePerDay;
-    public $validDayLag;
-    public $earliestTimeAllowed;
-    public $landingPageHeader;
-    public $showCalendar;
-    public $showMissingDayButtons;
-    public $autoStartSurvey;
-    public $surveyCompleteRedirect;
-    public $invitationDays;
-    public $invitationTime;
-    public $invitationReminderTime;
-    public $invitationEmailText;
-    public $invitationSmsText;
-    public $invitationReminder;
-
-    private $map = array(
-        'landing-page-desc'      => 'landingPageDesc',
-        'landing-page-header'    => 'landingPageHeader',
-        'main-config-event-name' => 'mainConfigEventName',
-        'main-config-form-name'  => 'mainConfigFormName',
-        'email-field'            => 'emailField',
-        'phone-field'            => 'phoneField',
-        'start-date-field'       => 'startDateField',
-        'personal-hash-field'    => 'personalHashField',
-        'personal-url-field'     => 'personalUrlField',
-        'survey-event-name'       => 'surveyEventName',
-        'survey-day-number-field' => 'surveyDayNumberField',
-        'survey-instrument'       => 'surveyInstrument',
-        'valid-day-number'        => 'validDayNumber',
-        'max-response-per-day'    => 'maxResponsePerDay',
-        'valid-day-lag'           => 'validDayLag',
-        'earliest-time-allowed'   => 'earliestTimeAllowed',
-        'show-calendar'            => 'showCalendar',
-        'show-missing-day-buttons' => 'showMissingDayButtons',
-        'auto-start-survey'        => 'autoStartSurvey',
-        'survey-complete-redirect' => 'surveyCompleteRedirect',
-        'invitation-days'          => 'invitationDays',
-        'invitation-time'          => 'invitationTime',
-        'invitation-reminder-time' => 'invitationReminderTime',
-        'invitation-email-text'    => 'invitationEmailText',
-        'invitation-sms-text'      => 'invitationSmsText',
-        'invitation-reminder'      => 'invitationReminder'
-    );
-
     public $event_name;
     public $participant_hash;
     public $participant_id;
     public $survey_statuses;
-    public $participant;
+
     public $valid_day_array;
 
+    public $portalConfig;
+    public $portalSubSettingID;
+
+    public $portalConfigID;
+
+    public $participantID;
+    public $participant;  // participant object
 
     public function __construct($config_id, $hash) {
         global $module;
 
-        $sub = $module->getSubIDFromConfigID($config_id);
-        $module->emDebug("Using SUB:  ". $sub . 'for CONFIG_ID: '. $config_id);
+        $this->portalConfig = new PortalConfig($config_id);
+        //$module->emDebug($this->portalConfig); exit;
 
-        $config = $module->getProjectSettings();
-
-        //setup parameters from the config
-        foreach ($this->map as $k => $v) {
-
-            $this->{$v} =  $config[$k]['value'][$sub];
-            //$module->emDebug($k, $v, $config[$k]['value'][$sub], $this->{$v});
-        }
+        $sub = $this->portalConfig->getSubsettingID();
+        //$module->emDebug("Using SUB:  ". $sub . ' for CONFIG_ID: '. $config_id);
 
         //set event_name to the participant event from id
         $event_name = REDCap::getEventNames(true, false, $this->mainConfigEventName);
 
-        $valid_day_array = RepeatingSurveyPortal::parseRangeString($this->validDayNumber);
         //$module->emDebug($valid_day_array, $this->validDayNumber, $config['valid-day-number']['value'][$sub],"VALID DAY"); exit;
         //setup the participant
-
         //TODO: if multiple response per day is allowed, then use different class, ParticipantMultipleResponse
-        if ($this->maxResponsePerDay != 1) {
-            $this->participant = new Participant($sub, $hash, $valid_day_array);
+
+        if ($this->portalConfig->maxResponsePerDay != 1) {
+            $this->participant = new ParticipantMultipleResponse($this->portalConfig, $hash);
         } else {
-            $this->participant = new ParticipantMultipleResponse($sub, $hash, $valid_day_array);
+            $this->participant = new Participant($this->portalConfig, $hash);
         }
-        $this->participant_id = $this->participant->participant_id;
+        $this->participantID = $this->participant->participantID;
 
 
     }

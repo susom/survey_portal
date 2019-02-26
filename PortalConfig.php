@@ -1,0 +1,203 @@
+<?php
+
+namespace Stanford\RepeatingSurveyPortal;
+
+/** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
+
+
+use REDCap;
+
+class PortalConfig {
+
+    public $configID;
+
+    public $enablePortal;
+
+    /**Participant Level fields **/
+    public $mainConfigEventName;
+    public $mainConfigEventID;
+    public $mainConfigFormName;
+    public $participantDisabled; // calculated field
+    public $startDateField;
+    public $personalUrlField;
+    public $personalHashField;
+    public $participantConfigIDField;
+    public $emailField;
+    public $disableParticipantEmailField;
+    public $phoneField;
+    public $disableParticipantSMSField;
+
+    /**Survey Level fields **/
+    public $surveyEventName;
+    public $surveyEventID;
+    public $surveyInstrument;
+    public $surveyConfigField;
+    public $surveyDayNumberField;
+    public $surveyDateField;
+    public $surveyLaunchTSField;
+    public $validDayNumber;
+    public $maxResponsePerDay;
+    public $validDayLag;
+    public $earliestTimeAllowed;
+
+    public $landingPageHeader;
+    public $showCalendar;
+    public $showMissingDayButtons;
+    public $autoStartSurvey;
+    public $surveyCompleteRedirect;
+
+    public $enableInvitations;
+    public $invitationDays;
+    public $invitationTime;
+    public $invitationEmailText;
+    public $invitationEmailSubject;
+    public $invitationEmailFrom;
+    public $invitationSmsText;
+
+    public $enableReminders;
+    public $reminderDays;
+    public $reminderTime;
+    public $reminderEmailText;
+    public $reminderEmailSubject;
+    public $reminderEmailFrom;
+    public $reminderSmsText;
+
+    private $map = array(
+        'main-config-event-name'          => 'mainConfigEventID',
+        'main-config-form-name'           => 'mainConfigFormName',
+        'participant-config-id-field'     => 'participantConfigIDField'
+    );
+
+    private $sub_map = array(
+        'config-id'                       => 'configID',
+        'enable-portal'                   => 'enablePortal',
+        'participant-disabled'            => 'participantDisabled',
+        'start-date-field'                => 'startDateField',
+        'personal-hash-field'             => 'personalHashField',
+        'personal-url-field'              => 'personalUrlField',
+        'email-field'                     => 'emailField',
+        'disable-participant-email-field' => 'disableParticipantEmailField',
+        'phone-field'                     => 'phoneField',
+        'disable-participant-sms-field'   => 'disableParticipantSMSField',
+        'survey-event-name'               => 'surveyEventID',
+        'survey-instrument'               => 'surveyInstrument',
+        'survey-config-field'             => 'surveyConfigField',
+        'survey-day-number-field'         => 'surveyDayNumberField',
+        'survey-date-field'               => 'surveyDateField',
+        'survey-launch-ts-field'          => 'surveyLaunchTSField',
+        'valid-day-number'                => 'validDayNumber',
+        'max-response-per-day'            => 'maxResponsePerDay',
+        'valid-day-lag'                   => 'validDayLag',
+        'earliest-time-allowed'           => 'earliestTimeAllowed',
+        'landing-page-header'             => 'landingPageHeader',
+        'show-calendar'                   => 'showCalendar',
+        'show-missing-day-buttons '       => 'showMissingDayButtons',
+        'auto-start-survey'               => 'autoStartSurvey',
+        'survey-complete-redirect'        => 'surveyCompleteRedirect',
+        'enable-invitations'              => 'enableInvitations',
+        'invitation-days'                 => 'invitationDays',
+        'invitation-time'                 => 'invitationTime',
+        'invitation-email-text'           => 'invitationEmailText',
+        'invitation-email-subject'        => 'invitationEmailSubject',
+        'invitation-email-from'           => 'invitationEmailFrom',
+        'invitation-sms-text'             => 'invitationSmsText',
+        'enable-reminders'                => 'enableReminders',
+        'reminder-time'                   => 'reminderTime',
+        'reminder-days'                   => 'reminderDays',
+        'reminder-email-text'             => 'reminderEmailText',
+        'reminder-email-subject'          => 'reminderEmailSubject',
+        'reminder-email-from'             => 'reminderEmailFrom',
+        'reminder-sms-text'               => 'reminderSMSText'
+    );
+
+
+    //derived fields
+
+    public $subSettingID;
+    public $validDayArray;
+    public $config;
+
+    public function __construct($configID) {
+        global $module;
+
+        $sub = $module->getSubIDFromConfigID($configID);
+        $this->subSettingID = $sub;
+
+        $config = $module->getProjectSettings();
+        //$module->emDebug("Using SUB: ". $sub . ' for CONFIG_ID: '. $configID, $config);
+
+        //setup the  parameters from the config
+        foreach ($this->map as $k => $v) {
+            $this->{$v} =  $config[$k]['value'];
+        }
+
+        //setup the subsetting parameters from the config
+        foreach ($this->sub_map as $k => $v) {
+            $this->{$v} =  $config[$k]['value'][$sub];
+        }
+
+
+
+        //setup the valid day array
+        $this->validDayArray = PortalConfig::parseRangeString($this->validDayNumber);
+
+        //set event_name to the participant and survey event from id
+        $this->mainConfigEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
+        $this->surveyEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
+
+    }
+
+
+
+
+    public function getSubIDFromConfigID($config_id) {
+        global $module;
+
+        $config_ids = $module->getProjectSettings('config-id');
+        //$config_ids = $this->config['value']['config-id'];
+
+        return array_search($config_id, $config_ids);
+
+    }
+
+
+    /**
+     * @param $input    A string like 1,2,3-55,44,67
+     * @return mixed    An array with each number enumerated out [1,2,3,4,5,...]
+     */
+    static function parseRangeString($input) {
+        $input = preg_replace('/\s+/', '', $input);
+        $string = preg_replace_callback('/(\d+)-(\d+)/', function ($m) {
+            return implode(',', range($m[1], $m[2]));
+        }, $input);
+        $array = explode(",",$string);
+        return empty($array) ? false : $array;
+    }
+
+
+
+    /**  GETTER METHODS */
+
+
+    public function getConfgIDFromSubID($sub) {
+        global $module;
+
+        $config_ids = $module->getProjectSetting('config-id');
+
+        return $config_ids[$sub];
+    }
+
+    public function getConfigID() {
+        return $this->configID;
+    }
+
+    public function getSubsettingID() {
+        return $this->subSettingID;
+    }
+
+    public function getValidDayArray() {
+        return $this->validDayArray;
+    }
+
+
+}
