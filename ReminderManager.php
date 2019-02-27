@@ -74,7 +74,7 @@ class ReminderManager extends InvitationManager {
 
         //for each incomplete survey, fire off a reminder if a reminder day
         foreach ($valid_dates as $date_str => $status) {
-            $module->emDebug($date_str, $status);
+
             if ($status['STATUS'] != 2) {
                 $valid_day = $status['DAY_NUMBER'];
                 //send a reminder email
@@ -131,53 +131,4 @@ class ReminderManager extends InvitationManager {
         }
     }
 
-    /**
-     * TODO: same as getInviteCandidates
-     * @return bool|mixed
-     */
-    public function getReminderCandidates() {
-        global $module;
-
-        if ($this->portalConfig->configID  == null) {
-            $module->emError("config ID is not set!");
-            return false;
-        }
-
-        //1. Obtain all records where this 'config-id' matches the in the patient record
-        //Also filter that either invitation_method_field is populated.
-        $filter = "(".
-            "([".$this->portalConfig->participantConfigIDField ."] = '{$this->portalConfig->configID}') AND ".
-            "(".
-            "(([".$this->portalConfig->disableParticipantEmailField."(1)] <> 1) and  ([".$this->portalConfig->emailField."] <> ''))".
-            " OR ".
-            "(([".$this->portalConfig->disableParticipantSMSField."(1)] <> 1) and  ([".$this->portalConfig->phoneField."] <> ''))"
-            .")"
-            .")";
-
-        $module->emDebug($filter);
-        $params = array(
-            'return_format' => 'json',
-            'fields' => array(
-                REDCap::getRecordIdField(),
-                $this->portalConfig->emailField,
-                $this->portalConfig->phoneField,
-                $this->portalConfig->personalUrlField,
-                $this->portalConfig->startDateField,
-                $this->portalConfig->emailField,
-                $this->portalConfig->phoneField,
-                $this->portalConfig->personalHashField
-            ),
-            'events' => $this->portalConfig->surveyEventName,
-            'filterLogic'  => $filter
-        );
-
-        //$this->emDebug($params, "PARAMS"); exit;
-        $q = REDCap::getData($params);
-        $result = json_decode($q, true);
-
-        $module->emDebug($result, "Count of invitations to be sent:  ".count($result));
-
-        return $result;
-
-    }
 }

@@ -493,7 +493,7 @@ class Participant
         //$module->emDebug($this->survey_status);
         $valid_dates = array();
         foreach ($this->survey_status as $date => $status) {
-            $module->emDebug($status);
+
             if ($status['valid_day_lag']) {
                 $valid_dates[$date]['STATUS'] = $status['completed'] ? $status['completed'] : 0;
                 $valid_dates[$date]['DAY_NUMBER'] = $status['day_number'];
