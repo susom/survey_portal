@@ -412,7 +412,7 @@ class Participant
         //if (($survey_complete == '0') || ($survey_complete == '1')) {
         if (isset($timestamp)) {
             $max_repeat_instance =  $results[$latest_key]['redcap_repeat_instance'];
-            $module->emDebug($max_repeat_instance,$results[$latest_key], $survey_complete,  "Existing INSTANCE");
+            //$module->emDebug($max_repeat_instance,$results[$latest_key], $survey_complete,  "Existing INSTANCE");
         } else {
             //it's new, so just get the next instance id to create new one.
             //can't return this->max_instance because instance IDs are shared between parent and child.
@@ -524,6 +524,18 @@ class Participant
         //$module->emDebug($invalid_dates);
         return array_keys($invalid_dates);
 
+    }
+
+    public function isSurveyComplete($date) {
+        global $module;
+        $date_str = $date->format('Y-m-d');
+
+        $status = $this->survey_status[$date_str];
+
+        if ($status['completed'] == '2') {
+            return true;
+        }
+        return false;
     }
 
 

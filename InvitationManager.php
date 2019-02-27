@@ -55,10 +55,10 @@ class InvitationManager {
 
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
             //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, "IN ARRAY");
-            $isDateEmpty = $this->checkIfSurveyEntered(new DateTime());
+
 
             //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, $isDateEmpty);
-            if (($valid_day != null) && $isDateEmpty) {
+            if ($valid_day != null)  {
                 //check if valid (multiple allowed, widow )
 
                 //set up the new record and prefill it with survey data
@@ -67,6 +67,11 @@ class InvitationManager {
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
                 } catch (Exception $e) {
                     $this->emError($e);
+                    continue;
+                }
+
+                if ( $participant->isSurveyComplete(new DateTime())) {
+                    $module->emDebug("Survey for $valid_day is already complete. Don't send invite for today");
                     continue;
                 }
 
