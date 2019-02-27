@@ -207,7 +207,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             foreach ($scheduled_hour as $sub => $invite_time) {
 
                 //TODO: check that the 'enable-invitations' is not set. test this
-                $enabled_invite = $this->getProjectSetting('invitation-time', $pid)[$sub];
+                $enabled_invite = $this->getProjectSetting('enable-invitations', $pid)[$sub];
                 if ($enabled_invite == '1') {
 
 
@@ -217,12 +217,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     //if not hour, continue
                     if ($scheduled_hour != $current_hour) continue;
 
-                    $this_url = $url . '&pid=' . $pid . "&c=" . $sub;
-                    $this->emDebug("CRON URL IS " . $this_url);
+                    $this_url = $url . '&pid=' . $pid . "&s=" . $sub;
+                    $this->emDebug("INVITE CRON URL IS " . $this_url);
 
                     $resp = http_get($this_url);
                     //$this->cronAttendanceReport($pid);
-                    $this->emDebug("cron for text reminder: " . $resp);
+                    $this->emDebug("cron for invitations: " . $resp);
                 }
             }
         }
@@ -249,19 +249,25 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $current_hour = date('H');
 
             //iterate through all the sub settings
-            foreach ($scheduled_hour as $sub => $invite_time) {
-                $this->emDebug("project $pid - $sub scheduled at this hour $invite_time vs current hour: $current_hour");
+            foreach ($scheduled_hour as $sub => $reminder_time) {
+                //TODO: check that the 'enable-reminders' is not set. test this
+                $enabled_reminder = $this->getProjectSetting('enable-reminders', $pid)[$sub];
+                if ($enabled_reminder == '1') {
 
 
-                //if not hour, continue
-                if ($scheduled_hour != $current_hour) continue;
+                    $this->emDebug("project $pid - $sub scheduled at this hour $reminder_time vs current hour: $current_hour");
 
-                $this_url = $url . '&pid=' . $pid . "&c=" . $sub;
-                $this->emDebug("CRON URL IS " . $this_url);
 
-                $resp = http_get($this_url);
-                //$this->cronAttendanceReport($pid);
-                $this->emDebug("cron for text reminder: " . $resp);
+                    //if not hour, continue
+                    if ($scheduled_hour != $current_hour) continue;
+
+                    $this_url = $url . '&pid=' . $pid . "&s=" . $sub;
+                    $this->emDebug("REMINDER CRON URL IS " . $this_url);
+
+                    $resp = http_get($this_url);
+                    //$this->cronAttendanceReport($pid);
+                    $this->emDebug("cron for reminder: " . $resp);
+                }
             }
         }
     }

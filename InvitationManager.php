@@ -41,8 +41,13 @@ class InvitationManager {
     }
 
 
-    public function sendInvitations() {
+    public function sendInvitations($sub) {
         global $module;
+
+        //sanity check that the subsetting matches the stored portalConfig;
+        if ($sub != $this->portalConfig->subSettingID) {
+            $module->emError("Wrong subsetting received while sending Invitations from cron");
+        }
 
         $candidates = $this->getInviteCandidates();
 
@@ -101,17 +106,18 @@ class InvitationManager {
 
                 }
 
-                if ($candidate[$invitation_sms_field."___1"] == '1') {
-                    $this->emDebug("Sending text invite to ".$candidate[REDCap::getRecordIdField()]);
+                if (($candidate[$this->portalConfig->disableParticipantSMSField."___1"] <> '1') &&
+                        ($candidate[$this->portalConfig->phoneField] <> '')) {
+                    $module->emDebug("Sending text invite to ".$candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
-                    $msg = $this->formatEmailMessage($sms_text, $survey_link);
+                    $msg = $this->formatTextMessage($this->portalConfig->invitationSmsText, $survey_link);
 
                     //$sms_status = $this->sms_messager->sendText($candidate[$phone_field], $msg);
                     //$twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
-                    $twilio_status = $this->emText($candidate[$phone_field], $msg);
+                    $twilio_status = $module->emText($candidate[$this->portalConfig->phoneField], $msg);
 
                     if (!$twilio_status) {
-                        $this->emError("TWILIO Failed to send to ". $candidate[$phone_field] . " with status ". $twilio_status);
+                        $this->emError("TWILIO Failed to send to ". $candidate[$this->portalConfig->phoneField] . " with status ". $twilio_status);
                     }
 
 
@@ -144,7 +150,7 @@ class InvitationManager {
             "(([".$this->portalConfig->disableParticipantSMSField."(1)] <> 1) and  ([".$this->portalConfig->phoneField."] <> ''))"
             .")"
             .")";
-        $filter1 =  "([".$config_field."] = '$config_id')";
+
         $module->emDebug($filter);
         $params = array(
             'return_format' => 'json',
@@ -230,7 +236,7 @@ class InvitationManager {
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $tagged_link, $msg);
         } else {
-            $msg = $msg . "<br>".$target_str;
+            $msg = $msg . "<br>Use this link to take the survey:".$tagged_link;
         }
 
         return $msg;
@@ -256,6 +262,24 @@ class InvitationManager {
         }
 
         return true;
+    }
+
+    function formatTextMessage($msg, $survey_link) {
+
+        $target_str = "[invitation-url]";
+
+        //don't use for text messages
+        $tagged_link = "<a href='{$survey_link}'>link</a>";
+        //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
+
+
+        if (strpos($msg, $target_str) !== false) {
+            $msg = str_replace($target_str, $survey_link, $msg);
+        } else {
+            $msg = $msg . "  Use this link to take the survey:".$survey_link;
+        }
+
+        return $msg;
     }
 
 }

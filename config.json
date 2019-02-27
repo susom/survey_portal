@@ -95,7 +95,7 @@
       "type": "field-list"
     },
     {
-      "key": "survey_portals",
+      "key": "survey-portals",
       "name": "Survey Portal Configurations",
       "required": false,
       "type": "sub_settings",

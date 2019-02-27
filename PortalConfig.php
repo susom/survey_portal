@@ -60,7 +60,7 @@ class PortalConfig {
     public $reminderEmailText;
     public $reminderEmailSubject;
     public $reminderEmailFrom;
-    public $reminderSmsText;
+    public $reminderSMSText;
 
     private $map = array(
         'main-config-event-name'          => 'mainConfigEventID',
@@ -126,7 +126,9 @@ class PortalConfig {
         $this->subSettingID = $sub;
 
         $config = $module->getProjectSettings();
-        //$module->emDebug("Using SUB: ". $sub . ' for CONFIG_ID: '. $configID, $config);
+        $config_subsettings = $module->getSubSettings('survey-portals'); //TODO: there is a getSubSettings method in EM
+
+        //$module->emDebug("Using SUB: ". $sub . ' for CONFIG_ID: '. $configID, $config, $config_subsettings); exit;
 
         //setup the  parameters from the config
         foreach ($this->map as $k => $v) {

@@ -90,6 +90,7 @@ class Participant
 
 
     /**
+     * Called by construcdtor to create survey_status
      * Construct a status array using startdate and final date
      * todo: double check that we should do it this way to collect data on surveys taken on 'invalid' days
      *
@@ -481,7 +482,7 @@ class Participant
     }
 
     /**
-     * Return array of 'valid' survey dates
+     * Return array of 'valid' survey dates (folding in valid_day_lag)
      * Current guess is that the desired format is
      *   [date]['STATUS'] = 1/2/0 - REDCap completion status?
      *
@@ -492,8 +493,10 @@ class Participant
         //$module->emDebug($this->survey_status);
         $valid_dates = array();
         foreach ($this->survey_status as $date => $status) {
+            $module->emDebug($status);
             if ($status['valid_day_lag']) {
                 $valid_dates[$date]['STATUS'] = $status['completed'] ? $status['completed'] : 0;
+                $valid_dates[$date]['DAY_NUMBER'] = $status['day_number'];
             }
         }
         //$module->emDebug($valid_dates);
