@@ -28,16 +28,16 @@ class InvitationManager {
 
         //get the config id from the passed in hash
         $this->configID = $module->getConfigIDFromSubID($sub);
-        $module->emDebug("in construct with ". $project_id, $sub, $this->configID);
 
         if ($this->configID != null) {
 
-            $this->portalConfig = new PortalConfig($configID);
+            $this->portalConfig = new PortalConfig($this->configID);
         } else {
             $module->emError("Cron job to send invitations attempted for a non-existent configId: ". $this->configID .
                 " in this subsetting :  ". $sub);
         }
 
+        //$module->emDebug("in construct with ". $project_id, $sub, $this->configID, $this->portalConfig);
     }
 
 
@@ -47,13 +47,12 @@ class InvitationManager {
         $candidates = $this->getInviteCandidates();
 
         foreach ($candidates as $candidate) {
-            $module->emDebug($candidate);
 
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
             //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, "IN ARRAY");
             $isDateEmpty = $this->checkIfSurveyEntered(new DateTime());
 
-            $module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, $isDateEmpty);
+            //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, $isDateEmpty);
             if (($valid_day != null) && $isDateEmpty) {
                 //check if valid (multiple allowed, widow )
 
@@ -190,8 +189,9 @@ class InvitationManager {
         $interval = $date->diff($start);
         //$this->emDebug("DIFF in Days", $interval->days, $valid_day_number);
 
+        // need at add one day since start is day 0
         if (in_array($interval->days, $valid_day_number)) {
-            return $interval->days;
+            return ($interval->days + 1);
         }
         return null;
 
@@ -223,11 +223,12 @@ class InvitationManager {
     function formatEmailMessage($msg, $survey_link) {
         $target_str = "[invitation-url]";
 
+        $tagged_link = "<a href='{$survey_link}'>link</a>";
         //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
 
 
         if (strpos($msg, $target_str) !== false) {
-            $msg = str_replace($target_str, $survey_link, $msg);
+            $msg = str_replace($target_str, $tagged_link, $msg);
         } else {
             $msg = $msg . "<br>".$target_str;
         }

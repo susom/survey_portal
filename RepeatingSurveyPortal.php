@@ -34,6 +34,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     const KEY_VALID_CONFIGURATION = "survey_portal_config_valid";
 
+    /*******************************************************************************************************************/
+    /* HOOK METHODS                                                                                                    */
+    /***************************************************************************************************************** */
+
 
     public function redcap_module_system_enable() {
         // SET THE
@@ -55,29 +59,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     // if config-id is null, then generate a config id for that the configs...
     //todo: HOLD ON THIS. saving works, but delete ignores this setting we add. punt for now.
     public function hold_redcap_module_save_configuration($project_id) {
-        $enable_portal = $this->getProjectSetting('enable-portal');
-        $config_ids = $this->getProjectSetting('config-id');
-
-        $this->emDebug($enable_portal, $config_ids);
-
-        //for each portal, make sure it has an id
-        //just using enable_portal as proxy for all existing configurations since it will need to be set for each sub setting
-        foreach ($enable_portal as $sub => $v) {
-
-            //make sure the config_id for this sub already doesn't exist
-            if (empty($config_ids[$sub])) {
-
-                $new_config_id = $this->generateUniqueConfigID('config-id');
-
-                //add this to the original config setting from the db and save it
-                $config_ids[$sub] = $new_config_id;
-
-            }
-            $this->setProjectSetting('config-id', $config_ids);
-
-        }
-
-        $this->emDebug(" ENDING Config id for $project_id : " , $config_ids);
     }
 
 
@@ -195,8 +176,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
+    /*******************************************************************************************************************/
+    /* CRON METHODS                                                                                                    */
+    /***************************************************************************************************************** */
 
-    // CRON METHOD
     /**
      * TODO: Add cron to config.json
      *
@@ -222,18 +205,25 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
             //iterate through all the sub settings
             foreach ($scheduled_hour as $sub => $invite_time) {
-                $this->emDebug("project $pid - $sub scheduled at this hour $invite_time vs current hour: $current_hour");
+
+                //TODO: check that the 'enable-invitations' is not set. test this
+                $enabled_invite = $this->getProjectSetting('invitation-time', $pid)[$sub];
+                if ($enabled_invite == '1') {
 
 
-                //if not hour, continue
-                if ($scheduled_hour != $current_hour) continue;
+                    $this->emDebug("project $pid - $sub scheduled at this hour $invite_time vs current hour: $current_hour");
 
-                $this_url = $url . '&pid=' . $pid . "&c=" . $sub;
-                $this->emDebug("CRON URL IS " . $this_url);
 
-                $resp = http_get($this_url);
-                //$this->cronAttendanceReport($pid);
-                $this->emDebug("cron for text reminder: " . $resp);
+                    //if not hour, continue
+                    if ($scheduled_hour != $current_hour) continue;
+
+                    $this_url = $url . '&pid=' . $pid . "&c=" . $sub;
+                    $this->emDebug("CRON URL IS " . $this_url);
+
+                    $resp = http_get($this_url);
+                    //$this->cronAttendanceReport($pid);
+                    $this->emDebug("cron for text reminder: " . $resp);
+                }
             }
         }
 
@@ -277,6 +267,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
+    /*******************************************************************************************************************/
+    /* HELPER METHODS                                                                                                    */
+    /***************************************************************************************************************** */
 
 
     /**
@@ -319,20 +312,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         return $config_ids[$sub];
     }
 
-
-
-    /**
-     *
-     *
-
-    "redcap_every_page_before_render",
-    "redcap_module_system_enable",
-    "redcap_module_link_check_display",
-    "redcap_module_save_configuration"
-
-     */
-
-
     /**
      * @param $project_id
      * @param $url_field
@@ -362,8 +341,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     public function generateUniquePersonalHash($project_id, $hash_field, $event) {
         //$url_field   = $this->getProjectSetting('personal-url-fields');  // won't work with sub_settings
 
-        //todo: if we are allowing multiple URLS per record, this uniqueness check won't work.
-        // Generate a unique hash for this project
         $i = 0;
         do {
             $new_hash = generateRandomHash(8, false, TRUE, false);
@@ -614,49 +591,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     }
 
-    /**
-     * Get the bookmark html
-     * @return string
-     */
-    static function getBookmarkHelp() {
-        $html=<<<EOD
-    <div class='container text-center'>
-        <p>You may bookmark this page to your home screen for faster access in the future.</p>
-        <div class='text-center'>
-            <span><a href='#Instructions' class='btn btn-default' data-toggle='collapse'>Show Instructions</a></span>
-            <div id='Instructions' class='collapse'>
-                <br/>
-                <div class='panel panel-default'>
-                    <div class='panel-body text-left'>
-                        <p><strong>On an iOS phone</strong></p>
-                         <ol>
-                             <li>If you do not see the toolbar at the bottom of your Safari window, tap once at the bottom of your screen</li>
-                             <li>Click on the Action button in the center of the toolbar (a square box with an upward arrow)</li>
-                             <li>Scroll the lower row of options to the right until you see 'Add to Home Screen' (a box with a plus sign).</li>
-                         </ol>
-                         <p><strong>On an Android phone</strong></p>
-                         <ol>
-                             <li>Open the Chrome menu <img src="//lh3.googleusercontent.com/vOgJaWNbkf_Y0kOEQXe4wSlufkMuTb8NqGMIXSP-mRm72oR4ABGkR1L4sXyMmb7lBHnz=h18" width="auto" height="18" alt="More" title="More">.</li>
-                             <li>Tap the star icon <img src="//lh3.ggpht.com/SEdDjoaQ-qufNcDGhJh5KXW0q3-tABnuWjM5fpqE9kbOyJaXN3co5MEcQu7kqoCIqHA5O84=w20" width="20" height="18" alt="Bookmark" title="Bookmark">.</li>
-                             <li>Optional: If you want to edit the bookmark's name and URL or change the folder, go to the bottom bar and tap&nbsp;<strong>Edit</strong>.</li>
-                             <li>When you're done, tap the checkmark .</li>
-                             <li>Optional:  If you want to make the bookmark appear on your home screen (like an app) open the bookmarks folder and <strong>press and hold</strong> your finger on the bookmark.  A new menu will appear with an option to Add to Home screen</li>
-                         </ol>
-                         <p><strong>On an Android tablet</strong></p>
-                         <ol>
-                             <li>In the address bar at the top, tap the star icon&nbsp;<img src="//lh3.ggpht.com/SEdDjoaQ-qufNcDGhJh5KXW0q3-tABnuWjM5fpqE9kbOyJaXN3co5MEcQu7kqoCIqHA5O84=w20" width="20" height="18" alt="Bookmark" title="Bookmark">.</li>
-                             <li>Optional: If you want to edit the bookmark's name and URL or change the folder, go to the bottom bar and tap&nbsp;<strong>Edit</strong>.</li>
-                             <li>When you're done, tap the checkmark .</li>
-                             <li>Optional:  If you want to make the bookmark appear on your home screen (like an app) open the bookmarks folder and <strong>press and hold</strong> your finger on the bookmark.  A new menu will appear with an option to Add to Home screen</li>
-                         </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-EOD;
-        return $html;
-    }
+
+    /*******************************************************************************************************************/
+    /* EXTERNAL MODULEXS METHODS                                                                                                    */
+    /***************************************************************************************************************** */
+
+
 
     function emText($number, $text) {
         global $module;
