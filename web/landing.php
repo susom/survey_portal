@@ -26,11 +26,13 @@ $p_daynumber = isset($_REQUEST['d']) ? $_REQUEST['d'] : "";
 
 
 //todo bail if no hash , no config
-$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber);
+
 
 $portal = new Portal($p_config, $p_hash);
 $participant = $portal->participant; //$portal->getParticipant();
 $portalConfig = $portal->portalConfig;
+
+//$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber, $portalConfig);
 
 setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config, time()+(12*3600), "/");
 
@@ -159,12 +161,17 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
     //setup survey link for the correct survey
     //prefill new survey with day_number / date/
-    $participant->newSurveyEntry($day_number, $survey_date,$next_id);
+    $status = $participant->newSurveyEntry($day_number, $survey_date,$next_id);
+
+    if ($status === false ) {
+        $error_msg[] = "There was an error trying to create the new survey entry. Please contact your administrator.";
+
+    } else {
 
 
         // surveyDayNumberField: Day number
         // surveyDateField : this should be day of day number not actual day
-    // REDCap::getSurveyLink ( string $record, string $instrument [, int $event_id = NULL [, int $repeat_instance = 1 ]] )
+        // REDCap::getSurveyLink ( string $record, string $instrument [, int $event_id = NULL [, int $repeat_instance = 1 ]] )
         $survey_link = REDCap::getSurveyLink(
             $participant->participantID,
             $participant->portalConfig->surveyInstrument,
@@ -174,6 +181,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
         //start
         header("Location: " . $survey_link);
         exit;
+    }
 
 }
 

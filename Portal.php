@@ -36,7 +36,6 @@ class Portal
         global $module;
 
         $this->portalConfig = new PortalConfig($config_id);
-        //$module->emDebug($this->portalConfig); exit;
 
         $sub = $this->portalConfig->getSubsettingID();
         //$module->emDebug("Using SUB:  ". $sub . ' for CONFIG_ID: '. $config_id);

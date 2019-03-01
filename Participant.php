@@ -276,7 +276,7 @@ class Participant
 
             $date_diff = $today->diff($survey_date)->days;
             if ($date_diff <= $this->portalConfig->validDayLag ) {
-                $module->emDebug("valid day lag".  $date_diff, $today, $survey_date);
+                //$module->emDebug("valid day lag".  $date_diff, $today, $survey_date);
                 return true;
             }
         }
@@ -314,7 +314,7 @@ class Participant
         $survey_date_str = $survey_date->format('Y-m-d');
         $survey_complete = $this->survey_status[$survey_date_str]['completed'];
 
-        $module->emDebug($this->survey_status[$survey_date_str], $survey_complete,  ($survey_complete) == 2, "SURVEY COMPLETED?");
+        //$module->emDebug($this->survey_status[$survey_date_str], $survey_complete,  ($survey_complete) == 2, "SURVEY COMPLETED?");
 
         if (($survey_complete) == 2) {
             return false;
@@ -322,6 +322,7 @@ class Participant
         return true;
 
     }
+
 
     /**
      *
@@ -335,39 +336,20 @@ class Participant
         //$module->emDebug("MAX ID 2", $record, $event, $instrument);
         //getData for all surveys for this reocrd
          //get the survey for this day_number and survey_data
+        //TODO: return_format of 'array' returns nothing if using repeatint events???
+        //$get_data = array('redcap_repeat_instance');
         $params = array(
-            'return_format'       => 'array',
-            //fields'              => $get_fields,
+            'return_format'       => 'json',
+            //'fields'              => $get_data, //we need to leave this open in order to get the instance id
             'records'             => $this->participantID,
             'events'              => $this->portalConfig->surveyEventID
         );
         $q = REDCap::getData($params);
         $results = json_decode($q, true);
 
-        /**
-         * array return gives you
-         * [record]
-         *    [event_id]
-         *       ['repeat_instance']
-         *           [event_id]
-         *              [survey_name]
-         *                 [repeat_instance_id]
-         */
-
-        //$used_instance_ids = $q[$this->participantID][$this->portalConfig->surveyEventID]['repeat_instances'][$this->portalConfig->surveyEventID][$this->portalConfig->surveyInstrument];
-        $used_instance_ids = $q[$record]['repeat_instances'][$event][$instrument];
-        if ($used_instance_ids == null) {
-            $max_id = 0;
-        } else {
-            $max_id = max(array_keys($used_instance_ids));
-        }
-        //$module->emDebug($results, $q, $used_instance_ids, $max_id);
+        $max_id = max(array_column($results, 'redcap_repeat_instance'));
 
         return $max_id + 1;
-
-
-
-
     }
 
     public function getPartialResponseInstanceID($day_number, $survey_date) {
@@ -452,7 +434,7 @@ class Participant
         $params = array(
             REDCap::getRecordIdField()                => $this->participantID,
             "redcap_event_name"                       => $this->portalConfig->surveyEventName,
-            "redcap_repeat_instrument"                => $this->portalConfig->surveyInstrument,
+            //"redcap_repeat_instrument"                => $this->portalConfig->surveyInstrument,  //no repeat_instrument for repeat event
             "redcap_repeat_instance"                  => $instance,
             $this->portalConfig->surveyConfigField    => $this->portalConfig->configID,
             $this->portalConfig->surveyDayNumberField => $day_number,
@@ -460,9 +442,11 @@ class Participant
             $this->portalConfig->surveyLaunchTSField  => date("Y-m-d H:i:s")
         );
 
+        //$module->emDebug($params); exit;
         $result = REDCap::saveData('json', json_encode(array($params)));
         if ($result['errors']) {
             $module->emError($result['errors'], $params);
+            return false;
         }
 
     }

@@ -76,18 +76,7 @@
       "required": false,
       "type": "checkbox"
     },
-    {
-      "key": "main-config-event-name",
-      "name": "<b>Main Config Event Name</b><br>Name of event where fields below are stored (leave blank if classical)",
-      "required": false,
-      "type": "event-list"
-    },
-    {
-      "key": "main-config-form-name",
-      "name": "<b>Main Config Form Name</b><br>Name of form where config fields are stored",
-      "required": false,
-      "type": "form-list"
-    },
+
     {
       "key": "participant-config-id-field",
       "name": "<b>Participant Config ID field</b><br>Field to identify which config applies to the Participant",
@@ -131,108 +120,34 @@
           }
         },
         {
-          "key": "participant-settings-desc",
-          "name": "<div class='alert alert-warning'><h3 class='text-center'>PARTICIPANT SETTINGS</h3></div>",
+          "key": "portal-settings-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>SURVEY PORTAL SETTINGS</h3></div>",
           "required": false,
           "type": "descriptive"
         },
         {
-          "key": "participant-disabled",
-          "name": "<b>Participant Disabled Field</b><br>If specified and the value is '1', the participant will be disabled and will not be able to create any new survey entries.",
+          "key": "main-config-event-name",
+          "name": "<b>Main Config Event Name</b><br>Name of event where fields below are stored",
           "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "start-date-field",
-          "name": "<b>Start Date Field</b><br>This is day 0 when day numbers are enabled",
-          "required": false,
-          "type": "field-list"
-        },
-
-        {
-          "key": "personal-hash-field",
-          "name": "<b>Personal Hash Field</b><br>This hash encodes the record_id AND the specific config for the survey portal",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "personal-url-field",
-          "name": "<b>Personal URL Field</b><br>This url is unique to this portal config and this user",
-          "required": false,
-          "type": "field-list"
-        },
-
-        {
-          "key": "email-field",
-          "name": "<b>Email Field</b><BR>Field where email is recorded for this participant (to be used for survey invtes/reminders ",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "disable-participant-email-field",
-          "name": "<b>Participant Level: Disable Email Invites and Reminders Field</b><br>If set to 1 (calc or text field) then emails will be disabled for this participant.",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "phone-field",
-          "name": "<b>Phone Field</b><br>Field where phone is recorded for this participant (to be used for survey invtes/reminders ",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "disable-participant-sms-field",
-          "name": "<b>Participant Level:  Disable SMS Invites and Reminders Field</b><br>If set to 1 (calc or text field) then SMS will be disabled for this participant.",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "survey-desc",
-          "name": "<div class='alert alert-warning'><h3 class='text-center'>Repeating Survey Configuration</h3></div>",
-          "required": false,
-          "type": "descriptive"
+          "type": "event-list"
         },
         {
           "key": "survey-event-name",
-          "name": "<b>Survey Event Name</b><br>Name of event where survey instrument is enabled (leave blank if classical)",
+          "name": "<b>Survey Event Name</b><br>Name of event where survey instruments are enabled. This event must be repeating",
           "required": false,
           "type": "event-list"
         },
         {
           "key": "survey-instrument",
-          "name": "<b>Name of Survey Instrument</b><br>This instrument must be repeating.  If the four fields below are NOT part of this instrument, then this instrument and the one containing the four fields below must be part of the same repeating event.",
+          "name": "<b>Name of Survey Instrument</b><br>This is the initiating survey. Other surveys can be added by autocontinue or survey queue",
           "required": false,
           "type": "form-list"
         },
         {
-          "key": "survey-config-field",
-          "name": "<b>Survey Config ID Field</b><br>This TEXT field stores which config was used in cases where you have multiple repeating configurations in a single project",
+          "key": "survey-complete-redirect",
+          "name": "<b>Survey Complete Redirect</b><br>Select a survey name here if you wish to redirect participants to the portal upon completion of the survey. This would be the last survey in a series (autocontinue / survey queue)",
           "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "survey-day-number-field",
-          "name": "<b>Survey Day Number Field</b><br>This TEXT field is the number of days from the Start Date Field defined above for this survey instance",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "survey-date-field",
-          "name": "<b>Survey Date Field</b><br>This TEXT field is the date that corresponds to the day number selected in the calendar landing page",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "survey-launch-ts-field",
-          "name": "<b>Survey Launch Timestamp</b><br>This TEXT field captures the actual timestamp of survey launch",
-          "required": false,
-          "type": "field-list"
-        },
-        {
-          "key": "portal-settings-desc",
-          "name": "<div class='alert alert-warning'><h3 class='text-center'>ADDITIONAL SURVEY PORTAL SETTINGS</h3></div>",
-          "required": false,
-          "type": "descriptive"
+          "type": "form-list"
         },
         {
           "key": "valid-day-number",
@@ -283,12 +198,7 @@
           "required": false,
           "type": "checkbox"
         },
-        {
-          "key": "survey-complete-redirect",
-          "name": "<b>Survey Complete Redirect</b><br>Select a survey name here if you wish to redirect participants to the portal upon completion of the survey.",
-          "required": false,
-          "type": "form-list"
-        },
+
         {
           "key": "enable-invitations",
           "name": "<b>Enable Email/Text Invitations</b><br>Enable the sending of survey invitations on valid invitation days.  The invitation contains the config name and the day number encoded in the url.",
@@ -517,7 +427,102 @@
               }
             ]
           }
+        },
+        {
+          "key": "participant-settings-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>PARTICIPANT SETTINGS</h3></div>",
+          "required": false,
+          "type": "descriptive"
+        },
+
+        {
+          "key": "participant-disabled",
+          "name": "<b>Participant Disabled Field</b><br>If specified and the value is '1', the participant will be disabled and will not be able to create any new survey entries.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "main-config-form-name",
+          "name": "<b>Main Config Form Name</b><br>Name of form where config fields are stored",
+          "required": false,
+          "type": "form-list"
+        },
+        {
+          "key": "start-date-field",
+          "name": "<b>Start Date Field</b><br>This is day 0 when day numbers are enabled",
+          "required": false,
+          "type": "field-list"
+        },
+
+        {
+          "key": "personal-hash-field",
+          "name": "<b>Personal Hash Field</b><br>This hash encodes the record_id AND the specific config for the survey portal",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "personal-url-field",
+          "name": "<b>Personal URL Field</b><br>This url is unique to this portal config and this user",
+          "required": false,
+          "type": "field-list"
+        },
+
+        {
+          "key": "email-field",
+          "name": "<b>Email Field</b><BR>Field where email is recorded for this participant (to be used for survey invtes/reminders ",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "disable-participant-email-field",
+          "name": "<b>Participant Level: Disable Email Invites and Reminders Field</b><br>If set to 1 (calc or text field) then emails will be disabled for this participant.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "phone-field",
+          "name": "<b>Phone Field</b><br>Field where phone is recorded for this participant (to be used for survey invtes/reminders ",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "disable-participant-sms-field",
+          "name": "<b>Participant Level:  Disable SMS Invites and Reminders Field</b><br>If set to 1 (calc or text field) then SMS will be disabled for this participant.",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "survey-desc",
+          "name": "<div class='alert alert-warning'><h3 class='text-center'>Repeating Survey Configuration</h3></div>",
+          "required": false,
+          "type": "descriptive"
+        },
+
+        {
+          "key": "survey-config-field",
+          "name": "<b>Survey Config ID Field</b><br>This TEXT field stores which config was used in cases where you have multiple repeating configurations in a single project",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "survey-day-number-field",
+          "name": "<b>Survey Day Number Field</b><br>This TEXT field is the number of days from the Start Date Field defined above for this survey instance",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "survey-date-field",
+          "name": "<b>Survey Date Field</b><br>This TEXT field is the date that corresponds to the day number selected in the calendar landing page",
+          "required": false,
+          "type": "field-list"
+        },
+        {
+          "key": "survey-launch-ts-field",
+          "name": "<b>Survey Launch Timestamp</b><br>This TEXT field captures the actual timestamp of survey launch",
+          "required": false,
+          "type": "field-list"
         }
+
       ]
     }
   ]

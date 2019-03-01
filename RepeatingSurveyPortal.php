@@ -42,6 +42,22 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     public function redcap_module_system_enable() {
         // SET THE
         // Do Nothing
+        //create instrument participant info. upload zip for instrument
+        REDCap::getInstrumentNames(); //to get instrument name
+
+        //upload instrument zip
+
+        //verify that default fields aren't already existing. if exists, then abort
+        //if pi_ already exists, notify admin that the field already exists
+         \ExternalModules\ExternalModules::sendAdminEmail('subject', 'message');
+
+         //make sure its in dev mode
+        //status > 0
+        //$current_forms = ($status > 0) ? $Proj->forms_temp : $Proj->forms;
+
+         //make sure form name doesn't already exist.
+
+        //insert the form
     }
 
 
@@ -58,7 +74,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     // SAVE CONFIG HOOK
     // if config-id is null, then generate a config id for that the configs...
     //todo: HOLD ON THIS. saving works, but delete ignores this setting we add. punt for now.
-    public function hold_redcap_module_save_configuration($project_id) {
+    public function redcap_module_save_configuration($project_id) {
     }
 
 
@@ -76,8 +92,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $redirect = $this->getProjectSetting('survey-complete-redirect')[$sub];
 
         if (isset($redirect) && ($redirect == $instrument) ) {
+            $this->emDebug($redirect);
 
-            $config_event_id = $this->getProjectSetting('main-config-event-name');
+            $config_event_id = $this->getProjectSetting('main-config-event-name')[$sub];
             $config_event_name = REDCap::getEventNames(true, false, $config_event_id);
             $config_field = $this->getProjectSetting('participant-config-id-field');
             $hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
@@ -91,8 +108,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
             //now redirect back to the landing page
             header("Location: " . $return_hash_url);
-            exit;
-
+            $this->exitAfterHook();  //TODO: should there be an exit at the end of the hook?
         }
 
 
@@ -110,67 +126,73 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //If instrument is the right one, create the portal url and save it to the designated field
 
         //iterate through all of the sub_settings
-        $target_form        = $this->getProjectSetting('main-config-form-name');
-
-        if ($instrument == $target_form) {
-            $config_field       = $this->getProjectSetting('participant-config-id-field');
-            $config_event       = $this->getProjectSetting('main-config-event-name');
-
-            //get the config_id for this participant
-            $config_id          = $this->getFieldValue($record, $event_id, $config_field, $instrument, $repeat_instance);
+        $target_forms        = $this->getProjectSetting('main-config-form-name');
 
 
-            if ($config_id == null) {
-                $this->emError("Config ID for record $record is not set.");
-                return;
-                $this->exitAfterHook();  //todo: ask andy, this doesn't seem to exit?
-            }
+        foreach ($target_forms as $sub => $target_form) {
 
-            $sub = $this->getSubIDFromConfigID($config_id);
 
-            //if sub is empty, then the participant is using a config_id that doesn't exist.
-            if ($sub === false) {
-                $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
-                return;
-                $this->exitAfterHook(); //todo: ask andy, this doesn't seem to exit?
-            }
+            if ($instrument == $target_form) {
 
-            $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
-            $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
+                $config_field = $this->getProjectSetting('participant-config-id-field');
+                $config_event = $this->getProjectSetting('main-config-event-name')[$sub];
 
-            // First check if hashed portal already has been created
-            $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
-            //$this->emDebug("Saving record with this sub: ". $sub . " and this hash field " . $personal_hash_field
-            //    . " is it empty?" .empty($personal_hash_field) .  " ahs this value: " . $f_value);
+                //get the config_id for this participant
+                $config_id = $this->getFieldValue($record, $event_id, $config_field, $instrument, $repeat_instance);
 
-            if ($f_value == null) {
-                //generate a new URL
-                $new_hash     = $this->generateUniquePersonalHash($project_id, $personal_hash_field, $config_event);
-                $portal_url   = $this->getUrl("web/landing.php", true,true);
-                $new_hash_url = $portal_url. "&h=" . $new_hash . "&c=" . $config_id;
 
-                $this->emDebug("this is new hash: ". $new_hash_url);
-
-                // Save it to the record (both as hash and hash_url for piping)
-                $event_name = REDCap::getEventNames(true,false, $config_event);
-                $this->emDebug($event_id, $event_name, $config_event);
-
-                $data = array(
-                    REDCap::getRecordIdField() => $record,
-                    'redcap_event_name'        => $event_name,
-                    'redcap_repeat_instrument' => $instrument,
-                    'redcap_repeat_instance'   => $repeat_instance,
-                    $personal_url_field        => $new_hash_url,
-                    $personal_hash_field       => $new_hash
-                );
-                $response = REDCap::saveData('json', json_encode(array($data)));
-                //$this->emDebug($response,  "Save Response for count"); exit;
-
-                if (!empty($response['errors'])) {
-                    $msg = "Error creating record - ask administrator to review logs: " . json_encode($response);
-                    $this->emError($msg, $response['errors']);
+                if ($config_id == null) {
+                    $this->emError("Config ID for record $record is not set.");
+                    return;
+                    $this->exitAfterHook();  //todo: ask andy, this doesn't seem to exit?
                 }
-                $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+
+                $sub = $this->getSubIDFromConfigID($config_id);
+
+                //if sub is empty, then the participant is using a config_id that doesn't exist.
+                if ($sub === false) {
+                    $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
+                    return;
+                    $this->exitAfterHook(); //todo: ask andy, this doesn't seem to exit?
+                }
+
+                $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
+                $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
+
+                // First check if hashed portal already has been created
+                $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
+                //$this->emDebug("Saving record with this sub: ". $sub . " and this hash field " . $personal_hash_field
+                //    . " is it empty?" .empty($personal_hash_field) .  " ahs this value: " . $f_value);
+
+                if ($f_value == null) {
+                    //generate a new URL
+                    $new_hash = $this->generateUniquePersonalHash($project_id, $personal_hash_field, $config_event);
+                    $portal_url = $this->getUrl("web/landing.php", true, true);
+                    $new_hash_url = $portal_url . "&h=" . $new_hash . "&c=" . $config_id;
+
+                    $this->emDebug("this is new hash: " . $new_hash_url);
+
+                    // Save it to the record (both as hash and hash_url for piping)
+                    $event_name = REDCap::getEventNames(true, false, $config_event);
+                    $this->emDebug($event_id, $event_name, $config_event);
+
+                    $data = array(
+                        REDCap::getRecordIdField() => $record,
+                        'redcap_event_name' => $event_name,
+                        'redcap_repeat_instrument' => $instrument,
+                        'redcap_repeat_instance' => $repeat_instance,
+                        $personal_url_field => $new_hash_url,
+                        $personal_hash_field => $new_hash
+                    );
+                    $response = REDCap::saveData('json', json_encode(array($data)));
+                    //$this->emDebug($response,  "Save Response for count"); exit;
+
+                    if (!empty($response['errors'])) {
+                        $msg = "Error creating record - ask administrator to review logs: " . json_encode($response);
+                        $this->emError($msg, $response['errors']);
+                    }
+                    $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+                }
             }
         }
     }

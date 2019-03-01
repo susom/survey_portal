@@ -63,14 +63,14 @@ class PortalConfig {
     public $reminderSMSText;
 
     private $map = array(
-        'main-config-event-name'          => 'mainConfigEventID',
-        'main-config-form-name'           => 'mainConfigFormName',
         'participant-config-id-field'     => 'participantConfigIDField'
     );
 
     private $sub_map = array(
         'config-id'                       => 'configID',
         'enable-portal'                   => 'enablePortal',
+        'main-config-event-name'          => 'mainConfigEventID',
+        'main-config-form-name'           => 'mainConfigFormName',
         'participant-disabled'            => 'participantDisabled',
         'start-date-field'                => 'startDateField',
         'personal-hash-field'             => 'personalHashField',
@@ -149,7 +149,7 @@ class PortalConfig {
 
         //set event_name to the participant and survey event from id
         $this->mainConfigEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
-        $this->surveyEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
+        $this->surveyEventName = REDCap::getEventNames(true, false, $this->surveyEventID);
 
     }
 
