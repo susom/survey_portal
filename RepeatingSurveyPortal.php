@@ -153,11 +153,13 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 if ($sub === false) {
                     $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
                     return;
-                    $this->exitAfterHook(); //todo: ask andy, this doesn't seem to exit?
+                    //$this->exitAfterHook(); //todo: ask andy, this doesn't seem to exit?
                 }
 
                 $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
                 $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
+
+                //$this->emDebug($sub,  $this->getProjectSetting('personal-url-field'),$personal_hash_field, $personal_url_field); exit;
 
                 // First check if hashed portal already has been created
                 $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
@@ -185,7 +187,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                         $personal_hash_field => $new_hash
                     );
                     $response = REDCap::saveData('json', json_encode(array($data)));
-                    //$this->emDebug($response,  "Save Response for count"); exit;
+                    //$this->emDebug($sub, data, $response,  "Save Response for count"); exit;
 
                     if (!empty($response['errors'])) {
                         $msg = "Error creating record - ask administrator to review logs: " . json_encode($response);
