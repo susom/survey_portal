@@ -82,7 +82,7 @@
       "name": "<b>Participant Config ID field</b><br>Field to identify which config applies to the Participant",
       "required": false,
       "type": "field-list",
-      "source": "js/PortalConfig2.js",
+      "source": "js/PortalConfig.js",
       "functionName": "PortalConfig.config"
     },
     {

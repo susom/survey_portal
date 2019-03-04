@@ -35,10 +35,10 @@ class InsertInstrumentHelper
     }
 
     /**
-     * Try to insert the Participant Info form
-     *
-     * @return bool     Returns false if there was an error, call getErrors to see details
-     */
+ * Try to insert the Participant Info form
+ *
+ * @return bool     Returns false if there was an error, call getErrors to see details
+ */
     public function insertParticipantInfoForm()
     {
         $zipFile = $this->module->getModulePath() . self::ZIP_PATH;
@@ -49,6 +49,23 @@ class InsertInstrumentHelper
         if (!$this->saveMetadata()) return false;
         return true;
     }
+
+    /**
+     * Try to insert the Participant Info form
+     *
+     * @return bool     Returns false if there was an error, call getErrors to see details
+     */
+    public function insertSurveyMetadataForm()
+    {
+        $zipFile = $this->module->getModulePath() . self::ZIP_PATH_META;
+
+        if (!$this->loadZipFile($zipFile))  return false;
+        if (!$this->verifyFields()) return false;
+        if (!$this->verifyForms())  return false;
+        if (!$this->saveMetadata()) return false;
+        return true;
+    }
+
 
     private function loadZipFile($zipFile)
     {

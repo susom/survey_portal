@@ -42,7 +42,7 @@ PortalConfig.config = function(foo) {
     let data = {
         "action" : "test",
         "config_field"  : $("[name='participant-config-id-field']").val(),
-        "config_id"     : $("[name='config-id____0']").val()
+        "config_id"   : $("[name='config-id____0']").val()
     }
 
     //ajax call to the url

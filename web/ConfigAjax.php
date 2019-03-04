@@ -31,7 +31,9 @@ if (!empty($_POST['action'])) {
 
             $module->emDebug($_POST);
             // SAVE A CONFIGURATION
-            $raw_config = $_POST['config_field'];
+            $participant_config_id = $_POST['config_field'];
+
+
             // $module->debug($raw_config,"DEBUG","Raw Config");
 
 
@@ -40,9 +42,16 @@ if (!empty($_POST['action'])) {
             //if this were working, check that the fields don't already exist in file
             $zip_loader = new InsertInstrumentHelper($module);
             $zip_loader->insertParticipantInfoForm();
+            $zip_loader->insertSurveyMetadataForm(); //todo: designate to event with config id
+            //how to deal with designating for event
 
-        //how to deal with designating for event
+            $sub_settings = $module->getSubSettings('survey-portals');
+            //$module->emDebug($sub_settings);
 
+            foreach ($sub_settings as $sub) {
+                //TODO: designate for each event
+
+            }
 
             $test_error = "foo bar";
 
