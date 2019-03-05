@@ -15,7 +15,7 @@ PortalConfig.config = function(foo) {
     console.log("URL:",url);
     console.log(configureModal, moduleDirectoryPrefix, version);
 
-    var configIDs = $('inputcd[name^=config-id]');
+    var configIDs = $('input[name^=config-id]');
     var ids = [];
 
     configIDs.each(function() {
@@ -23,7 +23,6 @@ PortalConfig.config = function(foo) {
     });
 
     console.log(ids);
-
     let data = {
         "action" : "test",
         "config_field"  : $("[name='participant-config-id-field']").val(),
