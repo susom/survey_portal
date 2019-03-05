@@ -11,38 +11,23 @@ PortalConfig.config = function(foo) {
 
     var location =window.location.hostname; //current url
 
-    console.log("starting with thisxx: ", this, foo);
-    console.log(" THIS IS THE MODAL" , configureModal);
-
-    var alpha = 'participant-config-id-field';
-    var beta = 'participant_disabled';
-    //var foobar =  $('[name="participant-config-id-field"]');
-    //foobar.val('participant_disabled');
-
-    //var foobar =  $('[name="' + alpha + '"]');
-    //foobar.val(beta);
-
-    //$('[name="' + alpha + '"]').val(beta);
-
-
-    //console.log("This is the selector", foobar);
-
-    $('[name="participant-disabled____0"]').prop('participant_disabled');
-    $( "[name='participant-disabled____0']" ).val('participant_disabled');
-
-    //$('.external-modules-input-element').val('record_id');
-    //ExternalModules/manager/project.php?pid=201
-
     var url = app_path_webroot + "ExternalModules/?prefix=" + moduleDirectoryPrefix + "&page=web%2FConfigAjax&pid="+pid;
     console.log("URL:",url);
-    console.log("DOC:",document);
     console.log(configureModal, moduleDirectoryPrefix, version);
 
+    var configIDs = $('inputcd[name^=config-id]');
+    var ids = [];
+
+    configIDs.each(function() {
+        ids.push($(this ).val());
+    });
+
+    console.log(ids);
 
     let data = {
         "action" : "test",
         "config_field"  : $("[name='participant-config-id-field']").val(),
-        "config_id"   : $("[name='config-id____0']").val()
+        "config_id"   : ids
     }
 
     //ajax call to the url
@@ -100,42 +85,35 @@ PortalConfig.config = function(foo) {
 }
 
 PortalConfig.defaultSettings = {
-    'participant-disabled____0':'participant_disabled',
-    'main-config-form-name____0':'participant_info'
+    'participant-disabled':'participant_disabled',
+    'main-config-form-name':'participant_info',
+    'start-date-field' : 'start_date',
+    'personal-hash-field' : 'survey_portal_hash',
+    'personal-url-field' : 'survey_portal_unique_url',
+    'email-field' : 'survey_portal_email',
+    'disable-participant-email-field' : 'disable_participant_email',
+    'phone-field' : 'survey_portal_phone',
+    'disable-participant-sms-field' : 'disable_participant_sms',
+    'survey-config-field' : 'rsp_survey_config',
+    'survey-day-number-field' : 'rsp_survey_day_number',
+    'survey-date-field' : 'rsp_survey_date',
+    'survey-launch-ts-field' : 'rsp_survey_launch_ts'
 };
+
 PortalConfig.setDefaults  = function() {
     console.log("SettingDefaults");
 
-    var alpha = 'participant-config-id-field';
-    var beta = 'participant_disabled';
-    $('[name="' + alpha + '"]').val(beta);
-
-    $('input[name="enable-project-debug-logging"]').prop("checked", true);
-
-    $('[name="config-description____0"]').val("foo bar bamr");
-
-    var alpha1 = 'participant-disabled____1';
-    var beta1 = 'participant_disabled';
-    $('[name="' + alpha1 + '"]').val(beta1);
-
-    $('[name="participant-disabled____1"]').val('participant_disabled');
-
-    //var foobar =  $('[name="participant-config-id-field"]');
-    //foobar.val('participant_disabled');
-
-    //var foobar =  $('[name="' + alpha + '"]');
-    //foobar.val(beta);
-
-
-
     for (var key in PortalConfig.defaultSettings) {
-        console.log("key " + key + " has value " + PortalConfig.defaultSettings[key]);
-        //$('[name="' + key + '"]').val(PortalConfig.defaultSettings[key]);
+        var dropdowns = $('select[name^='+key+']');
 
-        //$('select[name="' + key + '"] option:selected').val('participant_disabled');
-        //   $("[name='"+key+"']").val(PortalConfig.defaultSettings[key]);
-        // $("[name='"+key+"']").val('participant_disabled');
+        dropdowns.each(function() {
+            if ($(this ).val() ==  "") {
+                $(this).val(PortalConfig.defaultSettings[key]);
+                console.log($(this ).val() );
+            }
+
+        });
 
     }
-    $( "[name='participant-disabled____0']" ).val('participant_disabled');
+
 }
