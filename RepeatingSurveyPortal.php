@@ -36,7 +36,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 {
 
     const KEY_VALID_CONFIGURATION = "survey_portal_config_valid";
-    const PARTICIPANT_INFO_FORM   = "participant_info";
+    const PARTICIPANT_INFO_FORM   = "rsp_participant_info";
     const SURVEY_METADATA_FORM   = "rsp_survey_metadata";
 
     public $iih;

@@ -258,19 +258,19 @@ PortalConfig.checkForms = function () {
 }
 
 PortalConfig.defaultSettings = {
-    'participant-disabled':'rsp_prt_part_disabled',
-    'main-config-form-name':'participant_info',
-    'start-date-field' : 'rsp_prt_start_date',
-    'personal-hash-field' : 'rsp_prt_portal_hash',
-    'personal-url-field' : 'rsp_prt_portal_url',
-    'email-field' : 'rsp_prt_portal_email',
+    'participant-disabled'  :'rsp_prt_part_disabled',
+    'main-config-form-name' :'rsp_participant_info',
+    'start-date-field'      : 'rsp_prt_start_date',
+    'personal-hash-field'   : 'rsp_prt_portal_hash',
+    'personal-url-field'    : 'rsp_prt_portal_url',
+    'email-field'           : 'rsp_prt_portal_email',
     'disable-participant-email-field' : 'rsp_prt_disable_email',
-    'phone-field' : 'rsp_prt_portal_phone',
+    'phone-field'           : 'rsp_prt_portal_phone',
     'disable-participant-sms-field' : 'rsp_prt_disable_sms',
-    'survey-config-field' : 'rsp_survey_config',
+    'survey-config-field'   : 'rsp_survey_config',
     'survey-day-number-field' : 'rsp_survey_day_number',
-    'survey-date-field' : 'rsp_survey_date',
-    'survey-launch-ts-field' : 'rsp_survey_launch_ts'
+    'survey-date-field'     : 'rsp_survey_date',
+    'survey-launch-ts-field': 'rsp_survey_launch_ts'
 };
 
 PortalConfig.setDefaults  = function() {
