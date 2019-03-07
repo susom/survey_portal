@@ -159,7 +159,7 @@
         },
         {
           "key": "max-response-per-day",
-          "name": "<b>Maximum Survey Responses per Day</b><br>(leave blank for unlimited daily responses)",
+          "name": "<b>Maximum Survey Responses per Day</b><br>(leave blank for unlimited daily responses). <br> <b>Currently only supporting 1 response per day.</b>",
           "default": "1",
           "required": true,
           "type": "text"
