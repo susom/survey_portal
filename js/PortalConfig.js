@@ -1,39 +1,240 @@
 var PortalConfig = PortalConfig || {};
 
-PortalConfig.config = function(foo) {
 
-    console.log("starting with this: ", this, foo);
+/**
+ *
+ */
+PortalConfig.config = function() {
     var configureModal = $('#external-modules-configure-modal');
     var moduleDirectoryPrefix = configureModal.data('module');
     var version = ExternalModules.versionsByPrefix[moduleDirectoryPrefix];
 
-    //ExternalModules/?prefix=survey_portal&page=web%2Fforecast&pid=201
+    PortalConfig.url = app_path_webroot + "ExternalModules/?prefix=" + moduleDirectoryPrefix + "&page=web%2FConfigAjax&pid="+pid;
 
-    var location =window.location.hostname; //current url
+    //clear out old one from before
+    $('#config_status').remove();
 
-    var url = app_path_webroot + "ExternalModules/?prefix=" + moduleDirectoryPrefix + "&page=web%2FConfigAjax&pid="+pid;
-    console.log("URL:",url);
-    console.log(configureModal, moduleDirectoryPrefix, version);
+    var alertWindow = $('<div></div>')
+        .attr('id', 'config_status')
+        .prependTo($('.modal-body', '#external-modules-configure-modal'));
 
-    var configIDs = $('input[name^=config-id]');
-    var ids = [];
 
-    configIDs.each(function() {
-        ids.push($(this ).val());
+    $('.external-modules-add-instance').on("click", function () {
+        console.log("========SETTING TIMER");
+        setTimeout(PortalConfig.setDefaults, 1000);
     });
 
-    console.log(ids);
-    let data = {
-        "action" : "test",
-        "config_field"  : $("[name='participant-config-id-field']").val(),
-        "config_id"   : ids
+    alertWindow
+        .on('click', '.btn', function () {
+            PortalConfig.doAction(this);
+        });
+
+    console.log("starting with this: ", this);
+
+    //set the defaults for the current config
+    PortalConfig.setDefaults();
+
+    PortalConfig.getStatus();
+
+    return;
+
+}
+
+
+/**
+ * Passed in parameter from button in status banner
+ * @param e
+ */
+PortalConfig.doAction = function (e) {
+    const action = $(e).data('action');
+    const event  = $(e).data('event');
+    const form   = $(e).data('form');
+
+    console.log(e, action, event, form);
+
+    switch (action) {
+        case 'create_pi_form':
+            PortalConfig.insertForm('pi');
+            break;
+        case 'create_md_form':
+            PortalConfig.insertForm('md');
+            break;
+        case 'designate_event':
+            PortalConfig.designateForm(form, event);
+            break;
+        default:
+            alert ("Invalid action recevied from status button");
     }
 
-    //ajax call to the url
-        // Post back saved to config.php page
+}
+
+
+PortalConfig.designateForm = function(form, event) {
+    console.log("DESIGNATING FORM TO EVENT");
+
+    const data = {
+        'action' : 'designateForm',
+        'form'   : form,
+        'event'  : event
+    }
+
     var jqxhr = $.ajax({
         method: "POST",
-        url: url,
+        url: PortalConfig.url,
+        data: data,
+        dataType: "json"
+    })
+        .done(function (data) {
+            //if (data.result === 'success') {
+                // all is good
+                var configStatus = $('#config_status');
+                configStatus.empty();
+                console.log(configStatus);
+
+                const status = data.isValid;
+
+                const alerts = data.alerts;
+
+            if (status) {
+                $('<div></div>')
+                    .addClass('alert alert-success')
+                    .html("Your configuration appears valid")
+                    .appendTo(configStatus);
+
+                //since configuration is set, set the defaults for the first configuration
+                setTimeout(PortalConfig.setDefaults, 1000);
+            }
+            $.each(alerts, function (i, alert) {
+                $('<div></div>')
+                    .addClass('alert')
+                    .html(alert)
+                    .appendTo(configStatus);
+            })
+
+        })
+        .fail(function () {
+            alert("error");
+        })
+        .always(function() {
+
+        });
+}
+
+PortalConfig.insertForm = function(form) {
+    console.log("INSERT FORM");
+
+    const data = {
+        'action' : 'insertForm',
+        'form'   : form
+    }
+
+    var jqxhr = $.ajax({
+        method: "POST",
+        url: PortalConfig.url,
+        data: data,
+        dataType: "json"
+    })
+        .done(function (data) {
+            //if (data.result === 'success') {
+                // all is good
+                var configStatus = $('#config_status');
+                configStatus.empty();
+                console.log(configStatus);
+
+                const status = data.isValid;
+
+                const alerts = data.alerts;
+
+            if (status) {
+                $('<div></div>')
+                    .addClass('alert alert-success')
+                    .html("Your configuration appears valid")
+                    .appendTo(configStatus);
+
+                //since configuration is set, set the defaults for the first configuration
+                setTimeout(PortalConfig.setDefaults, 1000);
+            }
+            $.each(alerts, function (i, alert) {
+                $('<div></div>')
+                    .addClass('alert')
+                    .html(alert)
+                    .appendTo(configStatus);
+            })
+
+        })
+        .fail(function () {
+            alert("error");
+        })
+        .always(function() {
+
+        });
+}
+
+
+PortalConfig.getStatus = function () {
+    console.log("GET STATUS");
+    const data = {
+        'action' : 'getStatus'
+    }
+
+    var jqxhr = $.ajax({
+        method: "POST",
+        url: PortalConfig.url,
+        data: data,
+        dataType: "json"
+    })
+        .done(function (data) {
+            //if (data.result === 'success') {
+            // all is good
+            var configStatus = $('#config_status');
+            configStatus.empty();
+            configStatus.html('');
+            console.log("CONFIG STATUS",configStatus);
+            var successStatus =  $('<div></div>')
+                    .addClass('alert alert-success')
+                    .html("Your configuration appears valid");
+
+            const status = data.isValid;
+
+            const alerts = data.alerts;
+
+            if (status) {
+                console.log('ADDING', successStatus);
+                //$('<div></div>')
+                 //   .empty()
+                 //   .addClass('alert alert-success')
+                 //   .html("Your configuration appears valid")
+                successStatus
+                    .appendTo(configStatus);
+            }
+            $.each(alerts, function (i, alert) {
+                $('<div></div>')
+                    .addClass('alert')
+                    .html(alert)
+                    .appendTo(configStatus);
+            })
+
+
+        })
+        .fail(function () {
+            alert("error");
+        })
+        .always(function() {
+
+        });
+
+
+}
+
+PortalConfig.checkForms = function () {
+    var data = {
+        "action" : "checkForms"
+    }
+
+
+    var jqxhr = $.ajax({
+        method: "POST",
+        url: PortalConfig.url,
         data: data,
         dataType: "json"
     })
@@ -53,34 +254,7 @@ PortalConfig.config = function(foo) {
 
         });
 
-    PortalConfig.setDefaults();
 
-    // Remove two fields that don't apply in config for this module
-    /**
-     $('tr[field="enabled"]').addClass('hidden');
-     $('tr[field="discoverable-in-project"]').addClass('hidden');
-
-
-     // Display configuration errors a little differently
-     let errors_tr = $('tr[field="configuration-validation-errors"]');
-     let errors = JSON.parse($('input', errors_tr).val());
-
-     errors_tr.hide();
-
-     $.each(errors, function(i, e) {
-        errors_tr.after(
-            $('<tr/>').append(
-                $('<td colspan="3">').append(
-                    $('<div/>').addClass('alert alert-danger text-center').html(e)
-                )
-            )
-        );
-        console.log(i,e);
-    });
-
-
-
-     */
 }
 
 PortalConfig.defaultSettings = {
@@ -100,7 +274,7 @@ PortalConfig.defaultSettings = {
 };
 
 PortalConfig.setDefaults  = function() {
-    console.log("SettingDefaults");
+    console.log("========================SettingDefaults");
 
     for (var key in PortalConfig.defaultSettings) {
         var dropdowns = $('select[name^='+key+']');

@@ -25,11 +25,69 @@ require_once $module->getModulePath().'src/InsertInstrumentHelper.php';
 
 if (!empty($_POST['action'])) {
     $action = $_POST['action'];
+    //$zip_loader = InsertInstrumentHelper::getInstance($module);
+    $module->emDebug($_POST);
 
     switch ($action) {
+        case "insertForm":
+            $form = $_POST['form'];
+            $result = $module->insertForms($form);
+
+            $module->emDebug("INSERT FORM", $result);
+
+
+            break;
+        case "designateForm":
+            $module->emDebug("DESIGNATING FORM");
+            $form = $_POST['form'];
+            $event = $_POST['event'];
+            $result = $module->designateForm($form, $event);
+
+            $module->emDebug("result".  $result);
+
+
+            break;
+        case "getStatus":
+
+
+            //does particiapnt form exist
+
+            //does the rsp_metadata form exit
+
+            //is
+            $result = $module->getConfigStatus();
+            $module->emDebug("GET STATUS", $result);
+
+
+            //$result = array(1,2,3);
+            break;
+        case "checkForms":
+//            if (!$zip_loader->formExists('participant_info')) {
+//                 $f_p_status = $zip_loader->insertParticipantInfoForm();
+//            };
+//            if (!$zip_loader->formExists('rsp_survey_metadata')) {
+//                $f_m_status= $zip_loader->insertSurveyMetadataForm();
+//            };
+//
+//            $status = $f_p_status && $f_m_status;
+//
+//            if ($f_p_status) {
+//                $msg = "The participant_info form was succesfully uploaded";
+//            } else {
+//                $msg = "The attempt to upload participant_info failed.";
+//            }
+//
+//            if ($status) {
+//                $result = array(
+//                    'result' => 'success',
+//                    'message' =>
+//                );
+//            }
+
+            break;
         case "test":
 
-            $module->emDebug($_POST);
+
             // SAVE A CONFIGURATION
             $participant_config_id = $_POST['config_field'];
 
@@ -37,12 +95,22 @@ if (!empty($_POST['action'])) {
             // $module->debug($raw_config,"DEBUG","Raw Config");
 
 
-            //TODO: STUCK!  can't pass subsetting fields
-
             //if this were working, check that the fields don't already exist in file
-            $zip_loader = new InsertInstrumentHelper($module);
-            $zip_loader->insertParticipantInfoForm();
-            $zip_loader->insertSurveyMetadataForm(); //todo: designate to event with config id
+
+        /**
+            $p_status = $zip_loader->insertParticipantInfoForm();
+
+            if (!$p_status) {
+                //TODO
+                $zip_loader->getErrors();
+            }
+
+            $m_status = $zip_loader->insertSurveyMetadataForm(); //todo: designate to event with config id
+            if (!$m_status) {
+                //TODO
+                $zip_loader->getErrors();
+            }
+
             //how to deal with designating for event
 
             $sub_settings = $module->getSubSettings('survey-portals');
@@ -60,7 +128,7 @@ if (!empty($_POST['action'])) {
                 // SAVE
                 $result = array(
                     'result' => 'success',
-                    'message' => $test_error
+                    'message' => 'Please enable this new form in the event.'
                 );
             } else {
                 $test_error = 'not foobar';
@@ -69,6 +137,7 @@ if (!empty($_POST['action'])) {
                 'result' => 'success',
                 'message' => $test_error
             );
+         */
     }
     header('Content-Type: application/json');
     print json_encode($result);

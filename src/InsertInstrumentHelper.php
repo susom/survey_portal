@@ -35,10 +35,10 @@ class InsertInstrumentHelper
     }
 
     /**
- * Try to insert the Participant Info form
- *
- * @return bool     Returns false if there was an error, call getErrors to see details
- */
+     * Try to insert the Participant Info form
+     *
+     * @return bool     Returns false if there was an error, call getErrors to see details
+     */
     public function insertParticipantInfoForm()
     {
         $zipFile = $this->module->getModulePath() . self::ZIP_PATH;
@@ -65,6 +65,7 @@ class InsertInstrumentHelper
         if (!$this->saveMetadata()) return false;
         return true;
     }
+
 
 
     private function loadZipFile($zipFile)
@@ -99,6 +100,62 @@ class InsertInstrumentHelper
 
         return true;
     }
+
+    public function designateFormInEvent($form, $event) {
+
+        $sql = sprintf("insert into redcap_events_forms (event_id, form_name) values (%d, '%s')",
+            db_escape($event),
+            db_escape($form)
+        );
+
+        $result = db_query($sql);
+        //$this->emDebug($sql, $result);
+    }
+
+    public function formExists($formName) {
+        global $Proj;
+
+        //don't rely on tne object stored data as they could be stale
+        //actually the form list is stale. $Proj-forms, $Proj->metadata, is stale, so resorting to sql query
+
+        $forms = $Proj->forms;
+
+//        $this->emDebug("FORMS",$prod, $forms, $formName,array_keys($forms),array_key_exists($formName, $forms));
+        $form_exists =  array_key_exists($formName, $forms);
+
+        //resorting to database query to get accurate state of installed forms
+        $sql = sprintf(
+            "select count(*) from redcap_metadata where project_id = %d and form_name = '%s';",
+            $Proj->project_id,
+            $formName);
+        $result = db_result(db_query($sql),0);
+
+        //$this->emDebug($sql, $result);
+
+        return $result;
+    }
+
+    public function formDesignatedInEvent($formName, $event) {
+
+        $event_names = \REDCap::getEventNames();
+
+        //$this->emDebug($event_names);
+
+        $sql = sprintf(
+            "select count(*) from redcap_events_forms where form_name = '%s'  and event_id in (%s);",
+            $formName,
+            $event);
+            //implode(",",array_keys($event_names)));
+
+        $result = db_result(db_query($sql),0);
+
+        //$this->emDebug($sql, $result);
+
+        return $result;
+
+
+    }
+
 
 
     private function verifyForms() {

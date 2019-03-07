@@ -135,7 +135,7 @@
         },
         {
           "key": "survey-event-name",
-          "name": "<b>Survey Event Name</b><br>Name of event where survey instruments are enabled. This event must be repeating",
+          "name": "<b>Survey Event Name</b><br>Name of REPEATING event where survey instruments are enabled. This event must be repeating",
           "required": false,
           "type": "event-list"
         },
