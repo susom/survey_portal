@@ -12,7 +12,7 @@ class InstrumentHelper {
     private $status;                // 0 = dev, 1 = prod
     private $current_metadata;      // this will depend on dev or prod mode
 
-    const ZIP_PATH = "docs/ParticipantInfo.zip";
+    const ZIP_PATH = "docs/RSPParticipantInfo.zip";
 
     public function __construct(RepeatingSurveyPortal $module)
     {

@@ -258,15 +258,15 @@ PortalConfig.checkForms = function () {
 }
 
 PortalConfig.defaultSettings = {
-    'participant-disabled':'participant_disabled',
+    'participant-disabled':'rsp_prt_part_disabled',
     'main-config-form-name':'participant_info',
-    'start-date-field' : 'start_date',
-    'personal-hash-field' : 'survey_portal_hash',
-    'personal-url-field' : 'survey_portal_unique_url',
-    'email-field' : 'survey_portal_email',
-    'disable-participant-email-field' : 'disable_participant_email',
-    'phone-field' : 'survey_portal_phone',
-    'disable-participant-sms-field' : 'disable_participant_sms',
+    'start-date-field' : 'rsp_prt_start_date',
+    'personal-hash-field' : 'rsp_prt_portal_hash',
+    'personal-url-field' : 'rsp_prt_portal_url',
+    'email-field' : 'rsp_prt_portal_email',
+    'disable-participant-email-field' : 'rsp_prt_disable_email',
+    'phone-field' : 'rsp_prt_portal_phone',
+    'disable-participant-sms-field' : 'rsp_prt_disable_sms',
     'survey-config-field' : 'rsp_survey_config',
     'survey-day-number-field' : 'rsp_survey_day_number',
     'survey-date-field' : 'rsp_survey_date',
