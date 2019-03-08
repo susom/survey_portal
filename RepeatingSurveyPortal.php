@@ -4,7 +4,7 @@ namespace Stanford\RepeatingSurveyPortal;
 
 
 
-use \ExternalModules;
+use ExternalModules\ExternalModules;
 use \REDCap;
 use \DateTime;
 use \Message;
@@ -220,6 +220,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function inviteCron() {
 
+        $this->emDebug("STARTING INVITE CRON");
         //* 1) Determine projects that are using this EM
         //get all projects that are enabled for this module
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
@@ -241,12 +242,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $enabled_invite = $this->getProjectSetting('enable-invitations', $pid)[$sub];
                 if ($enabled_invite == '1') {
 
-
-                    $this->emDebug("project $pid - $sub scheduled at this hour $invite_time vs current hour: $current_hour");
-
+                    $this->emDebug("PROJECT $pid : SUB $sub scheduled at this hour $invite_time vs current hour: $current_hour");
 
                     //if not hour, continue
-                    if ($scheduled_hour != $current_hour) continue;
+                    if ($invite_time != $current_hour) continue;
 
                     $this_url = $url . '&pid=' . $pid . "&s=" . $sub;
                     $this->emDebug("INVITE CRON URL IS " . $this_url);
@@ -265,6 +264,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * * TODO: Add cron to config.json
      */
     public function reminderCron() {
+
+        $this->emDebug("STARTING REMINDER CRON");
+
         //* 1) Determine projects that are using this EM
         //get all projects that are enabled for this module
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
@@ -285,12 +287,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $enabled_reminder = $this->getProjectSetting('enable-reminders', $pid)[$sub];
                 if ($enabled_reminder == '1') {
 
-
                     $this->emDebug("project $pid - $sub scheduled at this hour $reminder_time vs current hour: $current_hour");
 
-
                     //if not hour, continue
-                    if ($scheduled_hour != $current_hour) continue;
+                    if ($reminder_time != $current_hour) continue;
 
                     $this_url = $url . '&pid=' . $pid . "&s=" . $sub;
                     $this->emDebug("REMINDER CRON URL IS " . $this_url);
@@ -765,7 +765,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     function emText($number, $text) {
         global $module;
 
-        $emTexter = ExternalModules\ExternalModules::getModuleInstance('twilio_utility');
+        $emTexter = ExternalModules::getModuleInstance('twilio_utility');
         $text_status = $emTexter->emSendSms($number, $text);
         return $text_status;
     }
@@ -774,7 +774,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     function emLog()
     {
         global $module;
-        $emLogger = ExternalModules\ExternalModules::getModuleInstance('em_logger');
+        $emLogger = ExternalModules::getModuleInstance('em_logger');
         $emLogger->emLog($module->PREFIX, func_get_args(), "INFO");
     }
 
@@ -782,14 +782,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     {
         // Check if debug enabled
         if ($this->getSystemSetting('enable-system-debug-logging') || $this->getProjectSetting('enable-project-debug-logging')) {
-            $emLogger = ExternalModules\ExternalModules::getModuleInstance('em_logger');
+            $emLogger = ExternalModules::getModuleInstance('em_logger');
             $emLogger->emLog($this->PREFIX, func_get_args(), "DEBUG");
         }
     }
 
     function emError()
     {
-        $emLogger = ExternalModules\ExternalModules::getModuleInstance('em_logger');
+        $emLogger = ExternalModules::getModuleInstance('em_logger');
         $emLogger->emLog($this->PREFIX, func_get_args(), "ERROR");
     }
 }

@@ -30,6 +30,23 @@
     "redcap_module_save_configuration"
   ],
 
+  "crons": [
+    {
+      "cron_name": "em_survey_portal_invitation",
+      "cron_description": "Cron to send survey invitation",
+      "method": "inviteCron",
+      "cron_frequency": "3600",
+      "cron_max_run_time": "1200"
+    },
+    {
+      "cron_name": "em_survey_portal_reminder",
+      "cron_description": "Cron to send survey reminder",
+      "method": "reminderCron",
+      "cron_frequency": "3600",
+      "cron_max_run_time": "1200"
+    }
+  ],
+
   "enable-every-page-hooks-on-system-pages": true,
 
   "no-auth-pages": [
