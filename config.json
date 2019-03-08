@@ -336,7 +336,17 @@
         },
         {
           "key": "reminder-time",
-          "name": "<b>Invitation Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
+          "name": "<b>Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
+          "required": false,
+          "type": "number",
+          "branchingLogic": {
+            "field": "enable-reminders",
+            "value": true
+          }
+        },
+        {
+          "key": "reminder-lag",
+          "name": "<b>Reminder Lag</b><br>Send reminder if participant has not responded by these many days.",
           "required": false,
           "type": "number",
           "branchingLogic": {

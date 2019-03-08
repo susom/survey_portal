@@ -54,6 +54,12 @@ setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config,
  * 1. retrieve record for this hash
  *
  *
+ * //8MAR2019 ??
+ * TODO question
+ * If there is a day_nubmer, it should just autostart since it is coming from email/text
+ * Reserve Autostart for calendar mode which will just look up today's date
+ *
+ *
  * If Autostart:
  *
  *
@@ -85,6 +91,7 @@ setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config,
 $today = new DateTime();
 $error_msg = null;
 
+
 if(isset($_POST['cal_submit'])) {
     $survey_date = DateTime::createFromFormat('Y-m-d', $_POST['cal_date']);
 
@@ -94,10 +101,8 @@ if(isset($_POST['cal_submit'])) {
         $module->emDebug("From Calendar launch: Starting with date: ", $survey_date, $day_number);
     }
 
-}
+} elseif ($portalConfig->autoStartSurvey) {
 
-
-if ($portalConfig->autoStartSurvey) {
     $module->emDebug("Autostarting Survey");
     if ($p_daynumber == "") {
         $module->emDebug("No day number is set, so find day number, confirm valid day and start");
@@ -145,7 +150,7 @@ if (isset($survey_date)) {
     }
 
     if (!$participant->isStartTimeValid($survey_date)) {
-        $error_msg[] = "The earliest allowed start time  to take the survey is " . $participant->portalConfig->earliestTimeAllowed . ':00';
+        $error_msg[] = "The earliest allowed start time to take the survey today is " . $participant->portalConfig->earliestTimeAllowed . ':00';
     }
 
     if (!$participant->isMaxResponsePerDayValid($day_number, $survey_date)) {

@@ -23,8 +23,12 @@ class InvitationManager {
 
     public $configID;
 
+    public $project_id;
+
     public function __construct($project_id, $sub) {
         global $module;
+
+        $this->project_id = $project_id;
 
         //get the config id from the passed in hash
         $this->configID = $module->getConfigIDFromSubID($sub);
@@ -50,6 +54,11 @@ class InvitationManager {
         }
 
         $candidates = $this->getInviteCandidates();
+
+        if (empty($candidates)) {
+            $module->emLog("No candidates to send invitations for project: ". $this->project_id . " today: ". date('Y-m-d'));
+            return;
+        }
 
         foreach ($candidates as $candidate) {
 
@@ -137,6 +146,10 @@ class InvitationManager {
 
     }
 
+    /**
+     * TODO : Reusing this for Reminder as well, so rename method to getInviteReminderCandidates
+     * @return bool|mixed
+     */
     public function getInviteCandidates() {
         global $module;
 
@@ -146,7 +159,7 @@ class InvitationManager {
         }
 
         //1. Obtain all records where this 'config-id' matches the in the patient record
-        //Also filter that either invitation_method_field is populated.
+        //Also filter that either email or sms  is populated.
         $filter = "(".
             "([".$this->portalConfig->participantConfigIDField ."] = '{$this->portalConfig->configID}') AND ".
             "(".
@@ -169,15 +182,15 @@ class InvitationManager {
                 $this->portalConfig->phoneField,
                 $this->portalConfig->personalHashField
             ),
-            'events' => $this->portalConfig->surveyEventName,
+            'events' => $this->portalConfig->mainConfigEventName,
             'filterLogic'  => $filter
         );
 
-        //$this->emDebug($params, "PARAMS"); exit;
+        //$module->emDebug($params, "PARAMS"); exit;
         $q = REDCap::getData($params);
         $result = json_decode($q, true);
 
-        $module->emDebug($result, "Count of invitations to be sent:  ".count($result));
+       //$module->emDebug($result, "Count of invitations to be sent:  ".count($result));
 
         return $result;
 

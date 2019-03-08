@@ -57,6 +57,7 @@ class PortalConfig {
     public $enableReminders;
     public $reminderDays;
     public $reminderTime;
+    public $reminderLag;
     public $reminderEmailText;
     public $reminderEmailSubject;
     public $reminderEmailFrom;
@@ -66,6 +67,12 @@ class PortalConfig {
         'participant-config-id-field'     => 'participantConfigIDField'
     );
 
+    /**
+     * key value (left) is the key name in the config.json
+     * value (right) is the variable name in this object
+     *
+     * @var array
+     */
     private $sub_map = array(
         'config-id'                       => 'configID',
         'enable-portal'                   => 'enablePortal',
@@ -103,6 +110,7 @@ class PortalConfig {
         'invitation-sms-text'             => 'invitationSmsText',
         'enable-reminders'                => 'enableReminders',
         'reminder-time'                   => 'reminderTime',
+        'reminder-lag'                    => 'reminderLag',
         'reminder-days'                   => 'reminderDays',
         'reminder-email-text'             => 'reminderEmailText',
         'reminder-email-subject'          => 'reminderEmailSubject',
