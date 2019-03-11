@@ -49,9 +49,6 @@
 
   "enable-every-page-hooks-on-system-pages": true,
 
-  "no-auth-pages": [
-  ],
-
   "links": {
     "control-center": [
 
@@ -60,21 +57,21 @@
       {
         "name": "RSP: Test Cron Links",
         "icon": "gear",
-        "url": "web/DisplayCronLinks.php"
+        "url": "src/DisplayCronLinks.php"
       },
       {
         "name": "RSP: Survey Schedule Report",
         "icon": "gear",
-        "url": "web/forecast.php"
+        "url": "src/forecast.php"
       }
     ]
   },
 
   "no-auth-pages": [
-    "web/landing",
-    "web/InviteCron",
-    "web/ReminderCron",
-    "web/incoming"
+    "src/landing",
+    "src/InviteCron",
+    "src/ReminderCron",
+    "src/incoming"
   ],
 
   "system-settings": [

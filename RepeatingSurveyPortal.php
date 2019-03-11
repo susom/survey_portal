@@ -10,8 +10,8 @@ use \DateTime;
 use \Message;
 use Exception;
 
-require_once 'Participant.php';
-require_once 'PortalConfig.php';
+require_once 'src/Participant.php';
+require_once 'src/PortalConfig.php';
 require_once 'src/InsertInstrumentHelper.php';
 
 /**
@@ -23,9 +23,9 @@ require_once 'src/InsertInstrumentHelper.php';
  *
  * Portal Landing Page
  *
- * web/landing.php   NOAUTH
- * web/forecast.php (tries to show what will happen based on certain dates)
- * web/cron.php     NOAUTH (landing page to instantiate cron)
+ * src/landing.php   NOAUTH
+ * src/forecast.php (tries to show what will happen based on certain dates)
+ * src/cron.php     NOAUTH (landing page to instantiate cron)
  *  - load the project config, for each config, it will execute check to see if each record needs notification...
  *  -
  *
@@ -108,7 +108,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $hash_return  = $this->retrieveParticipantFieldWithFilter($record, $config_event_name, $config_field,$cookie_config, array($hash_field) );
             $hash = $hash_return[$hash_field];
 
-            $portal_url   = $this->getUrl("web/landing.php", true,true);
+            $portal_url   = $this->getUrl("src/landing.php", true,true);
             $return_hash_url = $portal_url. "&h=" . $hash . "&c=" . $cookie_config;
 
             $this->emDebug("this is new hash: ". $return_hash_url);
@@ -176,7 +176,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 if ($f_value == null) {
                     //generate a new URL
                     $new_hash = $this->generateUniquePersonalHash($project_id, $personal_hash_field, $config_event);
-                    $portal_url = $this->getUrl("web/landing.php", true, true);
+                    $portal_url = $this->getUrl("src/landing.php", true, true);
                     $new_hash_url = $portal_url . "&h=" . $new_hash . "&c=" . $config_id;
 
                     $this->emDebug("this is new hash: " . $new_hash_url);
@@ -226,7 +226,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
 
         //get the noAuth api endpoint for Cron job.
-        $url = $this->getUrl('web/InviteCron.php', true, true);
+        $url = $this->getUrl('src/InviteCron.php', true, true);
 
         while ($proj = db_fetch_assoc($enabled)) {
             $pid = $proj['project_id'];
@@ -272,7 +272,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
 
         //get the noAuth api endpoint for Cron job.
-        $url = $this->getUrl('web/ReminderCron.php', true, true);
+        $url = $this->getUrl('src/ReminderCron.php', true, true);
 
         while ($proj = db_fetch_assoc($enabled)) {
             $pid = $proj['project_id'];

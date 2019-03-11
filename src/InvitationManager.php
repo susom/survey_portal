@@ -93,7 +93,7 @@ class InvitationManager {
                 //$survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
                 //$participant->surveyEventName, $next_id);
 
-                $portal_url   = $module->getUrl("web/landing.php", true,true);
+                $portal_url   = $module->getUrl("src/landing.php", true,true);
                 $survey_link = $candidate[$this->portalConfig->personalUrlField]."&d=" . $valid_day;
                 $module->emDebug($survey_link, $candidate[$this->portalConfig->disableParticipantEmailField."___1"],$candidate[$this->portalConfig->emailField]);
 

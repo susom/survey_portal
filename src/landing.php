@@ -7,7 +7,7 @@ use DateTime;
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 
-require_once $module->getModulePath() . 'Portal.php';
+require_once 'Portal.php';
 
 
 
@@ -223,7 +223,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
         </title>
         <link rel="stylesheet" href="<?php echo $module->getUrl('css/bootstrap.min.css', true, true) ?>"
               type="text/css"/>
-        <link rel="stylesheet" href="<?php echo $module->getUrl('css/survey_portal.css', true, true) ?>"
+        <link rel="stylesheet" href="<?php echo $module->getUrl('css/SurveyPortal.css', true, true) ?>"
               type="text/css"/>
 
         <link href='https://fonts.googleapis.com/css?family=Oxygen:400,300,700' rel='stylesheet' type='text/css'>
@@ -359,7 +359,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
     </footer>
     <script src="<?php echo $module->getUrl('js/jquery-3.2.1.min.js', true, true) ?>"></script>
     <script src="<?php echo $module->getUrl('js/bootstrap.min.js', true, true) ?>"></script>
-    <script src="<?php echo $module->getUrl('js/survey_portal.js', true, true) ?>"></script>
+    <script src="<?php echo $module->getUrl('js/SurveyPortal.js', true, true) ?>"></script>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
     <!--  i am having a lot of trouble getting 1.6.0 datapicker to work.
@@ -438,6 +438,17 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
             <?php if ($portalConfig->showCalendar) { ?>
             $('#cal_date').datepicker('show');
+
+            $('#cal_date').datepicker({
+                beforeShow: function (input, inst) {
+                    setTimeout(function () {
+                        inst.dpDiv.css({
+                            top: $(".cal_date").offset().top + 35,
+                            left: $(".cal_date").offset().left
+                        });
+                    }, 0);
+                }
+            });
             <?php } ?>
 
 

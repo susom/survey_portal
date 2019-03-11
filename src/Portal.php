@@ -6,9 +6,9 @@ namespace Stanford\RepeatingSurveyPortal;
 /** @var \Stanford\RepeatingSurveyPortal\Participant $participant */
 /** @var \Stanford\RepeatingSurveyPortal\PortalConfig  $portalConfig */
 
-require_once $module->getModulePath().'Participant.php';
-require_once $module->getModulePath().'ParticipantMultipleResponse.php';
-require_once $module->getModulePath().'PortalConfig.php';
+require_once 'Participant.php';
+require_once 'ParticipantMultipleResponse.php';
+require_once 'PortalConfig.php';
 
 
 
