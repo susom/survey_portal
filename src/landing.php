@@ -408,6 +408,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
                 autoclose: true,
                 todayBtn: 'linked',
                 todayHighlight: true,
+                orientation: "top",
                 //title: 'Select Survey Date',
                 beforeShowDay: function (date) {
                     var formattedDate = formatDate(date);
@@ -429,6 +430,8 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
                 }
             });
 
+
+
             // Append the legend each time the calendar is displayed
             $('#cal_date').datepicker().on('show', function (e) {
                 // Append Legend
@@ -439,16 +442,6 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
             <?php if ($portalConfig->showCalendar) { ?>
             $('#cal_date').datepicker('show');
 
-            $('#cal_date').datepicker({
-                beforeShow: function (input, inst) {
-                    setTimeout(function () {
-                        inst.dpDiv.css({
-                            top: $(".cal_date").offset().top + 35,
-                            left: $(".cal_date").offset().left
-                        });
-                    }, 0);
-                }
-            });
             <?php } ?>
 
 
