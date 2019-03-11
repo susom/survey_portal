@@ -8,7 +8,7 @@
 
 namespace Stanford\RepeatingSurveyPortal;
 
-require_once $module->getModulePath().'src/InsertInstrumentHelper.php';
+require_once 'InsertInstrumentHelper.php';
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 

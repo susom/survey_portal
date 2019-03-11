@@ -295,7 +295,15 @@ class Participant
             $module->emDebug("not set", $survey_date);
             return true;
         } else {
-            $allowed_earliest = $survey_date->setTime($this->portalConfig->earliestTimeAllowed , 0);
+            //treat 24 a little differently. use 23:59 as 24 shifts to 00:00 the next day by php
+            if ($this->portalConfig->earliestTimeAllowed == '24') {
+                //set it to 23:59 as it ends up as next day
+                $allowed_earliest = $survey_date->setTime(23 , 59);
+            } else {
+                $allowed_earliest = $survey_date->setTime($this->portalConfig->earliestTimeAllowed, 0);
+            }
+
+
             $module->emDebug($allowed_earliest);
 
             $now = new DateTime();

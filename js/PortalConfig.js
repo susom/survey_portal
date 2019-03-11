@@ -11,6 +11,8 @@ PortalConfig.config = function() {
 
     PortalConfig.url = app_path_webroot + "ExternalModules/?prefix=" + moduleDirectoryPrefix + "&page=src%2FConfigAjax&pid="+pid;
 
+    console.log(PortalConfig.url);
+
     //clear out old one from before
     $('#config_status').remove();
 
@@ -63,7 +65,7 @@ PortalConfig.doAction = function (e) {
             PortalConfig.designateForm(form, event);
             break;
         default:
-            alert ("Invalid action recevied from status button");
+            alert ("Invalid action received from status button");
     }
 
 }
