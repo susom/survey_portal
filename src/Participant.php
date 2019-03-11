@@ -121,9 +121,14 @@ class Participant
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
         $date = $start_date;
 
+
+
         //$module->emDebug($all_surveys, $min, $max); exit;
         for ($i = $min; $i <= $max; $i++) {
 
+            //$module->emDebug("** date is ". $date->format('Y-m-d') . " DAY_NUMBER is ".$i);
+
+            //search existing record for matching day number field
             $found_survey_key = array_search($i, array_column($all_surveys, $this->portalConfig->surveyDayNumberField));
 
             $date_str = $date->format('Y-m-d');
@@ -148,7 +153,7 @@ class Participant
             $date = $start_date->modify('+ 1 days');
         }
 
-        //$module->emDebug($survey_status);
+        //$module->emDebug($survey_status);  exit;
 
         return $survey_status;
 
@@ -394,7 +399,7 @@ class Participant
         //if (($survey_complete == '0') || ($survey_complete == '1')) {
         if (isset($timestamp)) {
             $max_repeat_instance =  $results[$latest_key]['redcap_repeat_instance'];
-            //$module->emDebug($max_repeat_instance,$results[$latest_key], $survey_complete,  "Existing INSTANCE");
+            //$module->emDebug($max_repeat_instance $survey_complete,  "Existing INSTANCE"); //,$results[$latest_key],
         } else {
             //it's new, so just get the next instance id to create new one.
             //can't return this->max_instance because instance IDs are shared between parent and child.
@@ -403,8 +408,8 @@ class Participant
 
             $max_repeat_instance  = $this->getNextInstanceID();
 
+            //$module->emDebug($max_repeat_instance, $survey_complete,  "NEW INSTANCE"); //$results[$latest_key],
 
-            //$module->emDebug($survey_complete, $results[$latest_key], $max_repeat_instance, "NEW INSTANCE");
         }
 
         return $max_repeat_instance;

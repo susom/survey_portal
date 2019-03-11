@@ -209,13 +209,6 @@
           "type": "checkbox"
         },
         {
-          "key": "auto-start-survey",
-          "name": "<b>Auto-Start Survey</b><br>When clicking on invitation, start survey without showing landing page.",
-          "required": false,
-          "type": "checkbox"
-        },
-
-        {
           "key": "enable-invitations",
           "name": "<b>Enable Email/Text Invitations</b><br>Enable the sending of survey invitations on valid invitation days.  The invitation contains the config name and the day number encoded in the url.",
           "required": false,

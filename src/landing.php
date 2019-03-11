@@ -33,6 +33,7 @@ $participant = $portal->participant; //$portal->getParticipant();
 $portalConfig = $portal->portalConfig;
 
 //$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber, $portalConfig);
+//$module->emDebug($participant->survey_status);
 
 setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config, time()+(12*3600), "/");
 
@@ -55,9 +56,12 @@ setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config,
  *
  *
  * //8MAR2019 ??
- * TODO question
- * If there is a day_nubmer, it should just autostart since it is coming from email/text
- * Reserve Autostart for calendar mode which will just look up today's date
+ * TODO question: rethinking precedence of starts
+ * 1. If there is a day number ( &d=#), then auto_start
+ * 2. calendar and start today  should be toggle. If calendar is ON display calendar, if OFF then autostart
+ *    this is independent of the calendar redirect
+ *    --> remove the auto-start config property
+ *
  *
  *
  * If Autostart:
@@ -91,20 +95,27 @@ setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config,
 $today = new DateTime();
 $error_msg = null;
 
+//Get survey_date and daynumber from the various entry points
 
 if(isset($_POST['cal_submit'])) {
     $survey_date = DateTime::createFromFormat('Y-m-d', $_POST['cal_date']);
 
     if (isset($survey_date)) {
-        $module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
+        //$module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
         $day_number = $participant->getDayNumberFromDate($survey_date);
-        $module->emDebug("From Calendar launch: Starting with date: ", $survey_date, $day_number);
+        $module->emDebug("From Calendar launch: Starting with date: " . $survey_date->format('Y-m-d'). ' and daynumber: '. $day_number);
+    } else {
+        $error_msg[] = "No survey date was received from the calendar submission.";
     }
+} else {
 
-} elseif ($portalConfig->autoStartSurvey) {
-
-    $module->emDebug("Autostarting Survey");
-    if ($p_daynumber == "") {
+    //if daynumber passed in parameter, just start
+    if ($p_daynumber != "") {
+        $day_number = intval($p_daynumber);
+        $survey_date = $participant->getSurveyDateFromDayNumber($day_number);
+        $module->emDebug($survey_date, "Day number is set, so confirm in allowed window and start: " . $day_number);
+    } else {
+        //if no calendar option, then assume auto_start and derive survey_date as today
         $module->emDebug("No day number is set, so find day number, confirm valid day and start");
 
         //Given today's date, get daynumber
@@ -116,25 +127,13 @@ if(isset($_POST['cal_submit'])) {
             $error_msg[] = "This day number is not a valid day number. It is not in the range.";
         }
 
-
-    } else {
-
-        $day_number = intval($p_daynumber);
-        $survey_date = $participant->getSurveyDateFromDayNumber($day_number);
-        $module->emDebug($survey_date, "Day number is set, so confirm in allowed window and start: " . $day_number);
+        if (!isset($survey_date)) {
+            $error_msg[] = "Survey date could not be derived from the day number.";
+        }
     }
-
-
-
-
-
-} elseif ($portalConfig->showCalendar) {
-
-
-} else {
-    $module->emDebug("Display error message");
-    $error_msg[] = "There is no survey to auto-start today.";
 }
+
+
 
 //confirm valid window
 //todo: should i split this up to get better error messages?
@@ -144,7 +143,8 @@ if(isset($_POST['cal_submit'])) {
 
 
 if (isset($survey_date)) {
-    $module->emDebug(get_class($participant));
+    //$module->emDebug(get_class($participant));
+
     if (!$participant->isDayLagValid($survey_date)) {
         $error_msg[] = "The survey is past the allowed day lag: ". $participant->portalConfig->validDayLag . ' days';
     }
@@ -160,6 +160,8 @@ if (isset($survey_date)) {
 }
 
 if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
+
+    $module->emDebug("Valid DAY NUMBER : " . $survey_date->format('Y-m-d'). ' and daynumber: '.  $day_number);
 
     //check for partial survey today
     $next_id = $participant->getPartialResponseInstanceID($day_number, $survey_date);

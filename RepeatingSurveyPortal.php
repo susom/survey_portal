@@ -91,10 +91,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             //$module->PREFIX."_".$project_id."_".$portal->getParticipantId()
         $cookie_config = $_COOKIE[$cookie_key];
 
+        //$this->emDebug("COOKIE KEY ". $cookie_key);
+        //$this->emDebug("COOKIE CONFIG ". $cookie_config);
+
 
         //if redirect has been turned on redirect to the landing page
 
         $sub = $this->getSubIDFromConfigID($cookie_config);
+        //$this->emDebug("COOKIE CONFIG ". $cookie_config . "SUB ".$sub);
 
         $redirect = $this->getProjectSetting('survey-complete-redirect')[$sub];
 
@@ -449,6 +453,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         $params = array(
             'return_format'    => 'json',
+            'records'          => $record,
             'events'           => $filter_event,
             'fields'           => $retrieve_array,
             'filterLogic'      => $filter

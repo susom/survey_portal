@@ -9,7 +9,7 @@ PortalConfig.config = function() {
     var moduleDirectoryPrefix = configureModal.data('module');
     var version = ExternalModules.versionsByPrefix[moduleDirectoryPrefix];
 
-    PortalConfig.url = app_path_webroot + "ExternalModules/?prefix=" + moduleDirectoryPrefix + "&page=web%2FConfigAjax&pid="+pid;
+    PortalConfig.url = app_path_webroot + "ExternalModules/?prefix=" + moduleDirectoryPrefix + "&page=src%2FConfigAjax&pid="+pid;
 
     //clear out old one from before
     $('#config_status').remove();
