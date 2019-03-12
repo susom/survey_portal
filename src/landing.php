@@ -275,6 +275,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
                 <?php echo implode("<br>", $error_message) ?>
             </div>
         <?php } ?>
+        <p><?php echo $portalConfig->landingPageHeader; ?></p>
         <p><?php echo "Participant: ".$portal->participantID; ?></p>
         <div class="container">
             <div class="col-sm-8 col-sm-offset-2 col-xs-12">
@@ -397,9 +398,6 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
             $('#error_msg').show();
 
             <?php }?>
-            //fold in project_title into 'project_title' div
-            insertHtml("#project_title", '<?php echo $portalConfig->landingPageHeader;?>');
-
 
             // Initialize datepicker
             var d = $('#cal_date').datepicker({
