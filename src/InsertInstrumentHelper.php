@@ -23,8 +23,7 @@ class InsertInstrumentHelper
     private $status;                // 0 = dev, 1 = prod
     private $current_metadata;      // this will depend on dev or prod mode
 
-    const ZIP_PATH = "docs/RSPParticipantInfo.zip";
-    const ZIP_PATH_META = "docs/RSPSurveyMetadata.zip";
+    const ZIP_PREFIX = "docs/";
 
     public function __construct(RepeatingSurveyPortal $module)
     {
@@ -35,37 +34,22 @@ class InsertInstrumentHelper
     }
 
     /**
-     * Try to insert the Participant Info form
+     * Try to insert the entered form
+     *
      *
      * @return bool     Returns false if there was an error, call getErrors to see details
      */
-    public function insertParticipantInfoForm()
+    public function insertForm($form)
     {
-        $zipFile = $this->module->getModulePath() . self::ZIP_PATH;
 
+        $zipFile = $this->module->getModulePath() . self::ZIP_PREFIX . $form . ".zip";
+        $this->emDebug($form, $zipFile);
         if (!$this->loadZipFile($zipFile))  return false;
         if (!$this->verifyFields()) return false;
         if (!$this->verifyForms())  return false;
         if (!$this->saveMetadata()) return false;
         return true;
     }
-
-    /**
-     * Try to insert the Participant Info form
-     *
-     * @return bool     Returns false if there was an error, call getErrors to see details
-     */
-    public function insertSurveyMetadataForm()
-    {
-        $zipFile = $this->module->getModulePath() . self::ZIP_PATH_META;
-
-        if (!$this->loadZipFile($zipFile))  return false;
-        if (!$this->verifyFields()) return false;
-        if (!$this->verifyForms())  return false;
-        if (!$this->saveMetadata()) return false;
-        return true;
-    }
-
 
 
     private function loadZipFile($zipFile)
@@ -103,6 +87,11 @@ class InsertInstrumentHelper
 
     public function designateFormInEvent($form, $event) {
 
+        if ($this->formDesignatedInEvent($form,$event)) {
+            $this->addError("Form $form already enabled in event $event");
+            return false;
+        }
+
         $sql = sprintf("insert into redcap_events_forms (event_id, form_name) values (%d, '%s')",
             db_escape($event),
             db_escape($form)
@@ -110,6 +99,7 @@ class InsertInstrumentHelper
 
         $result = db_query($sql);
         //$this->emDebug($sql, $result);
+        return $result;
     }
 
     public function formExists($formName) {

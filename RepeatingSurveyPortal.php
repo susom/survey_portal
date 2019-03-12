@@ -321,10 +321,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
 
         $alerts = array();
-        $isValid = false;
+        $result = false;
 
-        $p = "<b>Participant Info form has not yet been created. </b> <div class='btn btn-xs btn-primary float-right' data-action='create_pi_form'>Create Form</div>";
-        $s=  "<b>Survey Info form has not yet been created. </b> <div class='btn btn-xs btn-primary float-right' data-action='create_md_form'>Create Form</div>";
+
+
 
         $main_events = $this->getProjectSetting('main-config-event-name');
         $this->emDebug("MAIN", $main_events);
@@ -332,36 +332,40 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $survey_events = $this->getProjectSetting('survey-event-name');
         $this->emDebug("SURVEY",$survey_events);
 
-        $this->emDebug("chekcing form: ", PARTICIPANT_INFO_FORM);
+        $this->emDebug("chekcing form: ", self::PARTICIPANT_INFO_FORM);
         if (!$iih->formExists(self::PARTICIPANT_INFO_FORM)) {
+            $p = "<b>Participant Info form has not yet been created. </b> 
+              <div class='btn btn-xs btn-primary float-right' data-action='insert_form' data-form='" . self::PARTICIPANT_INFO_FORM ."'>Create Form</div>";
             $alerts[] = $p;
-        }
-
-        if (!$iih->formExists(self::SURVEY_METADATA_FORM)) {
-            $alerts[] = $s;
-        }
-
-        foreach ($main_events as $sub => $event) {
-            if (isset($event)) {
-                if (!$iih->formDesignatedInEvent(self::PARTICIPANT_INFO_FORM, $event)) {
-                    $event_name = REDCap::getEventNames(false, true, $event);
-                    $pe = "<b>Participant Info form has not been designated to the event selected for the main event: <br>".$event_name.
-                        " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
-                        "' data-form='".self::PARTICIPANT_INFO_FORM."'>Designate Form</div>";
-                    $alerts[] = $pe;
+        } else {
+            // Form exists - check if enabled on event
+            foreach ($main_events as $sub => $event) {
+                if (isset($event)) {
+                    if (!$iih->formDesignatedInEvent(self::PARTICIPANT_INFO_FORM, $event)) {
+                        $event_name = REDCap::getEventNames(false, true, $event);
+                        $pe = "<b>Participant Info form has not been designated to the event selected for the main event: <br>".$event_name.
+                            " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
+                            "' data-form='".self::PARTICIPANT_INFO_FORM."'>Designate Form</div>";
+                        $alerts[] = $pe;
+                    }
                 }
             }
         }
 
-
-        foreach ($survey_events as $sub => $event) {
-            if (isset($event)) {
-                if (!$iih->formDesignatedInEvent(self::SURVEY_METADATA_FORM, $event)) {
-                    $event_name = REDCap::getEventNames(false, true, $event);
-                    $se = "<b>Survey Metadata form has not been designated to the event selected for the survey event: <br>".$event_name.
-                        " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
-                        "' data-form='".self::SURVEY_METADATA_FORM."'>Designate Form</div>";
-                    $alerts[] = $se;
+        if (!$iih->formExists(self::SURVEY_METADATA_FORM)) {
+            $s=  "<b>Survey Info form has not yet been created. </b> 
+              <div class='btn btn-xs btn-primary float-right' data-action='insert_form' data-form='" . self::SURVEY_METADATA_FORM . "'>Create Form</div>";
+            $alerts[] = $s;
+        } else {
+            foreach ($survey_events as $sub => $event) {
+                if (isset($event)) {
+                    if (!$iih->formDesignatedInEvent(self::SURVEY_METADATA_FORM, $event)) {
+                        $event_name = REDCap::getEventNames(false, true, $event);
+                        $se = "<b>Survey Metadata form has not been designated to the event selected for the survey event: <br>".$event_name.
+                            " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
+                            "' data-form='".self::SURVEY_METADATA_FORM."'>Designate Form</div>";
+                        $alerts[] = $se;
+                    }
                 }
             }
         }
@@ -369,67 +373,52 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $this->emDebug($alerts);
 
         if (empty($alerts)) {
-            $isValid = true;
+            $result = true;
+            $alerts[] = "Your configuration appears valid!";
         }
 
-        return array(
-            'isValid' => $isValid,
-            'alerts'  => $alerts
-        );
+        return array( $result, $alerts );
     }
 
-    public function insertForms($form) {
+    public function insertForm($form) {
         $iih = new InsertInstrumentHelper($this);
 
-        $this->emDebug("INSERT FORM". $form);
-        switch ($form) {
-            case "pi" :
-                $status = $iih->insertParticipantInfoForm();
-                break;
-            case "md" :
-                $status = $iih->insertSurveyMetadataForm();
-                break;
-            default:
-                alert("Form is not found.");
-        }
+        $result = $iih->insertForm($form);
+        $message = $iih->getErrors();
 
-        $this->emDebug("RETURN STATUS", $status, $iih->getErrors);
-        if (!$status) {
-            //TODO
-            $errors = $iih->getErrors();
-        }
+//        $this->emDebug("INSERT FORM". $form);
+//        switch ($form) {
+//            case "pi" :
+//                $status = $iih->insertParticipantInfoForm();
+//                break;
+//            case "md" :
+//                $status = $iih->insertSurveyMetadataForm();
+//                break;
+//            default:
+//                $status  = false;
+//        }
+//
+//
+//        $errors = $status ? null :$iih->getErrors();
+//
+//        //$status = $this->getConfigStatus();
+        $this->emDebug("RETURN STATUS", $result, $message);
 
-        $status = $this->getConfigStatus();
-
-        return $status;
+        return array($result, $message);
 
     }
 
 
-    public function designateForm($form, $event) {
+    public function designateEvent($form, $event) {
         $iih = new InsertInstrumentHelper($this);
 
-        $this->emDebug("DESIGNATING FORM: ". $form . $event);
-        switch ($form) {
-            case self::PARTICIPANT_INFO_FORM :
-                $status = $iih->designateFormInEvent(self::PARTICIPANT_INFO_FORM, $event);
-                break;
-            case self::SURVEY_METADATA_FORM :
-                $status = $iih->designateFormInEvent(self::SURVEY_METADATA_FORM, $event);
-                break;
-            default:
-                $this->emErrpr("Form is not found.");
-        }
+        $this->emDebug("DESIGNATING EVENT: ". $form . $event);
+        $result = $iih->designateFormInEvent($form, $event);
+        $message = $iih->getErrors();
 
-        $this->emDebug("RETURN STATUS", $status, $iih->getErrors);
-        if (!$status) {
-            //TODO
-            $errors = $iih->getErrors();
-        }
+        $this->emDebug("RETURN STATUS", $result, $message);
 
-        $status = $this->getConfigStatus();
-
-        return $status;
+        return array($result, $message);
 
     }
 

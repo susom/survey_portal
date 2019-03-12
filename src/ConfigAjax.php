@@ -23,27 +23,31 @@ require_once 'InsertInstrumentHelper.php';
 
 //populate defaults
 
+
+// HANDLE BUTTON ACTION
 if (!empty($_POST['action'])) {
     $action = $_POST['action'];
     //$zip_loader = InsertInstrumentHelper::getInstance($module);
     $module->emDebug($_POST);
+    $message = $delay = $callback = null;
 
     switch ($action) {
-        case "insertForm":
+        case "insert_form":
             $form = $_POST['form'];
-            $result = $module->insertForms($form);
+            list($result, $message) = $module->insertForm($form);
+
 
             $module->emDebug("INSERT FORM", $result);
-
+            $message = $result ? "$form Created!" : $message;
 
             break;
-        case "designateForm":
-            $module->emDebug("DESIGNATING FORM");
+        case "designate_event":
+            $module->emDebug("DESIGNATING EVENT");
             $form = $_POST['form'];
             $event = $_POST['event'];
-            $result = $module->designateForm($form, $event);
+            list($result, $message) = $module->designateEvent($form, $event);
 
-            $module->emDebug("result".  $result);
+            $module->emDebug("result",  $result);
 
 
             break;
@@ -55,8 +59,8 @@ if (!empty($_POST['action'])) {
             //does the rsp_metadata form exit
 
             //is
-            $result = $module->getConfigStatus();
-            $module->emDebug("GET STATUS", $result);
+            list($result,$message) = $module->getConfigStatus();
+            $module->emDebug("GET STATUS", $result, $message);
 
 
             //$result = array(1,2,3);
@@ -140,7 +144,14 @@ if (!empty($_POST['action'])) {
          */
     }
     header('Content-Type: application/json');
-    print json_encode($result);
+    echo json_encode(
+        array(
+            'result' => $result,
+            'message' => $message,
+            'callback' => $callback,
+            'delay'=> $delay
+        )
+    );
     exit();
 
 }

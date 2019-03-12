@@ -48,27 +48,82 @@ PortalConfig.config = function() {
  * @param e
  */
 PortalConfig.doAction = function (e) {
-    const action = $(e).data('action');
-    const event  = $(e).data('event');
-    const form   = $(e).data('form');
 
-    console.log(e, action, event, form);
+    const data = $(e).data();
 
-    switch (action) {
-        case 'create_pi_form':
-            PortalConfig.insertForm('pi');
-            break;
-        case 'create_md_form':
-            PortalConfig.insertForm('md');
-            break;
-        case 'designate_event':
-            PortalConfig.designateForm(form, event);
-            break;
-        default:
-            alert ("Invalid action received from status button");
+    // Action MUST be defined or we won't do anything
+    if (!data.action) {
+        alert ("Invalid Button - missing action");
+        return;
     }
 
-}
+    // Do the ajax call
+    $.ajax({
+        method: "POST",
+        url: PortalConfig.url,
+        data: data,
+        dataType: "json"
+    })
+        .done(function (data) {
+            // Data should be in format of:
+            // data.result   true/false
+            // data.message  (optional)  message to display.
+            // data.callback (function to call)
+            // data.delay    (delay before callbackup in ms)
+            const cls = data.result ? 'alert-success' : 'alert-danger';
+
+            // Render message if we have one
+            if (data.message) {
+                var alert = $('<div></div>')
+                    .addClass('alert')
+                    .addClass(cls)
+                    .css({"position": "fixed", "top": "5px", "left": "2%", "width": "96%", "display":"none"})
+                    .html(data.message)
+                    .prepend("<a href='#' class='close' data-dismiss='alert'>&times;</a>")
+                    .appendTo('#external-modules-configure-modal')
+                    .show(500);
+
+                setTimeout(function(){
+                    console.log('Hiding in 500', alert);
+                    alert.hide(500);
+                }, 5000);
+            }
+
+            if (data.callback) {
+                const delay = data.delay ? data.delay : 0;
+
+                //since configuration is set, set the defaults for the first configuration
+                setTimeout(window[data.callback](), delay);
+            }
+        })
+        .fail(function () {
+            alert("error");
+        })
+        .always(function() {
+            PortalConfig.getStatus();
+        });
+
+
+    //const event  = $(e).data('event');
+    //const form   = $(e).data('form');
+
+    //console.log(e, action, event, form);
+
+    //switch (action) {
+    //    case 'create_pi_form':
+    //        PortalConfig.insertForm('pi');
+    //        break;
+    //    case 'create_md_form':
+    //        PortalConfig.insertForm('md');
+    //        break;
+    //    case 'designate_event':
+    //        PortalConfig.designateForm(form, event);
+    //        break;
+    //    default:
+    //        alert ("Invalid action received from status button");
+    //}
+
+};
 
 
 PortalConfig.designateForm = function(form, event) {
@@ -191,31 +246,16 @@ PortalConfig.getStatus = function () {
             var configStatus = $('#config_status');
             configStatus.empty();
             configStatus.html('');
-            console.log("CONFIG STATUS",configStatus);
-            var successStatus =  $('<div></div>')
-                    .addClass('alert alert-success')
-                    .html("Your configuration appears valid");
 
-            const status = data.isValid;
+            const cls = data.result ? 'alert-success': 'alert-danger';
 
-            const alerts = data.alerts;
-
-            if (status) {
-                console.log('ADDING', successStatus);
-                //$('<div></div>')
-                 //   .empty()
-                 //   .addClass('alert alert-success')
-                 //   .html("Your configuration appears valid")
-                successStatus
-                    .appendTo(configStatus);
-            }
-            $.each(alerts, function (i, alert) {
+            $.each(data.message, function (i, alert) {
                 $('<div></div>')
                     .addClass('alert')
+                    .addClass(cls)
                     .html(alert)
                     .appendTo(configStatus);
             })
-
 
         })
         .fail(function () {
@@ -226,7 +266,7 @@ PortalConfig.getStatus = function () {
         });
 
 
-}
+};
 
 PortalConfig.checkForms = function () {
     var data = {
