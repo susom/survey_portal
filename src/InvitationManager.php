@@ -138,8 +138,8 @@ class InvitationManager {
                     //$twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
                     $twilio_status = $module->emText($candidate[$this->portalConfig->phoneField], $msg);
 
-                    if (!$twilio_status) {
-                        $this->emError("TWILIO Failed to send to ". $candidate[$this->portalConfig->phoneField] . " with status ". $twilio_status);
+                    if ($twilio_status !== true) {
+                        $module->emError("TWILIO Failed to send to ". $candidate[$this->portalConfig->phoneField] . " with status ". $twilio_status);
                         REDCap::logEvent(
                             "Text Invitation Failed to send from Survey Portal EM",  //action
                             "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . $twilio_status,  //changes
@@ -149,6 +149,7 @@ class InvitationManager {
                             $this->project_id //project ID optional
                         );
                     } else {
+                        $module->emDebug($twilio_status);
                         REDCap::logEvent(
                             "Text Invitation Sent from Survey Portal EM",  //action
                             "Text sent to " . $candidate[$this->portalConfig->phoneField],  //changes

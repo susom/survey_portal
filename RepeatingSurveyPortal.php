@@ -771,6 +771,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         global $module;
 
         $emTexter = ExternalModules::getModuleInstance('twilio_utility');
+        //$this->emDebug($emTexter);
         $text_status = $emTexter->emSendSms($number, $text);
         return $text_status;
     }

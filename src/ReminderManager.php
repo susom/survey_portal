@@ -160,7 +160,7 @@ class ReminderManager extends InvitationManager
                     //$twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
                     $twilio_status = $module->emText($candidate[$this->portalConfig->phoneField], $msg);
 
-                    if (!$twilio_status) {
+                    if ($twilio_status !== true) {
                         $this->emError("TWILIO Failed to send to " . $candidate[$this->portalConfig->phoneField] . " with status " . $twilio_status);
                         REDCap::logEvent(
                             "Text Reminder Failed to send from Survey Portal EM",  //action
