@@ -121,7 +121,7 @@ class Participant
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
         $date = $start_date;
 
-
+        $today = new DateTime();
 
         //$module->emDebug($all_surveys, $min, $max); exit;
         for ($i = $min; $i <= $max; $i++) {
@@ -137,9 +137,9 @@ class Participant
 
             //if valid day lag is not set, set all to 'valid', otherwise set all to false
             if (isset($this->portalConfig->validDayLag)) {
-                $survey_status[$date_str]['valid_day_lag']    = false;
+                $survey_status[$date_str]['valid_day_lag'] = false;
             } else {
-                $survey_status[$date_str]['valid_day_lag']    = $survey_status[$date_str]['valid'];
+                $survey_status[$date_str]['valid_day_lag'] = $survey_status[$date_str]['valid'];
 
 
             }
@@ -148,9 +148,14 @@ class Participant
             if (!($found_survey_key === false)) { //because one of the found keys is 0 which reads as false.
                 $survey_status[$date_str]['completed'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyInstrument . '_complete'];
                 $survey_status[$date_str]['survey_date'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyDateField];
-                $survey_status[$date_str]['date_taken']  = $all_surveys[$found_survey_key][$this->portalConfig->surveyLaunchTSField];
+                $survey_status[$date_str]['date_taken'] = $all_surveys[$found_survey_key][$this->portalConfig->surveyLaunchTSField];
             }
             $date = $start_date->modify('+ 1 days');
+
+            //if date is less than tomorrow then break out of loop
+            if ($date > $today) {
+                break;
+            }
         }
 
         //$module->emDebug($survey_status);  exit;
@@ -292,7 +297,6 @@ class Participant
     public function isStartTimeValid($survey_date) {
         global $module;
         if (!isset($this->portalConfig->earliestTimeAllowed)) {
-            $module->emDebug("not set", $survey_date);
             return true;
         } else {
             //treat 24 a little differently. use 23:59 as 24 shifts to 00:00 the next day by php
@@ -303,11 +307,9 @@ class Participant
                 $allowed_earliest = $survey_date->setTime($this->portalConfig->earliestTimeAllowed, 0);
             }
 
-
             $module->emDebug($allowed_earliest);
 
             $now = new DateTime();
-
 
             if ($now >= $allowed_earliest ) {
                 $module->emDebug("valid time ".  $allowed_earliest->format('Y-m-d H:i:s'), $now->format('Y-m-d  H:i:s'));
