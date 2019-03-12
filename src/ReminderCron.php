@@ -6,7 +6,7 @@ use REDCap;
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 
-require_once $module->getModulePath().'ReminderManager.php';
+require_once 'ReminderManager.php';
 
 
 $sub = isset($_GET['s']) ? $_GET['s'] : "";

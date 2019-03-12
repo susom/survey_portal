@@ -15,7 +15,7 @@ use DateInterval;
 use Exception;
 use Message;
 
-require_once $module->getModulePath() . 'InvitationManager.php';
+require_once 'InvitationManager.php';
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */

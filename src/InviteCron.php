@@ -6,7 +6,7 @@ use REDCap;
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 
-require_once $module->getModulePath().'InvitationManager.php';
+require_once 'InvitationManager.php';
 
 $sub = isset($_GET['s']) ? $_GET['s'] : "";
 

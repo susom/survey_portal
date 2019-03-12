@@ -117,6 +117,14 @@ class InvitationManager {
 
 
                     //TODO: log send status to REDCap Logging?
+                    REDCap::logEvent(
+                        "Email Invitation Sent from Survey Portal EM",  //action
+                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " with status " .$send_status,  //changes
+                        NULL, //sql optional
+                        $participant->participantID, //record optional
+                        $this->portalConfig->surveyEventName, //event optional
+                        $this->project_id //project ID optional
+                    );
 
                 }
 
@@ -132,6 +140,23 @@ class InvitationManager {
 
                     if (!$twilio_status) {
                         $this->emError("TWILIO Failed to send to ". $candidate[$this->portalConfig->phoneField] . " with status ". $twilio_status);
+                        REDCap::logEvent(
+                            "Text Invitation Failed to send from Survey Portal EM",  //action
+                            "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . $twilio_status,  //changes
+                            NULL, //sql optional
+                            $participant->participantID, //record optional
+                            $this->portalConfig->surveyEventName, //event optional
+                            $this->project_id //project ID optional
+                        );
+                    } else {
+                        REDCap::logEvent(
+                            "Text Invitation Sent from Survey Portal EM",  //action
+                            "Text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
+                            NULL, //sql optional
+                            $participant->participantID, //record optional
+                            $this->portalConfig->surveyEventName, //event optional
+                            $this->project_id //project ID optional
+                        );
                     }
 
 
