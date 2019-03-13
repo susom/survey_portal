@@ -80,12 +80,12 @@ function getValidDayStatus($sub, $participant_id, $start_date,  $surveys, $valid
     global $module;
     $config_ids = $module->getProjectSetting('config-id');
 
+
     $survey_status = array();
+    $date = clone $start_date;
 
     foreach ($valid_day_array as $day_number) {
-        $date = clone $start_date;
-        //get date for current $day_number
-        $date = $date->modify('+ '. $day_number . ' days');
+        //$module->emDEbug($start_date, $date, $day_number);
 
         $config_id = $config_ids[$sub];
         $date_str = $date->format('Y-m-d');
@@ -93,6 +93,12 @@ function getValidDayStatus($sub, $participant_id, $start_date,  $surveys, $valid
         $survey_status[$participant_id . '_'.$config_id][$date_str]['DAY_NUMBER'] = $day_number;
         $survey_status[$participant_id . '_'.$config_id][$date_str]['STATUS'] =
             isset($surveys[$participant_id][$day_number]['STATUS']) ? $surveys[$participant_id][$day_number]['STATUS'] : "-1";
+
+        //set the next day
+        $date = clone $start_date;
+
+        //get date for current $day_number
+        $date = $date->modify('+ '. $day_number . ' days');
 
     }
 
@@ -144,7 +150,7 @@ function renderSummaryTableRows($row_data, $date_window) {
 
             $status = $dates[$display_date]['STATUS'];
             $day_num = $dates[$display_date]['DAY_NUMBER'];
-            //$module->emDebug($display_date, $status, $day_num); exit;
+            //$module->emDebug($display_date, $status, $day_num, $dates); exit;
 
             $status_unscheduled = '';
             $status_blue = '<button type="button" class="btn btn-info btn-circle"><i class="glyphicon"></i><b>'.$day_num.'</b></button>';

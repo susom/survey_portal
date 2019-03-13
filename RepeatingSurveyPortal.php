@@ -320,22 +320,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         $iih = new InsertInstrumentHelper($this);
 
-        //$this->emDebug($iih);
-
-
         $alerts = array();
         $result = false;
 
-
-
-
         $main_events = $this->getProjectSetting('main-config-event-name');
-        $this->emDebug("MAIN", $main_events);
 
         $survey_events = $this->getProjectSetting('survey-event-name');
-        $this->emDebug("SURVEY",$survey_events);
+        //$this->emDebug("SURVEY",$survey_events);
 
-        $this->emDebug("chekcing form: ", self::PARTICIPANT_INFO_FORM);
         if (!$iih->formExists(self::PARTICIPANT_INFO_FORM)) {
             $p = "<b>Participant Info form has not yet been created. </b> 
               <div class='btn btn-xs btn-primary float-right' data-action='insert_form' data-form='" . self::PARTICIPANT_INFO_FORM ."'>Create Form</div>";
@@ -373,7 +365,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             }
         }
 
-        $this->emDebug($alerts);
+        //$this->emDebug($alerts);
 
         if (empty($alerts)) {
             $result = true;
