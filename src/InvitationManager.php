@@ -119,7 +119,7 @@ class InvitationManager {
                     //TODO: log send status to REDCap Logging?
                     REDCap::logEvent(
                         "Email Invitation Sent from Survey Portal EM",  //action
-                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " with status " .$send_status,  //changes
+                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
                         $participant->participantID, //record optional
                         $this->portalConfig->surveyEventName, //event optional
@@ -142,7 +142,7 @@ class InvitationManager {
                         $module->emError("TWILIO Failed to send to ". $candidate[$this->portalConfig->phoneField] . " with status ". $twilio_status);
                         REDCap::logEvent(
                             "Text Invitation Failed to send from Survey Portal EM",  //action
-                            "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . $twilio_status,  //changes
+                            "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . " with status " .  $twilio_status . " for day_number " . $valid_day ,  //changes
                             NULL, //sql optional
                             $participant->participantID, //record optional
                             $this->portalConfig->surveyEventName, //event optional

@@ -70,8 +70,11 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     public function redcap_module_link_check_display($project_id, $link) {
         // TODO: Loop through each portal config that is enabled and see if they are all valid.
-        if ($this->getSystemSetting(self::KEY_VALID_CONFIGURATION) == 1) {
-            // Do nothing - no need to show the link
+        //TODO: ask andy123; i'm not sure what KEY_VALID_CONFIGURATION is for...
+        //if ($this->getSystemSetting(self::KEY_VALID_CONFIGURATION) == 1) {
+        list($result, $message)  = $this->getConfigStatus();
+        if ($result === true) {
+                    // Do nothing - no need to show the link
         } else {
             $link['icon'] = "exclamation";
         }
@@ -571,7 +574,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $cfg
      * @return mixed
      */
-    public function getAllSurveys($id = null) {
+    public function  getAllSurveys($id = null) {
 
         //get fields of each hash - separately? can't assume that they will be in the same event.
         $survey_config_field= $this->getProjectSetting('survey-config-field');

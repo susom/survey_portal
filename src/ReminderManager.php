@@ -140,7 +140,7 @@ class ReminderManager extends InvitationManager
 
                     REDCap::logEvent(
                         "Email Reminder Sent from Survey Portal EM",  //action
-                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " with status " .$send_status,  //changes
+                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
                         $participant->participantID, //record optional
                         $this->portalConfig->surveyEventName, //event optional
@@ -164,7 +164,7 @@ class ReminderManager extends InvitationManager
                         $this->emError("TWILIO Failed to send to " . $candidate[$this->portalConfig->phoneField] . " with status " . $twilio_status);
                         REDCap::logEvent(
                             "Text Reminder Failed to send from Survey Portal EM",  //action
-                            "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . $twilio_status,  //changes
+                            "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . " with status " .  $twilio_status . " for day_number " . $valid_day ,  //changes
                             NULL, //sql optional
                             $participant->participantID, //record optional
                             $this->portalConfig->surveyEventName, //event optional
