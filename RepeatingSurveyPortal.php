@@ -771,7 +771,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     function emDebug()
     {
         // Check if debug enabled
-        if ($this->getSystemSetting('enable-system-debug-logging') || $this->getProjectSetting('enable-project-debug-logging')) {
+        if ($this->getSystemSetting('enable-system-debug-logging') || ( !empty($_GET['pid']) && $this->getProjectSetting('enable-project-debug-logging'))) {
             $emLogger = ExternalModules::getModuleInstance('em_logger');
             $emLogger->emLog($this->PREFIX, func_get_args(), "DEBUG");
         }
