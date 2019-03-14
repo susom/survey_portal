@@ -218,21 +218,13 @@
           "key": "invitation-days",
           "name": "<b>Invitation Days</b><br>Days on which to send invitations (<i>e.g.</i> 0-10,15-20,25).  These days should be a subset of valid day numbers.",
           "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
+          "type": "text"
         },
         {
           "key": "invitation-time",
           "name": "<b>Invitation Time</b><br>Hour of the day (0-24) to send invitation (e.g. 18 for 6PM)",
           "required": false,
-          "type": "number",
-          "branchingLogic": {
-            "field": "enable-invitations",
-            "value": true
-          }
+          "type": "number"
         },
         {
           "key": "invitation-email-text",
