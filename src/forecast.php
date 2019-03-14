@@ -50,7 +50,6 @@ if ($end != '') {
 
     //2. Get survey portal data from main project
     $portal_data = $module->getPortalData();
-    //$module->emDebug($portal_data); exit;
 
     //3. For each sub, spool out from start date according to the valid-day_number array and set status
     $survey_status = array();

@@ -632,6 +632,11 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
+    /**
+     * Returns the portal related data for each participant by sub
+     *
+     * @return array
+     */
     public function getPortalData() {
         $enable_portal = $this->getProjectSetting('enable-portal');
 
@@ -650,21 +655,39 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
-
-
+    /**
+     * Return portal data for the participants which is assigned to this sub setting
+     *
+     * @param $sub
+     * @return array|mixed
+     */
     public function getPortalDataForConfig($sub) {
 
+        //get the config id associated with this subsetting id
+        $config_id = $this->getConfigIDFromSubID($sub);
+
+        $this->emDebug("SUB IS " . $sub . " and config id is ". $config_id);
+
+        //filter out participant for which this config id is assigned
+        $main_event_id = ($this->getProjectSetting('main-config-event-name'))[$sub];
+        $survey_event_id = ($this->getProjectSetting('survey-event-name'))[$sub];
+        $main_event_name = REDCap::getEventNames(true, false, $main_event_id);
+        $config_field = ($this->getProjectSetting('participant-config-id-field'));
+
+
+        $filter = "[" . $main_event_name . "][" . $config_field . "] = '{$config_id}'";
 
         $portal_fields = array(
             REDCap::getRecordIdField(),
             ($this->getProjectSetting('start-date-field'))[$sub],
-            ($this->getProjectSetting('participant-config-id-field'))[$sub]
+            ($this->getProjectSetting('participant-config-id-field'))
         );
 
         $portal_params = array(
             'return_format' => 'json',
-            'fields'        =>$portal_fields,
-            'events'        => ($this->getProjectSetting('main-config-event-name'))[$sub]
+            'fields'        => $portal_fields,
+            'filterLogic'   => $filter,
+            'events'        => $main_event_id
         );
         $q = REDCap::getData($portal_params);
         $portal_data = json_decode($q, true);
@@ -672,7 +695,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         //rearrange so that the id is the key
         $portal_data = $this->makeFieldArrayKey($portal_data, REDCap::getRecordIdField());
-        //$this->emDebug($portal_data); exit;
 
         return $portal_data;
 
