@@ -238,96 +238,31 @@
           "key": "invitation-email-text",
           "name": "<b>Invitation Email Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
           "required": false,
-          "type": "textarea",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-invitations",
-                "value": true
-              },
-              {
-                "field": "email-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "textarea"
         },
         {
           "key": "invitation-email-subject",
           "name": "<b>Invitation Email Subject</b>",
           "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-invitations",
-                "value": true
-              },
-              {
-                "field": "email-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "text"
         },
         {
           "key": "invitation-email-from",
           "name": "<b>Invitation Email From</b><br>Enter an email address  to use for from field",
           "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-invitations",
-                "value": true
-              },
-              {
-                "field": "email-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "text"
         },
         {
           "key": "sms-twilio-desc",
           "name": "<div class='alert alert-warning'><h3 class='text-center'>The use of SMS invitations REQUIRES that a separate EM (Twilio Utility) be installed and enabled globally.</h3></div>",
           "required": false,
-          "type": "descriptive",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-invitations",
-                "value": true
-              },
-              {
-                "field": "phone-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "descriptive"
         },
         {
           "key": "invitation-sms-text",
           "name": "<b>Invitation SMS Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message.  Messages over 160 characters may result in multiple text segments.",
           "required": false,
-          "type": "textarea",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-invitations",
-                "value": true
-              },
-              {
-                "field": "phone-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "textarea"
         },
         {
           "key": "survey-reminders-desc",
