@@ -535,28 +535,44 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $params = array(
             'return_format'       => 'json',
             'records'             => $record,
-            'fields'              => array($target_field),
+            //'fields'              => array($target_field, 'redcap_repeat_instance'), //include this doesn't return repeat_instance, repeat_instrument
             'events'              => $event,
-            'redcap_repeat_instrument' => $instrument,
-            'redcap_repeat_instance'   => $repeat_instance
-        );
-        $params = array(
-            'return_format'       => 'json',
-            'records'             => $record,
-            //'fields'              => array($target_field, 'redcap_repeat_instance'),
-            'events'              => $event,
-            'redcap_repeat_instrument' => $instrument,
+            'redcap_repeat_instrument' => $instrument,       //this doesn't restrict
             'redcap_repeat_instance'   => $repeat_instance   //this doesn't seem to do anything!
         );
 
         $q = REDCap::getData($params);
         $results = json_decode($q, true);
 
+
+
         //get the key for this repeat_instance
-        $key = array_search($repeat_instance, array_column($results, 'redcap_repeat_instance'));
+        //this won't work for project with multiple repeating forms
+        //$key = array_search($repeat_instance, array_column($results, 'redcap_repeat_instance'));
+        //$key_2 = array_search($repeat_instance, array_column($results, 'redcap_repeat_instance'));
+        //$key = array_keys($results, [ 'redcap_repeat_instance' => $repeat_instance,'redcap_repeat_instrument' => $instrument]);
+
+        //giving up! just search for it.
+        $key =  $this->multiSearch($repeat_instance, $instrument, $results);
+
+        //$this->emDebug($repeat_instance, $instrument, $key_2, $key); exit;
+
         $target = $results[$key][$target_field];
 
         return $target;
+    }
+
+    function multiSearch($repeat_instance, $instrument, $results) {
+        $found = null;
+
+        foreach ($results as $key => $record) {
+            //$this->emDebug($key, $record);
+            if (($record['redcap_repeat_instance'] == $repeat_instance) && ($record['redcap_repeat_instrument'] == $instrument)) {
+               //$this->emDebug("FOUND", $record); exit;
+                return $key;
+            }
+        }
+        return null;
     }
 
     /**
