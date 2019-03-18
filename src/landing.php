@@ -115,20 +115,24 @@ if(isset($_POST['cal_submit'])) {
         $survey_date = $participant->getSurveyDateFromDayNumber($day_number);
         $module->emDebug($survey_date, "Day number is set, so confirm in allowed window and start: " . $day_number);
     } else {
+
         //if no calendar option, then assume auto_start and derive survey_date as today
-        $module->emDebug("No day number is set, so find day number, confirm valid day and start");
+        if ($portal->showCalendar) {
 
-        //Given today's date, get daynumber
-        $day_number = $participant->getDayNumberFromDate($today);
-        $survey_date = $today;
-        $module->emDebug("Day number for " . $today->format('Y-m-d') . " is " . $day_number);
+            $module->emDebug("No day number is set, so find day number, confirm valid day and start");
 
-        if ($day_number == null) {
-            $error_msg[] = "This day number is not a valid day number. It is not in the range.";
-        }
+            //Given today's date, get daynumber
+            $day_number = $participant->getDayNumberFromDate($today);
+            $survey_date = $today;
+            $module->emDebug("Day number for " . $today->format('Y-m-d') . " is " . $day_number);
 
-        if (!isset($survey_date)) {
-            $error_msg[] = "Survey date could not be derived from the day number.";
+            if ($day_number == null) {
+                $error_msg[] = "This day number is not a valid day number. It is not in the range.";
+            }
+
+            if (!isset($survey_date)) {
+                $error_msg[] = "Survey date could not be derived from the day number.";
+            }
         }
     }
 }
