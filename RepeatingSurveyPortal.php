@@ -333,7 +333,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //replace $portal_url the tag [portal-url]
         $target_str = "[portal-url]";
 
-        $tagged_link = "<a href='{$portal_url}'>link</a>";
+        $tagged_link = "<a href='{$portal_url}'>Portal Link</a>";
         //if there is a portal-url tag included, switch it out for the actual url.  if not, then add it to the end.
 
         if (strpos($msg, $target_str) !== false) {
