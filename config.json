@@ -166,6 +166,24 @@
           "type": "form-list"
         },
         {
+          "key": "portal-invite-email",
+          "name": "<b>Email text to notify the participant of their portal.</b><br>You can use piping to customize this message and use the special tag [portal-url] for the link</div>",
+          "required": false,
+          "type": "textarea"
+        },
+        {
+          "key": "portal-invite-subject",
+          "name": "<b>Portal Email Subject</b>",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "key": "portal-invite-from",
+          "name": "<b>Portal From Email</b>",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "valid-day-number",
           "name": "<b>Valid Days for Responses</b><br><i>e.g.</i> 0-10,15,20 (leave blank to allow any day number)",
           "required": false,
@@ -412,7 +430,6 @@
           "required": false,
           "type": "field-list"
         },
-
         {
           "key": "email-field",
           "name": "<b>Email Field</b><BR>Field where email is recorded for this participant (to be used for survey invtes/reminders ",

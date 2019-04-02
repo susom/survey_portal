@@ -45,6 +45,9 @@ class PortalConfig {
     public $showMissingDayButtons;
     public $autoStartSurvey;
     public $surveyCompleteRedirect;
+    public $surveyInviteEmail;
+    public $surveyInviteSubject;
+    public $surveyInviteFrom;
 
     public $enableInvitations;
     public $invitationDays;
@@ -101,6 +104,9 @@ class PortalConfig {
         'show-missing-day-buttons '       => 'showMissingDayButtons',
         'auto-start-survey'               => 'autoStartSurvey',
         'survey-complete-redirect'        => 'surveyCompleteRedirect',
+        'portal-invite-email'             => 'surveyInviteEmail',
+        'portal-invite-subject'           => 'surveyInviteSubject',
+        'portal-invite-from'              => 'surveyInviteFrom',
         'enable-invitations'              => 'enableInvitations',
         'invitation-days'                 => 'invitationDays',
         'invitation-time'                 => 'invitationTime',

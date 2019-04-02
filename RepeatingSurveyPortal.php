@@ -173,6 +173,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
                 $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
 
+                //prep for the initial invite email
+                $initial_invite_msg = $this->getProjectSetting('portal-invite-email')[$sub];
+                $initial_invite_subject = $this->getProjectSetting('portal-invite-subject')[$sub];
+                $email_from = $this->getProjectSetting('portal-invite-from')[$sub];
+                $email_to_field = $this->getProjectSetting('email-field')[$sub];
+
                 //$this->emDebug($sub,  $this->getProjectSetting('personal-url-field'),$personal_hash_field, $personal_url_field); exit;
 
                 // First check if hashed portal already has been created
@@ -186,11 +192,11 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     $portal_url = $this->getUrl("src/landing.php", true, true);
                     $new_hash_url = $portal_url . "&h=" . $new_hash . "&c=" . $config_id;
 
-                    $this->emDebug("this is new hash: " . $new_hash_url);
+                    //$this->emDebug("this is new hash: " . $new_hash_url);
 
                     // Save it to the record (both as hash and hash_url for piping)
                     $event_name = REDCap::getEventNames(true, false, $config_event);
-                    $this->emDebug($event_id, $event_name, $config_event);
+                    //$this->emDebug($event_id, $event_name, $config_event);
 
                     $data = array(
                         REDCap::getRecordIdField() => $record,
@@ -207,6 +213,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                         $msg = "Error creating record - ask administrator to review logs: " . json_encode($response);
                         $this->emError($msg, $response['errors']);
                     }
+
+                    //the URL has been updated so send out an email
+                    //get the email to
+                    $email_to = $this->getFieldValue($record, $config_event, $email_to_field, $instrument, $repeat_instance);
+                    $this->sendPortalUrl($project_id, $record, $new_hash_url, $initial_invite_msg, $email_to, $email_from, $initial_invite_subject);
+
                     $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
                 }
             }
@@ -315,6 +327,53 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /*  METHODS                                                                                                    */
     /***************************************************************************************************************** */
 
+
+    public function sendPortalUrl($project_id, $record, $portal_url, $msg,$email_to, $from, $subject) {
+
+        //replace $portal_url the tag [portal-url]
+        $target_str = "[portal-url]";
+
+        $tagged_link = "<a href='{$portal_url}'>link</a>";
+        //if there is a portal-url tag included, switch it out for the actual url.  if not, then add it to the end.
+
+        if (strpos($msg, $target_str) !== false) {
+            $msg = str_replace($target_str, $tagged_link, $msg);
+        } else {
+            $msg = $msg . "<br>Use this link to take the survey:".$tagged_link;
+        }
+
+        //$this->emDebug( $email_to, $from, $subject, $msg);
+
+        if (!isset($from)) $from = 'no-reply@stanford.edu';
+
+        //send email
+        $email = new Message();
+        $email->setTo($email_to);
+        $email->setFrom($from);
+        $email->setSubject($subject);
+        $email->setBody($msg); //format message??
+
+        $result = $email->send();
+        if ($result == false) {
+            $action_status = "Error sending invite form Survey Portal EM";
+            $send_status = 'Error sending mail to '.$email_to .
+                " with status: " . $email->getSendError() . ' with ' . json_encode($email);
+        } else {
+            $action_status = "Portal Link Sent from Survey Portal EM";
+            $send_status = 'Email with portal url was sent to '. $email_to;
+        }
+
+        //TODO: log send status to REDCap Logging?
+        REDCap::logEvent(
+            $action_status, //action
+            $send_status,
+            NULL, //sql optional
+            $record, //record optional
+            null,
+            $project_id //project ID optional
+        );
+
+    }
 
     public function getConfigStatus() {
 
@@ -528,7 +587,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function getFieldValue($record, $event, $target_field, $instrument, $repeat_instance = 1) {
 
-        $this->emDebug($record, $event, $target_field, $instrument, $repeat_instance);
 
         //Right instrument, carry on
         // First check if hashed portal already has been created
@@ -784,7 +842,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
 
     /*******************************************************************************************************************/
-    /* EXTERNAL MODULEXS METHODS                                                                                                    */
+    /* EXTERNAL MODULES METHODS                                                                                                    */
     /***************************************************************************************************************** */
 
 
