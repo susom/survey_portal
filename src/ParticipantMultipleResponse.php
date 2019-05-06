@@ -12,35 +12,23 @@ namespace Stanford\RepeatingSurveyPortal;
 
 use REDCap;
 
+/**
+ * Holder for Participant extension that handles multiple responses for the same date
+ * Currently just acts like the parent class (only allows 1 max response)
+ *
+ * Class ParticipantMultipleResponse
+ * @package Stanford\RepeatingSurveyPortal
+ */
 class ParticipantMultipleResponse extends Participant
 {
 
     public function __construct($portalConfig, $hash) {
+
         global $module;
 
-        $this->portalConfig = $portalConfig;
+        $module->emLog("Attempt to use unsupported feature: multiple responses on single date. Treating as max is one");
 
-        $this->event_name = REDCap::getEventNames(true, false, $this->surveyEventName);
-
-        //setup the participant surveys
-        //given the hash, find the participant and set id and start date in object
-        $this->participantID =  $this->locateParticipantFromHash($hash);
-
-        //$module->emDebug($this->participantID, $hash);
-
-        if ($this->participantID == null) {
-            throw new Exception("Participant not found from this hash: ".$hash);
-        }
-
-
-        //get all Surveys for this particpant and determine status
-        $this->survey_status = $this->getAllSurveyStatus(
-            $this->participantID,
-            $portalConfig,
-            min($this->portalConfig->validDayArray),
-            max($this->portalConfig->validDayArray));
-
-        //$module->emDebug($this->survey_status); exit;
+        parent::__construct($portalConfig, $hash);
 
     }
 
