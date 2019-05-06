@@ -134,10 +134,6 @@ if(isset($_POST['cal_submit'])) {
     }
 }
 
-if ($day_number == null) {
-    $error_msg[] = $survey_date->format('Y-m-d'). " does not correspond to a valid day number. It is not in the range.";
-}
-
 
 //confirm valid window
 //todo: should i split this up to get better error messages?
@@ -148,6 +144,9 @@ if ($day_number == null) {
 
 if (isset($survey_date)) {
     //$module->emDebug(get_class($participant));
+    if ($day_number == null) {
+        $error_msg[] = $survey_date->format('Y-m-d'). " does not correspond to a valid day number. It is not in the range.";
+    }
 
     if (!$participant->isDayLagValid($survey_date)) {
         $error_msg[] = "The survey is past the allowed day lag: ". $participant->portalConfig->validDayLag . ' days';
