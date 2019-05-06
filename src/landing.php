@@ -101,7 +101,7 @@ if(isset($_POST['cal_submit'])) {
     $survey_date = DateTime::createFromFormat('Y-m-d', $_POST['cal_date']);
 
     if (isset($survey_date)) {
-        //$module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
+        $module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
         $day_number = $participant->getDayNumberFromDate($survey_date);
         $module->emDebug("From Calendar launch: Starting with date: " . $survey_date->format('Y-m-d'). ' and daynumber: '. $day_number);
     } else {
@@ -126,9 +126,6 @@ if(isset($_POST['cal_submit'])) {
             $survey_date = $today;
             $module->emDebug("Day number for " . $today->format('Y-m-d') . " is " . $day_number);
 
-            if ($day_number == null) {
-                $error_msg[] = "This day number is not a valid day number. It is not in the range.";
-            }
 
             if (!isset($survey_date)) {
                 $error_msg[] = "Survey date could not be derived from the day number.";
@@ -137,6 +134,9 @@ if(isset($_POST['cal_submit'])) {
     }
 }
 
+if ($day_number == null) {
+    $error_msg[] = $survey_date->format('Y-m-d'). " does not correspond to a valid day number. It is not in the range.";
+}
 
 
 //confirm valid window
@@ -261,22 +261,18 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
     <div id="project_title" alt="Project Title"></div>
 
-    <div id="error_msg" class="alert alert-danger" role="alert" style="display:none;">
-        <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-        <span class="sr-only">Error:</span>
-        <?php echo implode("<br>", $error_msg) ?>
-    </div>
-
     <div id="calendar_widget" alt="Calendar Widget">
 
 
 <div class='container'>
     <div class='jumbotron text-center'>
-        <?php if (!empty( $error_message )) { ?>
+        <?php if (!empty( $error_msg )) { ?>
             <div class="alert alert-danger" role="alert">
                 <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                 <span class="sr-only">Error:</span>
-                <?php echo implode("<br>", $error_message) ?>
+                <?php
+
+                echo implode("<br>", $error_msg) ?>
             </div>
         <?php } ?>
         <p><?php echo $portalConfig->landingPageHeader; ?></p>
