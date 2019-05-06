@@ -10,8 +10,6 @@ namespace Stanford\RepeatingSurveyPortal;
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
 /** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
 
-//require_once $module->getModulePath().'Portal.php';
-
 use REDCap;
 use DateTime;
 use Exception;
