@@ -10,6 +10,7 @@ use \DateTime;
 use \Message;
 use Exception;
 
+require_once 'emLoggerTrait.php';
 require_once 'src/Participant.php';
 require_once 'src/PortalConfig.php';
 require_once 'src/InsertInstrumentHelper.php';
@@ -34,6 +35,8 @@ require_once 'src/InsertInstrumentHelper.php';
  */
 class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 {
+
+    use emLoggerTrait;
 
     const KEY_VALID_CONFIGURATION = "survey_portal_config_valid";
     const PARTICIPANT_INFO_FORM   = "rsp_participant_info";
@@ -845,8 +848,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /* EXTERNAL MODULES METHODS                                                                                                    */
     /***************************************************************************************************************** */
 
-
-
     function emText($number, $text) {
         global $module;
 
@@ -854,28 +855,5 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //$this->emDebug($emTexter);
         $text_status = $emTexter->emSendSms($number, $text);
         return $text_status;
-    }
-
-
-    function emLog()
-    {
-        global $module;
-        $emLogger = ExternalModules::getModuleInstance('em_logger');
-        $emLogger->emLog($module->PREFIX, func_get_args(), "INFO");
-    }
-
-    function emDebug()
-    {
-        // Check if debug enabled
-        if ($this->getSystemSetting('enable-system-debug-logging') || ( !empty($_GET['pid']) && $this->getProjectSetting('enable-project-debug-logging'))) {
-            $emLogger = ExternalModules::getModuleInstance('em_logger');
-            $emLogger->emLog($this->PREFIX, func_get_args(), "DEBUG");
-        }
-    }
-
-    function emError()
-    {
-        $emLogger = ExternalModules::getModuleInstance('em_logger');
-        $emLogger->emLog($this->PREFIX, func_get_args(), "ERROR");
     }
 }
