@@ -118,7 +118,7 @@ class InvitationManager {
 
                     $module->emDebug("Sending email invite to ".$candidate[REDCap::getRecordIdField()]);
 
-                    $msg = $this->formatEmailMessage($this->portalConfig->invitationEmailText, $survey_link);
+                    $msg = $this->formatEmailMessage($this->portalConfig->invitationEmailText, $survey_link, $this->portalConfig->invitationUrlLabel);
 
                     //send email
 
@@ -283,17 +283,20 @@ class InvitationManager {
      * @param $survey_link
      * @return mixed|string
      */
-    function formatEmailMessage($msg, $survey_link) {
+    function formatEmailMessage($msg, $survey_link, $survey_link_label) {
         $target_str = "[invitation-url]";
 
-        $tagged_link = "<a href='{$survey_link}'>link</a>";
-        //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
+        if (empty($survey_link_label)) {
+            $survey_link_label = $survey_link;
+        }
 
+        $tagged_link = "<a href='{$survey_link}'>$survey_link_label</a>";
+        //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
 
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $tagged_link, $msg);
         } else {
-            $msg = $msg . "<br>Use this link to take the survey:".$tagged_link;
+            $msg = $msg . "<br>Use this link to take the survey: ".$tagged_link;
         }
 
         return $msg;

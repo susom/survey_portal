@@ -257,6 +257,12 @@
           "type": "textarea"
         },
         {
+          "key": "invitation-url-label",
+          "name": "<b><div class='alert alert-info'>Specify text to use as the link for the [invitation-url] above (optional). If left blank, the url will be displayed</div>",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "invitation-email-subject",
           "name": "<b>Invitation Email Subject</b>",
           "required": false,

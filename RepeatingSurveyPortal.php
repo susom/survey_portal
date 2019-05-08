@@ -371,13 +371,20 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //replace $portal_url the tag [portal-url]
         $target_str = "[portal-url]";
 
+        if (empty($portal_url_label)) {
+            $portal_url_label = $portal_url;
+        }
+
         $tagged_link = "<a href='{$portal_url}'>$portal_url_label</a>";
+
+        //$this->emDebug($portal_url, $portal_url_label, $tagged_link);
+
         //if there is a portal-url tag included, switch it out for the actual url.  if not, then add it to the end.
 
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $tagged_link, $msg);
         } else {
-            $msg = $msg . "<br>Use this link to take the survey:".$tagged_link;
+            $msg = $msg . "<br>Use this link to take the survey: ".$tagged_link;
         }
 
         //$this->emDebug( $email_to, $from, $subject, $msg);

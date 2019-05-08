@@ -46,7 +46,7 @@ class PortalConfig {
     public $autoStartSurvey;
     public $surveyCompleteRedirect;
     public $surveyInviteEmail;
-    private $surveyUrlLabel;
+    public $surveyUrlLabel;
     public $surveyInviteSubject;
     public $surveyInviteFrom;
 
@@ -54,6 +54,7 @@ class PortalConfig {
     public $invitationDays;
     public $invitationTime;
     public $invitationEmailText;
+    public $invitationUrlLabel;
     public $invitationEmailSubject;
     public $invitationEmailFrom;
     public $invitationSmsText;
@@ -113,6 +114,7 @@ class PortalConfig {
         'invitation-days'                 => 'invitationDays',
         'invitation-time'                 => 'invitationTime',
         'invitation-email-text'           => 'invitationEmailText',
+        'invitation-url-label'            => 'invitationUrlLabel',
         'invitation-email-subject'        => 'invitationEmailSubject',
         'invitation-email-from'           => 'invitationEmailFrom',
         'invitation-sms-text'             => 'invitationSmsText',

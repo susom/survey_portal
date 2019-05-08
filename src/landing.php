@@ -15,8 +15,6 @@ require_once 'Portal.php';
 /** @var \Stanford\RepeatingSurveyPortal\Participant $participant */
 
 $module->emDebug("===== Firing up the landing page ====");
-error_log("fubar");
-
 
 $config_ids = $module->getProjectSetting('config-id');
 
@@ -48,7 +46,10 @@ try {
         //die("<b>Portal '$p_config' is not enabled.</b> Please contact your administrator.");
     }
 
-    setcookie($module->PREFIX."_".$project_id."_".$portal->getParticipantId(), $p_config, time()+(12*3600), "/");
+    //Need to set up a cookie so that after the survey completion, it will redirect back to the portal.
+    $cookie_key = $module->PREFIX."_".$project_id."_".$participant->getParticipantId();
+    //$module->emDebug("Setting COOKIE KEY to ".$cookie_key);
+    setcookie($cookie_key, $p_config, time()+(12*3600), "/");
 
 } catch (\Exception $e) {
     $error_msg[] = $e->getMessage();
