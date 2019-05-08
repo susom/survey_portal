@@ -21,6 +21,13 @@ require_once 'InvitationManager.php';
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
 
 /** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
+
+/**
+ * Class called by ReminderCron job to evaluate date and participants and sends reminders by email/text
+ *
+ * Class ReminderManager
+ * @package Stanford\RepeatingSurveyPortal
+ */
 class ReminderManager extends InvitationManager
 {
     public $portalConfig;
@@ -32,6 +39,8 @@ class ReminderManager extends InvitationManager
     public function __construct($project_id, $sub)
     {
         global $module;
+
+        //TODO: just reuse parent constructor
 
         $this->project_id = $project_id;
 
@@ -63,7 +72,7 @@ class ReminderManager extends InvitationManager
             $module->emError("Wrong subsetting received while sending Reminders from cron");
         }
 
-        $candidates = $this->getInviteCandidates();
+        $candidates = $this->getInviteReminderCandidates();
 
         if (empty($candidates)) {
             $module->emLog("No candidates to send reminders for project: " . $this->project_id . " today: " . date('Y-m-d'));
@@ -142,7 +151,7 @@ class ReminderManager extends InvitationManager
                         "Email Reminder Sent from Survey Portal EM",  //action
                         "Email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
-                        $participant->participantID, //record optional
+                        $participant->getParticipantID(), //record optional
                         $this->portalConfig->surveyEventName, //event optional
                         $this->project_id //project ID optional
                     );
@@ -166,7 +175,7 @@ class ReminderManager extends InvitationManager
                             "Text Reminder Failed to send from Survey Portal EM",  //action
                             "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . " with status " .  $twilio_status . " for day_number " . $valid_day ,  //changes
                             NULL, //sql optional
-                            $participant->participantID, //record optional
+                            $participant->getParticipantID(), //record optional
                             $this->portalConfig->surveyEventName, //event optional
                             $this->project_id //project ID optional
                         );
@@ -175,7 +184,7 @@ class ReminderManager extends InvitationManager
                             "Text Reminder Sent from Survey Portal EM",  //action
                             "Text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
                             NULL, //sql optional
-                            $participant->participantID, //record optional
+                            $participant->getParticipantID(), //record optional
                             $this->portalConfig->surveyEventName, //event optional
                             $this->project_id //project ID optional
                         );
@@ -185,29 +194,5 @@ class ReminderManager extends InvitationManager
         }
     }
 
-    /**
-     *
-     * pass $date_str as null if wnat to check for today
-     * @param $start_str
-     * @param $valid_day_number
-     * @param null $date_str
-     * @param $date_lag
-     * @return |null
-     * @throws Exception
-     */
-    public function checkIfReminderDateValid($start_str, $valid_day_number, $date_str = null, $date_lag = 0)
-    {
-        global $module;
-
-        $lagged_day = new DateTime($date_str); //today if null is passed
-        $lagged_day->sub(new DateInterval('P' . $date_lag . 'D'));
-        $lagged_str = $lagged_day->format('Y-m-d');
-
-        $module->emDebug($lagged_str, $date_lag, "DATE LAG");
-
-        //use parent method on new date
-        return $this->checkIfDateValid($start_str, $valid_day_number, $lagged_str);
-
-    }
 }
 

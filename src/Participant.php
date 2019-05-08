@@ -23,13 +23,17 @@ class Participant
 
     //This participant's survey data
     public $participant_hash;
-    public $participantID;   //PK of this participant
     public $start_date;       //starting date of
     public $survey_status;    //survey from start_date to endate with date / day_number/ valid/ completed
     public $event_name;
     public $valid_day_array;
     public $config_id;      // subsetting config ID
     public $max_instance;   //last instance number
+
+    private $participantID;   //PK of this participant
+    private $participant_portal_disabled; //is this portal enabled for this participant
+
+
 
 
     public function __construct($portalConfig, $hash) {
@@ -42,17 +46,19 @@ class Participant
         //setup the participant surveys
         //given the hash, find the participant and set id and start date in object
         $this->participantID =  $this->locateParticipantFromHash($hash);
-
         //$module->emDebug($this->participantID, $hash);
 
         if ($this->participantID == null) {
-            throw new Exception("Participant not found from this hash: ".$hash);
-
+            $module->emLog("Participant not found from this hash: ".$hash);
+            throw new Exception("Participant not found. Please check that you are using the link from the most recent email or text. ");
         }
+
+        //check that this participant portal is not disabled
+         $this->participant_portal_disabled = $this->checkPortalDisabled($hash);
+        $module->emDebug($this->participant_portal_disabled, $hash);
 
 
         //get all Surveys for this particpant and determine status
-        //limit the
         $this->survey_status = $this->getAllSurveyStatus(
             $this->participantID,
             min($this->portalConfig->validDayArray),
@@ -76,8 +82,7 @@ class Participant
             }
         }
 
-
-        //$module->emDebug($this->survey_status, $this->getValidDates()); exit;
+        //$module->emDebug(min($this->portalConfig->validDayArray), max($this->portalConfig->validDayArray),$this->survey_status, $this->getValidDates()); exit;
         //$window_dates = $module->getValidDayNumbers($participant, $project_id, $cfg['START_DATE_FIELD'], $cfg['START_DATE_EVENT'], $valid_day_number_array);
 
 
@@ -113,7 +118,7 @@ class Participant
         $max_repeat_instance = max(array_column($all_surveys, 'redcap_repeat_instance'));
         $this->max_instance = $max_repeat_instance;
 
-        //$module->emDebug($all_surveys, $this->max_instance, $max_repeat_instance); exit;
+        //$module->emDebug($all_surveys, $this->max_instance, $max_repeat_instance, $min, $max); exit;
         //$module->emDebug($this->valid_day_array, $this->start_date);
 
         $start_date = DateTime::createFromFormat('Y-m-d', $this->start_date);
@@ -166,6 +171,7 @@ class Participant
     public function locateParticipantFromHash($hash) {
         global $module;
 
+        //limit surveys to this
         $filter = "[" . $this->portalConfig->mainConfigEventName . "][" . $this->portalConfig->personalHashField . "] = '$hash'";
 
         // Use alternative passing of parameters as an associate array
@@ -187,7 +193,29 @@ class Participant
         return ($this->participantID);
     }
 
+    public function checkPortalDisabled($hash) {
+        global $module;
 
+        //repeating form, so limit to portal config with the right hash
+        $filter = "[" . $this->portalConfig->mainConfigEventName . "][" . $this->portalConfig->personalHashField . "] = '$hash'";
+
+        $params = array(
+            'return_format' => 'json',
+            'events'        => $this->portalConfig->mainConfigEventName,
+            'records'       => $participant_id,
+            'fields'        => array(REDCap::getRecordIdField(),$this->portalConfig->participantDisabled),
+            'filterLogic'   => $filter
+        );
+
+        $q = REDCap::getData($params);
+        $records = json_decode($q, true);
+
+        // return record_id or false
+        $main = current($records);
+        //$module->emDebug($records,$main, "MAIN");
+        return $main[$this->portalConfig->participantDisabled];
+
+    }
 
     /**
      *
@@ -587,4 +615,12 @@ class Participant
     //     $field->field_annotation = $field_annotation;
     //     return $field;
     // }
+
+    public function getParticipantPortalDisabled() {
+        return $this->participant_portal_disabled;
+    }
+
+    public function getParticipantID() {
+        return $this->participantID;
+    }
 }

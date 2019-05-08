@@ -14,23 +14,26 @@ require_once 'PortalConfig.php';
 
 use REDCap;
 
+/**
+ * Class Portal
+ * @package Stanford\RepeatingSurveyPortal
+ */
 class Portal
 {
-
-    public $event_name;
     public $participant_hash;
     public $participant_id;
     public $survey_statuses;
 
     public $valid_day_array;
 
-    public $portalConfig;
+
     public $portalSubSettingID;
 
     public $portalConfigID;
 
-    public $participantID;
-    public $participant;  // participant object
+    private $participantID;
+    private $participant;  // participant object
+    private $portalConfig; // EM configuration settings for this participant (subsetting)
 
     public function __construct($config_id, $hash) {
         global $module;
@@ -39,9 +42,6 @@ class Portal
 
         $sub = $this->portalConfig->getSubsettingID();
         //$module->emDebug("Using SUB:  ". $sub . ' for CONFIG_ID: '. $config_id);
-
-        //set event_name to the participant event from id
-        $event_name = REDCap::getEventNames(true, false, $this->mainConfigEventName);
 
         //$module->emDebug($valid_day_array, $this->validDayNumber, $config['valid-day-number']['value'][$sub],"VALID DAY"); exit;
         //setup the participant
@@ -52,34 +52,26 @@ class Portal
         } else {
             $this->participant = new Participant($this->portalConfig, $hash);
         }
-        $this->participantID = $this->participant->participantID;
+
+        $this->participantID = $this->participant->getParticipantID();
 
 
     }
 
     public function setPortalConfigs() {
         global $module;
-        //$event_name = REDCap::getEventNames(true, false, $this->mainConfigEventName);
-        //$filter = "[" . $this->event_name . "][" . $this->personalHashField . "] = '$hash'";
 
+        //$filter = "[" . $this->event_name . "][" . $this->personalHashField . "] = '$hash'";
 
         // Use alternative passing of parameters as an associate array
         $params = array(
             'return_format' => 'array',
-            'events'        => $this->event_name,
-            'fields'        => array( REDCap::getRecordIdField(), $this->validDayNumber, $this->validDayLag),
+            'events'        => REDCap::getEventNames(true, false, $this->mainConfigEventName),
+            'fields'        => array( REDCap::getRecordIdField(), $this->validDayNumber, $this->validDayLag)
         );
 
         $records = REDCap::getData($params);
 
-    }
-
-    public function getParticipantId() {
-        $this->participant->participant_id;
-    }
-
-    public function getParticipant() {
-        return $this->participant;
     }
 
     /**
@@ -95,40 +87,9 @@ class Portal
         return empty($array) ? false : $array;
     }
 
-
-
-
-
     /**
-     * Returns all surveys for a given record id
+     * UNUSED??
      *
-     * @param $id
-     *
-     * @return mixed
-     */
-    public function getAllSurveys($id) {
-        $event_name = REDCap::getEventNames(true, false, $this->surveyEventName);
-        $filter = "[" . $event_name . "][" . $this->surveyFKField . "] = '$id'";
-
-        $params = array(
-            'return_format' => 'json',
-            'events'        => $this->surveyEventName,
-            'fields'        => array( REDCap::getRecordIdField(),$this->surveyFKField, $this->surveyInstrument,$this->surveyDayNumberField),
-            //how about surveyTimestampField, surveyDateField
-            'filterLogic'   => $filter
-        );
-
-        $q = REDCap::getData($params);
-
-        $results = json_decode($q,true);
-
-        return $results;
-
-    }
-
-
-
-    /**
      * @param $pk
      * @param $project_id
      * @param $start_field
@@ -172,35 +133,20 @@ class Portal
      *
      */
 
+    /*******************************************************************************************************************/
+    /* GETTER METHODS                                                                                                    */
+    /***************************************************************************************************************** */
 
+    public function getParticipantId() {
+        $this->participant->participant_id;
+    }
 
-    // /**
-    //  * Factory method for creating a portal
-    //  *
-    //  * @param $field_name
-    //  * @param $form_name
-    //  * @param $field_label
-    //  * @param string $field_annotation
-    //  * @return Field
-    //  */
-    // public static function create($field_name, $form_name, $field_label, $field_annotation = '')
-    // {
-    //     // Any subclass can use this factory method because we detect the calling class
-    //     try {
-    //         $class = new \ReflectionClass(static::class);
-    //     } catch (\ReflectionException $e) {
-    //         // It is impossible for this to occur. static::class will always yield a valid class name
-    //         return new Portal();
-    //     }
-    //
-    //     /** @var Portal $portal */
-    //     $portal = $class->newInstance();
-    //     $portal->
-    //
-    //     $field->field_name = $field_name;
-    //     $field->form_name = $form_name;
-    //     $field->field_label = $field_label;
-    //     $field->field_annotation = $field_annotation;
-    //     return $field;
-    // }
+    public function getParticipant() {
+        return $this->participant;
+    }
+
+    public function getPortalConfig() {
+        return $this->portalConfig;
+    }
+
 }

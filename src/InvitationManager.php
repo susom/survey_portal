@@ -17,6 +17,11 @@ use Message;
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
 /** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
 
+/**
+ * Class called by InvitationCron job. Evaluates date and participants and then sends day invitations by email/text
+ * Class InvitationManager
+ * @package Stanford\RepeatingSurveyPortal
+ */
 class InvitationManager {
 
     public $portalConfig;
@@ -53,7 +58,7 @@ class InvitationManager {
             $module->emError("Wrong subsetting received while sending Invitations from cron");
         }
 
-        $candidates = $this->getInviteCandidates();
+        $candidates = $this->getInviteReminderCandidates();
 
         if (empty($candidates)) {
             $module->emLog("No candidates to send invitations for project: ". $this->project_id . " today: ". date('Y-m-d'));
@@ -63,7 +68,8 @@ class InvitationManager {
         foreach ($candidates as $candidate) {
 
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
-            //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, "IN ARRAY");
+            //$module->emDebug("ID: " .$candidate['participant_id'], " / VALID DAY: ".$valid_day);
+            //$module->emDebug($this->portalConfig->inviteValidDayArray, "IN ARRAY");
 
 
             //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, $isDateEmpty);
@@ -74,8 +80,15 @@ class InvitationManager {
                 //create participant object. we need it to know the next instance.
                 try {
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
+                    $module->emDebug("Checking invitations for ". $participant->getParticipantID());
                 } catch (Exception $e) {
                     $this->emError($e);
+                    continue;
+                }
+
+                //check that the portal is not disabled
+                if ( $participant->getParticipantPortalDisabled()) {
+                    $module->emDebug("Participant portal disabled for ". $participant->getParticipantID());
                     continue;
                 }
 
@@ -121,7 +134,7 @@ class InvitationManager {
                         "Email Invitation Sent from Survey Portal EM",  //action
                         "Email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
-                        $participant->participantID, //record optional
+                        $participant->getParticipantID(), //record optional
                         $this->portalConfig->surveyEventName, //event optional
                         $this->project_id //project ID optional
                     );
@@ -144,7 +157,7 @@ class InvitationManager {
                             "Text Invitation Failed to send from Survey Portal EM",  //action
                             "Text failed to send to " . $candidate[$this->portalConfig->phoneField] . " with status " .  $twilio_status . " for day_number " . $valid_day ,  //changes
                             NULL, //sql optional
-                            $participant->participantID, //record optional
+                            $participant->getParticipantID(), //record optional
                             $this->portalConfig->surveyEventName, //event optional
                             $this->project_id //project ID optional
                         );
@@ -154,7 +167,7 @@ class InvitationManager {
                             "Text Invitation Sent from Survey Portal EM",  //action
                             "Text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
                             NULL, //sql optional
-                            $participant->participantID, //record optional
+                            $participant->getParticipantID(), //record optional
                             $this->portalConfig->surveyEventName, //event optional
                             $this->project_id //project ID optional
                         );
@@ -176,7 +189,7 @@ class InvitationManager {
      * TODO : Reusing this for Reminder as well, so rename method to getInviteReminderCandidates
      * @return bool|mixed
      */
-    public function getInviteCandidates() {
+    public function getInviteReminderCandidates() {
         global $module;
 
         if ($this->portalConfig->configID  == null) {
@@ -212,7 +225,7 @@ class InvitationManager {
             'filterLogic'  => $filter
         );
 
-        //$module->emDebug($params, "PARAMS"); exit;
+        //$module->emDebug($params, "PARAMS");
         $q = REDCap::getData($params);
         $result = json_decode($q, true);
 
@@ -230,14 +243,14 @@ class InvitationManager {
      * @param $valid_day_number
      */
     public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
-
-
+        global $module;
+        //$module->emDebug("Incoming to check If Date Valii", $start_str, $date_str);
         //use today
         $date = new DateTime($date_str);
         $start = new DateTime($start_str);
 
         $interval = $date->diff($start);
-        //$this->emDebug("DIFF in Days", $interval->days, $valid_day_number);
+        //$module->emDebug("DIFF in Days: ".  $interval->days);
 
         // need at add one day since start is day 0
         if (in_array($interval->days, $valid_day_number)) {

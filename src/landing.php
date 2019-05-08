@@ -15,6 +15,7 @@ require_once 'Portal.php';
 /** @var \Stanford\RepeatingSurveyPortal\Participant $participant */
 
 $module->emDebug("===== Firing up the landing page ====");
+error_log("fubar");
 
 
 $config_ids = $module->getProjectSetting('config-id');
@@ -23,19 +24,39 @@ $config_ids = $module->getProjectSetting('config-id');
 $p_hash = isset($_REQUEST['h']) ? $_REQUEST['h'] : "";
 $p_config = isset($_REQUEST['c']) ? $_REQUEST['c'] : "";
 $p_daynumber = isset($_REQUEST['d']) ? $_REQUEST['d'] : "";
+$error_msg = null;
 
 
 //todo bail if no hash , no config
+try {
+    $portal = new Portal($p_config, $p_hash);
+    $participant = $portal->getParticipant(); //$portal->getParticipant();
+    $portalConfig = $portal->getPortalConfig();
 
+    //$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber, $portalConfig, $portalConfig->getEnablePortal());
+    //$module->emDebug($participant->survey_status);
 
-$portal = new Portal($p_config, $p_hash);
-$participant = $portal->participant; //$portal->getParticipant();
-$portalConfig = $portal->portalConfig;
+    //If portal is not enabled, just bail
+    if (!$portalConfig->getEnablePortal()) {
+    $error_msg[] = "<b>Portal '$p_config' is not enabled.</b> Please contact your administrator.";
+    //die("<b>Portal '$p_config' is not enabled.</b> Please contact your administrator.");
+    }
 
-//$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber, $portalConfig);
-//$module->emDebug($participant->survey_status);
+    //Check participant portal is disabled
+    if ($participant->getParticipantPortalDisabled()) {
+        $error_msg[] = "<b>Participant's portal '$p_config' is not enabled.</b> Please contact your administrator.";
+        //die("<b>Portal '$p_config' is not enabled.</b> Please contact your administrator.");
+    }
 
-setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config, time()+(12*3600), "/");
+    setcookie($module->PREFIX."_".$project_id."_".$portal->getParticipantId(), $p_config, time()+(12*3600), "/");
+
+} catch (\Exception $e) {
+    $error_msg[] = $e->getMessage();
+    $error_msg[] = "If you continue to experience difficulties, please contact your admin. ";
+    echo implode("<br>", $error_msg);
+    exit;
+}
+
 
 /**
  * How do we handle the content of hte landing page?
@@ -93,14 +114,15 @@ setcookie($module->PREFIX."_".$project_id."_".$portal->participantID, $p_config,
  * if NOT calendar, display try later message
  */
 $today = new DateTime();
-$error_msg = null;
+//$error_msg = null;
 
 //Get survey_date and daynumber from the various entry points
 
 if(isset($_POST['cal_submit'])) {
     $survey_date = DateTime::createFromFormat('Y-m-d', $_POST['cal_date']);
 
-    if (isset($survey_date)) {
+    //if (isset($survey_date)) {
+    if (!empty($survey_date)) {
         $module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
         $day_number = $participant->getDayNumberFromDate($survey_date);
         $module->emDebug("From Calendar launch: Starting with date: " . $survey_date->format('Y-m-d'). ' and daynumber: '. $day_number);
@@ -142,7 +164,8 @@ if(isset($_POST['cal_submit'])) {
 //}
 
 
-if (isset($survey_date)) {
+//if (isset($survey_date)) {  //blanks are counting as set??
+if (!empty($survey_date)) {
     //$module->emDebug(get_class($participant));
     if ($day_number == null) {
         $error_msg[] = $survey_date->format('Y-m-d'). " does not correspond to a valid day number. It is not in the range.";
@@ -183,7 +206,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
         // surveyDateField : this should be day of day number not actual day
         // REDCap::getSurveyLink ( string $record, string $instrument [, int $event_id = NULL [, int $repeat_instance = 1 ]] )
         $survey_link = REDCap::getSurveyLink(
-            $participant->participantID,
+            $participant->getParticipantID(),
             $participant->portalConfig->surveyInstrument,
             $participant->portalConfig->surveyEventID,
             $next_id);
@@ -275,7 +298,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
             </div>
         <?php } ?>
         <p><?php echo $portalConfig->landingPageHeader; ?></p>
-        <p><?php echo "Participant: ".$portal->participantID; ?></p>
+        <p><?php echo "Participant: ".$portal->getParticipantId(); ?></p>
         <div class="container">
             <div class="col-sm-8 col-sm-offset-2 col-xs-12">
                 <form method="POST">

@@ -172,6 +172,12 @@
           "type": "textarea"
         },
         {
+          "key": "portal-url-label",
+          "name": "<b><div class='alert alert-info'>Specify text to use as the link for the [portal-url] above (optional). If left blank, the url will be displayed</div>",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "portal-invite-subject",
           "name": "<b>Portal Email Subject</b>",
           "required": false,
@@ -191,9 +197,9 @@
         },
         {
           "key": "max-response-per-day",
-          "name": "<b>Maximum Survey Responses per Day</b><br>(leave blank for unlimited daily responses). <br> <b>Currently only supporting 1 response per day.</b>",
+          "name": "<b>Maximum Survey Responses per Day</b><br>(leave blank for unlimited daily responses). <br> <b><div class='alert alert-primary'>Currently only supporting 1 response per day.</div></b>",
           "default": "1",
-          "required": true,
+          "required": false,
           "type": "text"
         },
         {

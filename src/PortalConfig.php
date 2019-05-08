@@ -46,6 +46,7 @@ class PortalConfig {
     public $autoStartSurvey;
     public $surveyCompleteRedirect;
     public $surveyInviteEmail;
+    private $surveyUrlLabel;
     public $surveyInviteSubject;
     public $surveyInviteFrom;
 
@@ -105,6 +106,7 @@ class PortalConfig {
         'auto-start-survey'               => 'autoStartSurvey',
         'survey-complete-redirect'        => 'surveyCompleteRedirect',
         'portal-invite-email'             => 'surveyInviteEmail',
+        'portal-url-label'                => 'surveyUrlLabel',
         'portal-invite-subject'           => 'surveyInviteSubject',
         'portal-invite-from'              => 'surveyInviteFrom',
         'enable-invitations'              => 'enableInvitations',
@@ -140,7 +142,7 @@ class PortalConfig {
         $this->subSettingID = $sub;
 
         $config = $module->getProjectSettings();
-        $config_subsettings = $module->getSubSettings('survey-portals'); //TODO: there is a getSubSettings method in EM
+        //$config_subsettings = $module->getSubSettings('survey-portals'); //TODO: there is a getSubSettings method in EM
 
         //$module->emDebug("Using SUB: ". $sub . ' for CONFIG_ID: '. $configID, $config, $config_subsettings); exit;
 
@@ -183,7 +185,9 @@ class PortalConfig {
 
 
 
-    /**  GETTER METHODS */
+    /*******************************************************************************************************************/
+    /* GETTER METHODS                                                                                                    */
+    /***************************************************************************************************************** */
 
     public function getConfigID() {
         return $this->configID;
@@ -195,6 +199,10 @@ class PortalConfig {
 
     public function getValidDayArray() {
         return $this->validDayArray;
+    }
+
+    public function getEnablePortal() {
+        return $this->enablePortal;
     }
 
 
