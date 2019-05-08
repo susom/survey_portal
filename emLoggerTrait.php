@@ -1,6 +1,6 @@
 <?php
 namespace Stanford\RepeatingSurveyPortal;
-/** @var \YOUR_NAMESPACE_HERE\YOUR_EM_CLASS_NAME_HERE $this */
+/** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $this */
 
 
 /**
