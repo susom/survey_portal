@@ -91,7 +91,20 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
-    //REDCap_survey_complete
+    /**
+     * Need to handle case where after the survey completes, it redirects back to the portal for the user.
+     * There is a cooke stored at creation of the portal. Lookup key and reconstitute hash for the participant
+     *
+     *
+     * @param $project_id
+     * @param $record
+     * @param $instrument
+     * @param $event_id
+     * @param $group_id
+     * @param $survey_hash
+     * @param $response_id
+     * @param $repeat_instance
+     */
     public function redcap_survey_complete($project_id, $record, $instrument, $event_id, $group_id,  $survey_hash,  $response_id,  $repeat_instance) {
         $cookie_key = $this->PREFIX."_".$project_id."_".$record;  //this won't work if mother/child are on same machine at same time.
             //$module->PREFIX."_".$project_id."_".$portal->getParticipantId()
@@ -159,6 +172,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                 //get the config_id for this participant
                 $config_id = $this->getFieldValue($record, $event_id, $config_field, $instrument, $repeat_instance);
+
+                //$this->emDebug($record, $event_id, $config_field, $config_id);
 
                 if ($config_id == null) {
                     $this->emError("Config ID for record $record is not set.");
@@ -236,7 +251,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                     //get the text field. if text is set, then send out invite
                     $text_to = $this->getFieldValue($record, $config_event, $text_to_field, $instrument, $repeat_instance);
-                    if (!empty($text_to_field)) {
+
+                    //$this->emDebug($text_to_field, $text_to);
+
+                    if (!empty($text_to)) {
                         $this->textInitialPortalUrl($project_id, $record, $new_hash_url, $initial_invite_msg, $text_to);
                     }
 
@@ -366,6 +384,18 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /***************************************************************************************************************** */
 
 
+    /**
+     * Method to send out the initial portal invitation by email
+     *
+     * @param $project_id
+     * @param $record
+     * @param $portal_url
+     * @param $portal_url_label
+     * @param $msg
+     * @param $email_to
+     * @param $from
+     * @param $subject
+     */
     public function sendInitialPortalUrl($project_id, $record, $portal_url,$portal_url_label, $msg,$email_to, $from, $subject) {
 
         //replace $portal_url the tag [portal-url]
@@ -420,6 +450,15 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     }
 
+    /**
+     * Method to send out initial portal invitation by text
+     *
+     * @param $project_id
+     * @param $record
+     * @param $portal_url
+     * @param $msg
+     * @param $text_to
+     */
     public function textInitialPortalUrl($project_id, $record, $portal_url, $msg, $text_to) {
 
         //replace $portal_url the tag [portal-url]
@@ -444,7 +483,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         } else {
             $this->emDebug($twilio_status);
             $action_status =   "Text Portal Invitation Sent from Survey Portal EM";
-            $send_status  =    "Portal Invitaion texted to " .$text_to;
+            $send_status  =    "Portal Invitation texted to " .$text_to;
         }
 
         REDCap::logEvent(
@@ -457,6 +496,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         );
     }
 
+    /**
+     * @return array
+     */
     public function getConfigStatus() {
 
         $iih = new InsertInstrumentHelper($this);
@@ -484,6 +526,15 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                             "' data-form='".self::PARTICIPANT_INFO_FORM."'>Designate Form</div>";
                         $alerts[] = $pe;
                     }
+                }
+                //check if form is repeating
+                if (!$iih->isFormRepeating(self::PARTICIPANT_INFO_FORM, $event)) {
+                    $event_name = REDCap::getEventNames(false, true, $event);
+                    $pe = "<b>Participant Info form has not been designated as a repeating form: ".
+                            " </b><div class='btn btn-xs btn-primary float-right' data-action='set_form_repeating' data-event='".$event.
+                            "' data-form='".self::PARTICIPANT_INFO_FORM."'>Make Form Repeating</div>";
+                    $alerts[] = $pe;
+
                 }
             }
         }
@@ -558,6 +609,20 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     }
 
+
+    public function makeFormRepeat($form, $event) {
+        $iih = new InsertInstrumentHelper($this);
+
+        $this->emDebug("MAKE FORM REPEATING: ". $form . $event);
+        $result = $iih->makeFormRepeating($form, $event);
+        $message = $iih->getErrors();
+
+        $this->emDebug("RETURN STATUS", $result, $message);
+
+        return array($result, $message);
+
+    }
+
     /*******************************************************************************************************************/
     /* HELPER METHODS                                                                                                    */
     /***************************************************************************************************************** */
@@ -566,6 +631,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
 
     /**
+     *
      * @param $record
      * @param $filter_event : event NAME not id
      * @param $filter_field
@@ -595,12 +661,24 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
+    /**
+     * Given the config_id (text entered to name the configuration subsetting, return the subsetting number (subid)
+     *
+     * @param $config_id
+     * @return false|int|string
+     */
     public function getSubIDFromConfigID($config_id) {
         $config_ids = $this->getProjectSetting('config-id');
         return array_search($config_id, $config_ids);
 
     }
 
+    /**
+     * Given the subId (subsetting number 0,1,...) returned the text field used to 'name' configuration subsetting.
+     *
+     * @param $sub
+     * @return mixed
+     */
     public function getConfigIDFromSubID($sub) {
         $config_ids = $this->getProjectSetting('config-id');
         return $config_ids[$sub];
@@ -649,7 +727,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $q = REDCap::getData($params);
 //                'array', NULL, array($cfg['MAIN_SURVEY_HASH_FIELD']), $config_event[$sub],
 //                NULL,FALSE,FALSE,FALSE,$filter);
-            $this->emDebug($params, "COUNT IS ".count($q));
+            //$this->emDebug($params, "COUNT IS ".count($q));
             $i++;
         } while ( count($q) > 0 AND $i < 10 ); //keep generating until nothing returns from get
 
@@ -693,27 +771,44 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //$key = array_keys($results, [ 'redcap_repeat_instance' => $repeat_instance,'redcap_repeat_instrument' => $instrument]);
 
         //giving up! just search for it.
-        $key =  $this->multiSearch($repeat_instance, $instrument, $results);
+        $key =  $this->findRepeatingInstance($results,$instrument,  $repeat_instance, $instrument);
 
-        //$this->emDebug($repeat_instance, $instrument, $key_2, $key); exit;
+        //$this->emDebug($results);
+
+        if ($key == null) {
+            $this->emDebug("Check that the instrument $instrument is repeating.");
+        }
+        //$this->emDebug($repeat_instance, $instrument, $key);
 
         $target = $results[$key][$target_field];
 
         return $target;
     }
 
-    function multiSearch($repeat_instance, $instrument, $results) {
-        $found = null;
+    /**
+     * Repeating Forms getData returns a blank instance for array slot 0.
+     * Cannot assume that slot 1 is the desired array (this has changed in the last few upgrades)
+     *
+     */
+    function findRepeatingInstance($result, $repeat_instrument, $repeat_instance = null) {
 
-        foreach ($results as $key => $record) {
-            //$this->emDebug($key, $record);
-            if (($record['redcap_repeat_instance'] == $repeat_instance) && ($record['redcap_repeat_instrument'] == $instrument)) {
-               //$this->emDebug("FOUND", $record); exit;
-                return $key;
+        foreach ($result as $array_num => $cand) {
+            //$this->emDebug("looking at array number: " . $array_num );
+            if ($repeat_instance != null) {
+                if ($cand['redcap_repeat_instance'] != $repeat_instance) {
+                    //wrong instance, carry on
+                    continue;
+                }
+            }
+            if ($cand['redcap_repeat_instrument'] == $repeat_instrument) {
+                return $array_num;
             }
         }
+
+        //if got here, none was found
         return null;
     }
+
 
     /**
      * Returns all surveys for a given record id

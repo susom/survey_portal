@@ -49,8 +49,14 @@ if (!empty($_POST['action'])) {
 
             $module->emDebug("result",  $result);
 
+        case "set_form_repeating":
+            $module->emDebug("Make form repeating");
+            $form = $_POST['form'];
+            $event = $_POST['event'];
+            list($result, $message) = $module->makeFormRepeat($form, $event);
 
-            break;
+            //$module->emDebug("result",  $result);
+
         case "getStatus":
 
 

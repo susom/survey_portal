@@ -146,6 +146,46 @@ class InsertInstrumentHelper
 
     }
 
+    public function isFormRepeating($form, $event, $label = null) {
+
+        $sql = sprintf(
+            "select count(*) from redcap_events_repeat where form_name = '%s'  and event_id in (%s);",
+            $form,
+            $event);
+            //implode(",",array_keys($event_names)));
+
+        $result = db_result(db_query($sql),0);
+
+        //$this->emDebug($sql, $result);
+
+        return $result;
+    }
+
+
+    public function makeFormRepeating($form, $event) {
+
+        if ($this->isFormRepeating($form,$event)) {
+            $this->addError("Form $form already repeating in $event");
+            return false;
+        }
+
+        //insert into redcap_events_repeat (event_id, form_name, custom_repeat_form_label) values (1190, 'rsp_participant_info', 'CONFIG: [rsp_prt_config_id]');
+
+        $sql = sprintf("insert into redcap_events_repeat (event_id, form_name) values (%d, '%s')",
+            db_escape($event),
+            db_escape($form)
+            
+        );
+
+        $result = db_query($sql);
+        //$this->emDebug($sql, $result);
+        return $result;
+
+    }
+
+    public function checkIfFormRepeating() {
+
+    }
 
 
     private function verifyForms() {

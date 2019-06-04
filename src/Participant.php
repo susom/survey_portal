@@ -10,13 +10,13 @@ namespace Stanford\RepeatingSurveyPortal;
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
 /** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
 
-use REDCap;
+use DateInterval;
 use DateTime;
 use Exception;
-use DateInterval;
+use REDCap;
 
-class Participant
-{
+class Participant {
+
 
     public $portalConfig;  //config for the subsetting
     public $module;
@@ -54,8 +54,8 @@ class Participant
         }
 
         //check that this participant portal is not disabled
-         $this->participant_portal_disabled = $this->checkPortalDisabled($hash);
-        $module->emDebug($this->participant_portal_disabled, $hash);
+        $this->participant_portal_disabled = $this->checkPortalDisabled($hash);
+        //$module->emDebug("PORTAL DISABLED? :  ". $this->participant_portal_disabled, $hash); exit;
 
 
         //get all Surveys for this particpant and determine status
@@ -126,6 +126,8 @@ class Participant
 
         $today = new DateTime();
 
+        //$module->emDebug($this->$start_date, $date);
+
         //$module->emDebug($all_surveys, $min, $max); exit;
         for ($i = $min; $i <= $max; $i++) {
 
@@ -186,10 +188,18 @@ class Participant
         $records = json_decode($q, true);
 
         // return record_id or false
-        $main = current($records);
+        //$main = current($records);  //can't assume that this gives the correct array. 0 seems to have blanks...
+        $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
+        $module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
 
-        $this->participantID = $main[REDCap::getRecordIdField()];
-        $this->start_date    = $main[$this->portalConfig->startDateField];
+        if (empty($array_num)) {
+            return null;
+        }
+
+        $this->participantID = $records[$array_num][REDCap::getRecordIdField()];
+        $this->start_date    = $records[$array_num][$this->portalConfig->startDateField];
+
+        $module->emDebug($this->getParticipantID(),$records,$main, $this->portalConfig->startDateField,$this->start_date);
         return ($this->participantID);
     }
 
@@ -211,9 +221,18 @@ class Participant
         $records = json_decode($q, true);
 
         // return record_id or false
-        $main = current($records);
+        //$main = current($records);  //can't assume that 0 is the correct array-numb
+
+        $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
+        $module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
+
+        if (empty($array_num)) {
+            $module->emError("could not locate this instance in the repeating instance array");
+            return true;  //count it as disabled
+        }
+
         //$module->emDebug($records,$main, "MAIN");
-        return $main[$this->portalConfig->participantDisabled];
+        return $records[$array_num][$this->portalConfig->participantDisabled];
 
     }
 

@@ -165,6 +165,8 @@ class PortalConfig {
         $this->inviteValidDayArray = PortalConfig::parseRangeString($this->invitationDays);
         $this->reminderValidDayArray = PortalConfig::parseRangeString($this->reminderDays);
 
+        //$module->emDebug( $this->validDayArray);
+
         //set event_name to the participant and survey event from id
         $this->mainConfigEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
         $this->surveyEventName = REDCap::getEventNames(true, false, $this->surveyEventID);
