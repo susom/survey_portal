@@ -110,8 +110,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             //$module->PREFIX."_".$project_id."_".$portal->getParticipantId()
         $cookie_config = $_COOKIE[$cookie_key];
 
-        //$this->emDebug("COOKIE KEY ". $cookie_key);
-        //$this->emDebug("COOKIE CONFIG ". $cookie_config);
+        $this->emDebug("COOKIE KEY ". $cookie_key);
+        $this->emDebug("COOKIE CONFIG ". $cookie_config);
 
 
         //if redirect has been turned on redirect to the landing page
@@ -128,8 +128,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $config_event_name = REDCap::getEventNames(true, false, $config_event_id);
             $config_field = $this->getProjectSetting('participant-config-id-field');
             $hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
-            $hash_return  = $this->retrieveParticipantFieldWithFilter($record, $config_event_name, $config_field,$cookie_config, array($hash_field) );
-            $hash = $hash_return[$hash_field];
+            $hash  = $this->retrieveParticipantFieldWithFilter($record, $config_event_name, $config_field,$cookie_config, $hash_field );
+
+            //$this->emDebug("HASH:  ". $hash);
 
             $portal_url   = $this->getUrl("src/landing.php", true,true);
             $return_hash_url = $portal_url. "&h=" . $hash . "&c=" . $cookie_config;
@@ -638,7 +639,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $filter_value
      * @param null $retrieve_array
      */
-    public function retrieveParticipantFieldWithFilter($record, $filter_event,  $filter_field, $filter_value, $retrieve_array = null) {
+    public function retrieveParticipantFieldWithFilter($record, $filter_event,  $filter_field, $filter_value, $hash_field) {
 
         $filter = "[" . $filter_event . "][" . $filter_field . "] = '$filter_value'";
 
@@ -646,16 +647,23 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             'return_format'    => 'json',
             'records'          => $record,
             'events'           => $filter_event,
-            'fields'           => $retrieve_array,
+            'fields'           => array($hash_field),
             'filterLogic'      => $filter
         );
 
         $q = REDCap::getData($params);
         $records = json_decode($q, true);
 
-        //$this->emDebug("RETRIEVE", $filter,$retrieve_array,  $records); exit;
+        //since 9.1, repeating instance return an empty array plus filtered array.
+        foreach ($records as $k => $v) {
+            if (!empty($v[$hash_field])) {
+                return $v[$hash_field];
+            }
+        }
 
-        return current($records);
+        $this->emDebug("COULD NOT FIND HASH FIELD", $filter,$retrieve_array,  $records, $array_num);
+
+        return null;
 
 
     }
@@ -791,9 +799,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      *
      */
     function findRepeatingInstance($result, $repeat_instrument, $repeat_instance = null) {
-
+        //$this->emDebug($result, $repeat_instance, $repeat_instance == null);
         foreach ($result as $array_num => $cand) {
-            //$this->emDebug("looking at array number: " . $array_num );
+            //$this->emDebug("looking for $repeat_instrument at array number: " . $array_num );
             if ($repeat_instance != null) {
                 if ($cand['redcap_repeat_instance'] != $repeat_instance) {
                     //wrong instance, carry on

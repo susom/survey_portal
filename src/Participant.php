@@ -199,7 +199,7 @@ class Participant {
         $this->participantID = $records[$array_num][REDCap::getRecordIdField()];
         $this->start_date    = $records[$array_num][$this->portalConfig->startDateField];
 
-        $module->emDebug($this->getParticipantID(),$records,$main, $this->portalConfig->startDateField,$this->start_date);
+        //$module->emDebug($this->getParticipantID(),$records,$main, $this->portalConfig->startDateField,$this->start_date);
         return ($this->participantID);
     }
 
