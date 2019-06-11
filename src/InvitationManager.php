@@ -118,7 +118,10 @@ class InvitationManager {
 
                     $module->emDebug("Sending email invite to ".$candidate[REDCap::getRecordIdField()]);
 
-                    $msg = $this->formatEmailMessage($this->portalConfig->invitationEmailText, $survey_link, $this->portalConfig->invitationUrlLabel);
+                    $msg = $this->formatEmailMessage(
+                        $this->portalConfig->invitationEmailText,
+                        $survey_link,
+                        $this->portalConfig->invitationUrlLabel);
 
                     //send email
 
@@ -218,7 +221,9 @@ class InvitationManager {
                 $this->portalConfig->personalUrlField,
                 $this->portalConfig->startDateField,
                 $this->portalConfig->emailField,
+                $this->portalConfig->disableParticipantEmailField,
                 $this->portalConfig->phoneField,
+                $this->portalConfig->disableParticipantSMSField,
                 $this->portalConfig->personalHashField
             ),
             'events' => $this->portalConfig->mainConfigEventName,
@@ -229,9 +234,20 @@ class InvitationManager {
         $q = REDCap::getData($params);
         $result = json_decode($q, true);
 
-       //$module->emDebug($result, "Count of invitations to be sent:  ".count($result));
+        //there is a bug since 9.1 where the filter returns an empty array for every found array.
+        //iterate over the returned result and delete the ones where redcap_repeat_instance is blank
+        $not_empty = array();
+        foreach ($result as $k => $v) {
+            if (!empty($v['redcap_repeat_instance'])) {
+                $not_empty[] = $v;
+            }
+        }
 
-        return $result;
+       //$module->emDebug($result, $not_empty, "Count of invitations to be sent:  ".count($result). " not empty". count($not_empty));
+       //exit;
+
+        //return $result;
+        return $not_empty;
 
     }
 

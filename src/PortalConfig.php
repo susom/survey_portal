@@ -64,6 +64,7 @@ class PortalConfig {
     public $reminderTime;
     public $reminderLag;
     public $reminderEmailText;
+    public $reminderUrlLabel;
     public $reminderEmailSubject;
     public $reminderEmailFrom;
     public $reminderSMSText;
@@ -123,6 +124,7 @@ class PortalConfig {
         'reminder-lag'                    => 'reminderLag',
         'reminder-days'                   => 'reminderDays',
         'reminder-email-text'             => 'reminderEmailText',
+        'reminder-url-label'              => 'reminderUrlLabel',
         'reminder-email-subject'          => 'reminderEmailSubject',
         'reminder-email-from'             => 'reminderEmailFrom',
         'reminder-sms-text'               => 'reminderSMSText'

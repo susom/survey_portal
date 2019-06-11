@@ -96,16 +96,18 @@ class ReminderManager extends InvitationManager
             //check that today is a valid reminder day
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->reminderValidDayArray, $lagged_str);
 
+            //$module->emDebug($valid_day, $valid_day == null);
+            //$module->emDebug($candidate[$this->portalConfig->personalHashField], $this->portalConfig->personalHashField);
+
             if ($valid_day != null) {
 
                 //create a Participant object for the candidate and get the survey_status array
                 try {
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
                 } catch (Exception $e) {
-                    $this->emError($e);
+                    $module->emError($e);
                     continue;
                 }
-
 
                 //check that the survey has not already been completed
                 if ($participant->isSurveyComplete($lagged_day)) {
@@ -132,10 +134,13 @@ class ReminderManager extends InvitationManager
                 if (($candidate[$this->portalConfig->disableParticipantEmailField . "___1"] <> '1') &&
                     ($candidate[$this->portalConfig->emailField] <> '')) {
 
-
                     $module->emDebug("Sending email reminder to " . $candidate[REDCap::getRecordIdField()]);
+                    //$module->emDebug();
 
-                    $msg = $this->formatEmailMessage($this->portalConfig->reminderEmailText, $survey_link);
+                    $msg = $this->formatEmailMessage(
+                        $this->portalConfig->reminderEmailText,
+                        $survey_link,
+                        $this->portalConfig->reminderUrlLabel);
 
                     //send email
 
