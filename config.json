@@ -302,107 +302,49 @@
           "key": "reminder-time",
           "name": "<b>Reminder Time</b><br>Hour of the day (0-24) to send reminder (e.g. 22 for 8PM) if the response has not yet been completed for a valid day.",
           "required": false,
-          "type": "number",
-          "branchingLogic": {
-            "field": "enable-reminders",
-            "value": true
-          }
+          "type": "number"
         },
         {
           "key": "reminder-lag",
           "name": "<b>Reminder Lag</b><br>Send reminder if participant has not responded by these many days.",
           "required": false,
-          "type": "number",
-          "branchingLogic": {
-            "field": "enable-reminders",
-            "value": true
-          }
+          "type": "number"
         },
         {
           "key": "reminder-days",
           "name": "<b>Invitation ReminderDays</b><br>Days on which to send invitation reminders(<i>e.g.</i> 0-10,15-20,25).  This should be a subset of valid days.",
           "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "field": "enable-reminders",
-            "value": true
-          }
+          "type": "text"
         },
         {
           "key": "reminder-email-text",
           "name": "<b>Reminder Email Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
           "required": false,
-          "type": "textarea",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-reminders",
-                "value": true
-              },
-              {
-                "field": "email-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "textarea"
+        },
+        {
+          "key": "reminder-url-label",
+          "name": "<b><div class='alert alert-info'>Specify text to use as the link for the [invitation-url] above (optional). If left blank, the url will be displayed</div>",
+          "required": false,
+          "type": "text"
         },
         {
           "key": "reminder-email-subject",
           "name": "<b>Reminder Email Subject</b>",
           "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-reminders",
-                "value": true
-              },
-              {
-                "field": "email-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "text"
         },
         {
           "key": "reminder-email-from",
           "name": "<b>Reminder Email From</b><br>Enter an email address  to use for from field",
           "required": false,
-          "type": "text",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-reminders",
-                "value": true
-              },
-              {
-                "field": "email-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "text"
         },
         {
           "key": "reminder-sms-text",
           "name": "<b>Reminder SMS Text</b><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message",
           "required": false,
-          "type": "textarea",
-          "branchingLogic": {
-            "conditions": [
-              {
-                "field": "enable-reminders",
-                "value": true
-              },
-              {
-                "field": "phone-field",
-                "op": "<>",
-                "value": ""
-              }
-            ]
-          }
+          "type": "textarea"
         },
         {
           "key": "participant-settings-desc",

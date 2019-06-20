@@ -522,20 +522,22 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 if (isset($event)) {
                     if (!$iih->formDesignatedInEvent(self::PARTICIPANT_INFO_FORM, $event)) {
                         $event_name = REDCap::getEventNames(false, true, $event);
-                        $pe = "<b>Participant Info form has not been designated to the event selected for the main event: <br>".$event_name.
-                            " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
-                            "' data-form='".self::PARTICIPANT_INFO_FORM."'>Designate Form</div>";
+                        $pe = "<b>Participant Info form has not been designated to the event selected for the main event: <br>" . $event_name .
+                            " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='" . $event .
+                            "' data-form='" . self::PARTICIPANT_INFO_FORM . "'>Designate Form</div>";
                         $alerts[] = $pe;
                     }
-                }
-                //check if form is repeating
-                if (!$iih->isFormRepeating(self::PARTICIPANT_INFO_FORM, $event)) {
-                    $event_name = REDCap::getEventNames(false, true, $event);
-                    $pe = "<b>Participant Info form has not been designated as a repeating form: ".
-                            " </b><div class='btn btn-xs btn-primary float-right' data-action='set_form_repeating' data-event='".$event.
-                            "' data-form='".self::PARTICIPANT_INFO_FORM."'>Make Form Repeating</div>";
-                    $alerts[] = $pe;
 
+                    //check if form is repeating
+                    if (!$iih->isFormRepeating(self::PARTICIPANT_INFO_FORM, $event)) {
+                        $this->emDebug($event);
+                        $event_name = REDCap::getEventNames(false, true, $event);
+                        $pe = "<b>Participant Info form has not been designated as a repeating form in the main event: <br>" . $event_name .
+                            " </b><div class='btn btn-xs btn-primary float-right' data-action='set_form_repeating' data-event='" . $event .
+                            "' data-form='" . self::PARTICIPANT_INFO_FORM . "'>Make Form Repeating</div>";
+                        $alerts[] = $pe;
+
+                    }
                 }
             }
         }

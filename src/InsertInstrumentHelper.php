@@ -146,6 +146,14 @@ class InsertInstrumentHelper
 
     }
 
+    /**
+     * Check that the $form is repeating (for example,  for the participant form)
+     *
+     * @param $form
+     * @param $event
+     * @param null $label
+     * @return bool
+     */
     public function isFormRepeating($form, $event, $label = null) {
 
         $sql = sprintf(
