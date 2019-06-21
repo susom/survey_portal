@@ -82,7 +82,7 @@ class InvitationManager {
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
                     $module->emDebug("Checking invitations for ". $participant->getParticipantID());
                 } catch (Exception $e) {
-                    $this->emError($e);
+                    $module->emError($e);
                     continue;
                 }
 
@@ -329,11 +329,11 @@ class InvitationManager {
         $email->setBody($msg); //format message??
 
         $result = $email->send();
-        //$this->emDebug($to, $from, $subject, $msg, $result);
+        //$module->emDebug($to, $from, $subject, $msg, $result);
 
     // Send Email
         if ($result == false) {
-            $this->emLog('Error sending mail: ' . $email->getSendError() . ' with ' . json_encode($email));
+            $module->emLog('Error sending mail: ' . $email->getSendError() . ' with ' . json_encode($email));
             return false;
         }
 
