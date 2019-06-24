@@ -49,6 +49,57 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /***************************************************************************************************************** */
 
 
+    function redcap_data_entry_form_top($project_id, $record, $instrument, $event_id, $group_id, $repeat_instance)
+    {
+        //$this->emDebug($instrument, current($this->getProjectSetting('main-config-form-name')));
+        if ($instrument == current($this->getProjectSetting('main-config-form-name'))) {
+            $config_id_field_name = $this->getProjectSetting('participant-config-id-field');
+
+            //if there is a value for this field, display it here
+            $params = array(
+                'return_format'    => 'json',
+                'records'          => array($record),
+                'events'           => $event_id,
+                'repeat_instance'  => $repeat_instance,
+                'fields'           => array(REDCap::getRecordIdField(), $config_id_field_name)
+            );
+
+            $q = REDCap::getData($params);
+
+            $records = json_decode($q, true);
+
+            $key = array_search($repeat_instance, array_column($records, 'redcap_repeat_instance'));
+
+            if ($key) {
+                $selected = $records[$key][$config_id_field_name];
+            }
+
+
+            //if the are settings for the the config id, convert from a text field to a  dropdown
+            //todo: hardcoding the field for 'rsp_prt_config_id'. do i need to handle cases where they veered off our forms?
+            $config_fields = $this->getProjectSetting('config-id');
+            $option_str = '<option value></option>';
+            foreach ($config_fields as $option) {
+                $option_str .= '<option value="'.$option.'">'.$option.'</option>';
+            }
+
+            ?>
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    var field_name = <?php echo  "'".$config_id_field_name."'"; ?>;
+                    var options = <?php echo "'".$option_str."'";?>;
+                    var selected = <?php echo "'".$selected."'";?>;
+
+
+                    $('input[name="rsp_prt_config_id"]')
+                        .replaceWith('<span><select role="listbox" aria-labelledby="label-rsp_prt_config_id" class="x-form-text x-form-field   " id="rsp_prt_config_id"  name="rsp_prt_config_id" tabindex="0">' + options + '</select></span>');
+                    $('#rsp_prt_config_id').val(selected);
+                });
+            </script>
+            <?php
+        }
+    }
+
     public function redcap_module_system_enable() {
         // SET THE
         // Do Nothing
