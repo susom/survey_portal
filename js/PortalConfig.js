@@ -299,7 +299,7 @@ PortalConfig.checkForms = function () {
 
 }
 
-PortalConfig.defaultSettings = {
+PortalConfig.defaultSelectSettings = {
     'participant-disabled'  :'rsp_prt_part_disabled',
     'main-config-form-name' :'rsp_participant_info',
     'start-date-field'      : 'rsp_prt_start_date',
@@ -315,15 +315,53 @@ PortalConfig.defaultSettings = {
     'survey-launch-ts-field': 'rsp_survey_launch_ts'
 };
 
-PortalConfig.setDefaults  = function() {
-    console.log("========================SettingDefaults");
+PortalConfig.defaultTextSettings = {
+    'portal-invite-subject' :  'Survey Portal URL',
+    'portal-invite-from'    : 'no-reply@stanford.edu',
+    'max-response-per-day'  : '1'
+};
 
-    for (var key in PortalConfig.defaultSettings) {
+PortalConfig.defaultTextAreaSettings = {
+    'portal-invite-email'   : 'Dear participant,\n<br>\nBelow is the private link to your daily diary. Please bookmark it for your convenience.\n<br>\n[portal-url]'
+};
+
+PortalConfig.setDefaults  = function() {
+    console.log("========================Setting Dropdown Defaults");
+
+    for (var key in PortalConfig.defaultSelectSettings) {
         var dropdowns = $('select[name^='+key+']');
 
         dropdowns.each(function() {
             if ($(this ).val() ==  "") {
-                $(this).val(PortalConfig.defaultSettings[key]);
+                $(this).val(PortalConfig.defaultSelectSettings[key]);
+                console.log($(this ).val() );
+            }
+
+        });
+
+    }
+
+    console.log("========================Setting Text Defaults");
+    for (var key in PortalConfig.defaultTextSettings) {
+        var textfields = $('input[name^='+key+']');
+
+        textfields.each(function() {
+            if ($(this ).val() ==  "") {
+                $(this).val(PortalConfig.defaultTextSettings[key]);
+                console.log($(this ).val() );
+            }
+
+        });
+
+    }
+
+        console.log("========================Setting TextArea Defaults");
+    for (var key in PortalConfig.defaultTextAreaSettings) {
+        var textfields = $('textarea[name^='+key+']');
+
+        textfields.each(function() {
+            if ($(this ).val() ==  "") {
+                $(this).val(PortalConfig.defaultTextAreaSettings[key]);
                 console.log($(this ).val() );
             }
 
