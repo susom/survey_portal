@@ -351,7 +351,7 @@
         },
         {
           "key": "participant-settings-desc",
-          "name": "<div class='alert alert-secondary'><h3 class='text-center'>PARTICIPANT SETTINGS</h3><br>If you are using the automatically uploaded file (RSP Participant Info), these default settings have been selected</div>",
+          "name": "<div class='alert alert-secondary'><h3 class='text-center'>PARTICIPANT SETTINGS</h3><br>If you are using the automatically uploaded file (RSP Participant Info), default settings will be set when you <b>save</b> the config.</div>",
           "required": false,
           "type": "descriptive"
         },
@@ -413,7 +413,7 @@
         },
         {
           "key": "survey-desc",
-          "name": "<div class='alert alert-secondary'><h3 class='text-center'>Repeating Survey Configuration</h3><br>If you are using the automatically uploaded survey metadata file (RSP Survey Metadata), these default settings have been selected</div>",
+          "name": "<div class='alert alert-secondary'><h3 class='text-center'>Repeating Survey Configuration</h3><br>If you are using the automatically uploaded survey metadata file (RSP Survey Metadata), default settings will be set when you <b>save</b> the config.</div>",
           "required": false,
           "type": "descriptive"
         },
