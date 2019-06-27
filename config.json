@@ -151,6 +151,12 @@
           "type": "form-list"
         },
         {
+          "key": "valid-day-number",
+          "name": "<div class='alert alert-success'><b>Valid Days for Responses</b><br>These will be offset from the start date specified in the RSP Participant Info  form.</div><br> For example: <br> 1-20 : Take survey entries for the next 20 days from start date.  <br> 7,14,21,28,35 : Take surveys every seventh day. <br> 1-5,8-12,15-19 : If started on a Monday, take surveys on weekdays only. ",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "customization-desc",
           "name": "<div class='alert alert-warning'><h3 class='text-center'>OPTIONAL ADDITIONAL CUSTOMIZATION SETTINGS</h3><br>These are the optional functionality that can be turned on or customized for your portal.</div>",
           "required": false,
@@ -183,12 +189,6 @@
         {
           "key": "portal-url-label",
           "name": "<div class='alert alert-warning'><b>Label for Portal URL link</b><br>Display a clickable hyperlink rather than the full url.</div><br>For example, enter 'Personal Portal' to have the survey displayed as a hyperlink on 'Personal Portal'<br><br>If left blank, the full url of the personal portal will be displayed in the email (i.e. https://redpca.stanford.edu/... ",
-          "required": false,
-          "type": "text"
-        },
-        {
-          "key": "valid-day-number",
-          "name": "<div class='alert alert-warning'><b>Valid Days for Responses</b><br>These will be offset from the start date specified in the RSP Participant Info  form.</div><br> For example: <br> 1-20 : Take survey entries for the next 20 days from start date.  <br> 7,14,21,28,35 : Take surveys every seventh day. <br> 1-5,8-12,15-19 : If started on a Monday, take surveys on weekdays only. ",
           "required": false,
           "type": "text"
         },
