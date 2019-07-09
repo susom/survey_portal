@@ -154,6 +154,49 @@ class InsertInstrumentHelper
      * @param null $label
      * @return bool
      */
+    public function isEventRepeating($event) {
+
+        $sql = sprintf(
+            "select count(*) from redcap_events_repeat where event_id in (%s);",
+            db_escape($event));
+            //implode(",",array_keys($event_names)));
+
+        $result = db_result(db_query($sql),0);
+
+        $this->emDebug($sql, $result);
+
+        return $result;
+    }
+
+    public function makeEventRepeating($event) {
+        //$this->emDebug("REPEATING", $this->isEventRepeating($event), "CHECK equal: ". $this->isEventRepeating($event) > 0);
+
+        if ($this->isEventRepeating($event)) {
+            $this->addError("Event $event already repeating");
+            return false;
+        }
+
+        //insert into redcap_events_repeat (event_id, form_name, custom_repeat_form_label) values (1190, 'rsp_participant_info', 'CONFIG: [rsp_prt_config_id]');
+
+        $sql = sprintf("insert into redcap_events_repeat (event_id) values (%d)",
+            db_escape($event)
+        );
+
+        $result = db_query($sql);
+        $this->addError("Event $event already repeating");
+        $this->emDebug($sql, $result);
+        return $result;
+
+    }
+
+    /**
+     * Check that the $form is repeating (for example,  for the participant form)
+     *
+     * @param $form
+     * @param $event
+     * @param null $label
+     * @return bool
+     */
     public function isFormRepeating($form, $event, $label = null) {
 
         $sql = sprintf(
@@ -190,11 +233,6 @@ class InsertInstrumentHelper
         return $result;
 
     }
-
-    public function checkIfFormRepeating() {
-
-    }
-
 
     private function verifyForms() {
         // Find any variables that are duplicated in the DD

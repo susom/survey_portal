@@ -1,27 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: jael
- * Date: 2019-03-01
- * Time: 12:27
- */
 
 namespace Stanford\RepeatingSurveyPortal;
 
 require_once 'InsertInstrumentHelper.php';
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
-
-//check for presence p info
-
-//if NO
-//present modal
-
-
-//IF YES
-// import form
-
-//populate defaults
 
 
 // HANDLE BUTTON ACTION
@@ -48,6 +31,7 @@ if (!empty($_POST['action'])) {
             list($result, $message) = $module->designateEvent($form, $event);
 
             $module->emDebug("result",  $result);
+            break;
 
         case "set_form_repeating":
             $module->emDebug("Make form repeating");
@@ -56,20 +40,24 @@ if (!empty($_POST['action'])) {
             list($result, $message) = $module->makeFormRepeat($form, $event);
 
             //$module->emDebug("result",  $result);
+            break;
+        case "set_event_repeating":
 
+            $event = $_POST['event'];
+
+            //$module->emDebug("AJAX: Make Event repeating", $event);
+            list($result, $message) = $module->makeEventRepeat($event);
+            $module->emDebug("result",  $result);
+            break;
         case "getStatus":
 
 
-            //does particiapnt form exist
+            //does participant form exist
 
             //does the rsp_metadata form exit
-
-            //is
             list($result,$message) = $module->getConfigStatus();
-            $module->emDebug("GET STATUS", $result, $message);
+            //$module->emDebug("GET STATUS", $result, $message);
 
-
-            //$result = array(1,2,3);
             break;
         case "checkForms":
 //            if (!$zip_loader->formExists('participant_info')) {

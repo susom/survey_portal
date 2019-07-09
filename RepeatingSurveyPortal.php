@@ -388,7 +388,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
 
     /**
-     * * TODO: Add cron to config.json
+     * Cron method to initiate reminder emails/texts
+     *
+     * Cron job for project is only initiated for a project's subsetting in the config if
+     * the checkbox to Enable Reminders have been checked.
+     *
+     * The Cron job is started by triggeringg the ReminderCron.php page PLUS the additional parameters:
+     *    project id
+     *    subsetting
      */
     public function reminderCron() {
 
@@ -558,8 +565,13 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $alerts = array();
         $result = false;
 
+        //This is the event that holds the main config form: rsp_participant_info
+        //Check that rsp_participant_info is a repeating form
+        //TODO: should this EM just create the  event and set it?
         $main_events = $this->getProjectSetting('main-config-event-name');
 
+        //This is the event that holds the survey_metadata form AND repeating surveys
+        ////check that the event is repeating
         $survey_events = $this->getProjectSetting('survey-event-name');
         //$this->emDebug("SURVEY",$survey_events);
 
@@ -606,6 +618,17 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                             " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
                             "' data-form='".self::SURVEY_METADATA_FORM."'>Designate Form</div>";
                         $alerts[] = $se;
+                    }
+
+                    //make sure that the survey event is repeating
+                    if (!$iih->isEventRepeating($event)) {
+
+                        $event_name = REDCap::getEventNames(false, true, $event);
+
+                        $pe = "<b>The survey event, {$event_name}, has not been designated as a repeating event: " .
+                            " </b><div class='btn btn-xs btn-primary float-right' data-action='set_event_repeating' data-event='" . $event .
+                            "' data-label='survey_repeat_label'>Make Event Repeating</div>";
+                        $alerts[] = $pe;
                     }
                 }
             }
@@ -655,7 +678,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         $this->emDebug("DESIGNATING EVENT: ". $form . $event);
         $result = $iih->designateFormInEvent($form, $event);
-        $message = $iih->getErrors();
+
+        if ($result) {
+            $event_name = REDCap::getEventNames(true, false, $event);
+            $message = "Form ($form) has been designated in the event $event_name.";
+        } else {
+            $message = $iih->getErrors();
+        }
+
 
         $this->emDebug("RETURN STATUS", $result, $message);
 
@@ -669,9 +699,33 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         $this->emDebug("MAKE FORM REPEATING: ". $form . $event);
         $result = $iih->makeFormRepeating($form, $event);
-        $message = $iih->getErrors();
 
-        $this->emDebug("RETURN STATUS", $result, $message);
+        if ($result) {
+            $event_name = REDCap::getEventNames(true, false, $event);
+            $message = "Form ($form) has been made repeating in event $event_name.";
+        } else {
+            $message = $iih->getErrors();
+        }
+
+        //$this->emDebug("RETURN STATUS", $result, $message);
+        return array($result, $message);
+
+    }
+
+
+    public function makeEventRepeat($event) {
+        $iih = new InsertInstrumentHelper($this);
+
+        $this->emDebug("MAKE EVENT REPEATING: ". $event );
+        $result = $iih->makeEventRepeating($event);
+
+        if ($result) {
+            $event_name = REDCap::getEventNames(true, false, $event);
+            $message = "Event ($event_name) has been made repeating";
+        } else {
+            $message = $iih->getErrors();
+        }
+        //$this->emDebug("RETURN STATUS", $result, $message);
 
         return array($result, $message);
 

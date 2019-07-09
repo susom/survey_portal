@@ -237,7 +237,7 @@
         },
         {
           "key": "enable-invitations",
-          "name": "<div class='alert alert-info'><b>Enable Email/Text Invitations</b></div><br>Enable the sending of survey invitations on valid invitation days.  The invitation contains the config name and the day number encoded in the url.",
+          "name": "<div class='alert alert-info'><b>Enable Email/Text Invitations</b></div><br>Enable the sending of survey invitations on valid invitation days.  The invitation contains the config name and the day number encoded in the url.<br><br>Email invitations will be sent if the participant has not disabled emails and has a valid email in their email field",
           "required": false,
           "type": "checkbox"
         },
@@ -285,7 +285,7 @@
         },
         {
           "key": "invitation-sms-text",
-          "name": "<div class='alert alert-danger'>Send SMS</div><div class='alert alert-info'><b>Invitation SMS Text</b></div><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message.  Messages over 160 characters may result in multiple text segments.",
+          "name": "<div class='alert alert-info'><b>Invitation SMS Text</b></div><div class='alert alert-danger'>Send by SMS<br>Text invitations will be sent if the participant has not disabled text and has a valid phone number in their phone field</div><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message.  Messages over 160 characters may result in multiple text segments.",
           "required": false,
           "type": "textarea"
         },
@@ -345,7 +345,7 @@
         },
         {
           "key": "reminder-sms-text",
-          "name": "<div class='alert alert-primary'><b>Reminder SMS Text</b></div><div class='alert alert-danger'>Send SMS</div>",
+          "name": "<div class='alert alert-primary'><b>Reminder SMS Text</b></div><div class='alert alert-danger'>Send by SMS<br>Text reminders will be sent if the participant has not disabled text and has a valid phone number in their phone field</div>",
           "required": false,
           "type": "textarea"
         },

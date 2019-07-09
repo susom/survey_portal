@@ -189,7 +189,11 @@ class InvitationManager {
     }
 
     /**
-     * TODO : Reusing this for Reminder as well, so rename method to getInviteReminderCandidates
+     * Do a REDCap filter search on the project where
+     *    1. config-id field matches the config-id in the subsetting for this config
+     *    2. emails has not been disabled for this participant and the email field is not empty
+     *    3. phone has not been disabled for this participant and the phone field is not empty
+     *
      * @return bool|mixed
      */
     public function getInviteReminderCandidates() {
