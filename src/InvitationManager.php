@@ -67,14 +67,14 @@ class InvitationManager {
 
         foreach ($candidates as $candidate) {
 
+            //check if today is a valid day for invitation:
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
-            //$module->emDebug("ID: " .$candidate['participant_id'], " / VALID DAY: ".$valid_day);
+            $module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
             //$module->emDebug($this->portalConfig->inviteValidDayArray, "IN ARRAY");
 
-
-            //$module->emDebug($valid_day, $this->portalConfig->inviteValidDayArray, $isDateEmpty);
+            //NULL is returned if the date is not valid
             if ($valid_day != null)  {
-                //check if valid (multiple allowed, widow )
+                //check if valid (multiple allowed, window )
 
                 //set up the new record and prefill it with survey data
                 //create participant object. we need it to know the next instance.
@@ -92,8 +92,9 @@ class InvitationManager {
                     continue;
                 }
 
+                //check that the survey already not completed for today
                 if ( $participant->isSurveyComplete(new DateTime())) {
-                    $module->emDebug("Survey for $valid_day is already complete. Don't send invite for today");
+                    $module->emDebug("Participant # ".$participant->getParticipantID().": Survey for day number $valid_day is already complete. Don't send invite for today");
                     continue;
                 }
 
@@ -116,7 +117,7 @@ class InvitationManager {
                     ($candidate[$this->portalConfig->emailField] <> '')) {
 
 
-                    $module->emDebug("Sending email invite to ".$candidate[REDCap::getRecordIdField()]);
+                    $module->emDebug("Sending email invite to participant record id: ".$candidate[REDCap::getRecordIdField()]);
 
                     $msg = $this->formatEmailMessage(
                         $this->portalConfig->invitationEmailText,
@@ -146,7 +147,7 @@ class InvitationManager {
 
                 if (($candidate[$this->portalConfig->disableParticipantSMSField."___1"] <> '1') &&
                         ($candidate[$this->portalConfig->phoneField] <> '')) {
-                    $module->emDebug("Sending text invite to ".$candidate[REDCap::getRecordIdField()]);
+                    $module->emDebug("Sending text invite to record id: ".$candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
                     $msg = $this->formatTextMessage($this->portalConfig->invitationSmsText, $survey_link);
 
@@ -261,10 +262,14 @@ class InvitationManager {
      *
      * @param $start
      * @param $valid_day_number
+     * @param $date_str
+     * @return int|null  : day number for date passed in, NULL if not valid date.
      */
     public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
         global $module;
-        //$module->emDebug("Incoming to check If Date Valid", $start_str,$valid_day_number, $date_str);
+        $module->emDebug("Incoming to check If this date valid:". $date_str . ' with this start date: '. $start_str);
+        $module->emDebug("valid day array: ".implode(',',$valid_day_number));
+
         //use today
         $date = new DateTime($date_str);
         $start = new DateTime($start_str);
@@ -272,26 +277,15 @@ class InvitationManager {
         $interval = $date->diff($start);
         //$module->emDebug("DIFF in Days: ".  $interval->days);
 
-        // need at add one day since start is day 0
+        // need at add one day since start is day 0??
         if (in_array($interval->days, $valid_day_number)) {
-            return ($interval->days + 1);
+            //actually, don't add 1. start date should be 0.
+            //return ($interval->days + 1);
+            return ($interval->days);
         }
         return null;
 
     }
-
-    /**
-     * TODO: implement this
-     * @param $date
-     * @return bool
-     */
-    public function checkIfSurveyEntered($date) {
-
-        //check if survey already exists for this date
-        return true;
-
-    }
-
 
     /**
      * Replace the url tag [invitation-url] with the $survey-link passed in as parameter
@@ -323,7 +317,17 @@ class InvitationManager {
     }
 
 
+    /**
+     *
+     *
+     * @param $to
+     * @param $from
+     * @param $subject
+     * @param $msg
+     * @return bool
+     */
     function sendEmail($to, $from, $subject, $msg) {
+        global $module;
 
         // Prepare message
         $email = new Message();
@@ -344,15 +348,19 @@ class InvitationManager {
         return true;
     }
 
+    /**
+     * Switches out [invitation-url] with friendly text if provided
+     * Adds standard message if no text entered.
+     *
+     * @param $msg
+     * @param $survey_link
+     * @return mixed|string
+     */
     function formatTextMessage($msg, $survey_link) {
 
         $target_str = "[invitation-url]";
 
-        //don't use for text messages
-        $tagged_link = "<a href='{$survey_link}'>link</a>";
-        //if there is the inviation-url tag included, switch it out for the actual url.  if not, then add it to the end.
-
-
+        //if there is the invitation-url tag included, switch it out for the actual url.  if not, then add it to the end.
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $survey_link, $msg);
         } else {

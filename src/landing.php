@@ -299,7 +299,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
             </div>
         <?php } ?>
         <p><?php echo $portalConfig->landingPageHeader; ?></p>
-        <p><?php echo "Participant: ".$portal->getParticipantId(); ?></p>
+        <p><?php echo "Participant: ".$participant->getParticipantId(); ?></p>
         <div class="container">
             <div class="col-sm-8 col-sm-offset-2 col-xs-12">
                 <form method="POST">

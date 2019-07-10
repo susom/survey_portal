@@ -959,9 +959,15 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
     /**
+     * Returns the specified instance from the array of repeating instrument instances
+     *
      * Repeating Forms getData returns a blank instance for array slot 0.
      * Cannot assume that slot 1 is the desired array (this has changed in the last few upgrades)
      *
+     * @param $result                :
+     * @param $repeat_instrument     : repeat instrument name
+     * @param null $repeat_instance
+     * @return int|string|null
      */
     function findRepeatingInstance($result, $repeat_instrument, $repeat_instance = null) {
         //$this->emDebug($result, $repeat_instance, $repeat_instance == null);

@@ -53,7 +53,7 @@ class Participant {
             throw new Exception("Participant not found. Please check that you are using the link from the most recent email or text. ");
         }
 
-        //check that this participant portal is not disabled
+        //check that this participant's portal is not disabled
         $this->participant_portal_disabled = $this->checkPortalDisabled($hash);
         //$module->emDebug("PORTAL DISABLED? :  ". $this->participant_portal_disabled, $hash); exit;
 
@@ -170,6 +170,12 @@ class Participant {
 
     }
 
+    /**
+     * Given hash, return the record Id of the participant
+     *
+     * @param $hash   : hash of portal
+     * @return string|null  : participant ID or null if not found
+     */
     public function locateParticipantFromHash($hash) {
         global $module;
 
@@ -190,7 +196,7 @@ class Participant {
         // return record_id or false
         //$main = current($records);  //can't assume that this gives the correct array. 0 seems to have blanks...
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
-        $module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
+        //$module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
 
         if (empty($array_num)) {
             return null;
@@ -203,6 +209,12 @@ class Participant {
         return ($this->participantID);
     }
 
+    /**
+     * Check that the participant level disabled field has not been checked.
+     *
+     * @param $hash
+     * @return bool
+     */
     public function checkPortalDisabled($hash) {
         global $module;
 
@@ -212,11 +224,12 @@ class Participant {
         $params = array(
             'return_format' => 'json',
             'events'        => $this->portalConfig->mainConfigEventName,
-            'records'       => $participant_id,
+            'records'       => $this->participantID,
             'fields'        => array(REDCap::getRecordIdField(),$this->portalConfig->participantDisabled),
             'filterLogic'   => $filter
         );
 
+        //$module->emDebug($params);
         $q = REDCap::getData($params);
         $records = json_decode($q, true);
 
@@ -224,7 +237,7 @@ class Participant {
         //$main = current($records);  //can't assume that 0 is the correct array-numb
 
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
-        $module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
+        //$module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
 
         if (empty($array_num)) {
             $module->emError("could not locate this instance in the repeating instance array");
@@ -237,7 +250,7 @@ class Participant {
     }
 
     /**
-     *
+     * Given date, return the day number
      *
      * @param $date
      */
@@ -252,6 +265,13 @@ class Participant {
 
     }
 
+    /**
+     * Given day_number, return the survey date
+     *
+     * @param $day_number
+     * @return DateTime|null
+     * @throws Exception
+     */
     public function getSurveyDateFromDayNumber($day_number) {
         global $module;
 
@@ -310,17 +330,14 @@ class Participant {
 
     }
 
-    public function getCountOfDayNumber($id, $day_number) {
-        global $module;
 
-        $filter = '';
-        $params = array(
-            'return_format' => 'json',
-            'records'       => $id
-
-        );
-    }
-
+    /**
+     * Given survey_date, check that today's date is within the allowed day lag
+     *
+     * @param $survey_date
+     * @return bool
+     * @throws Exception
+     */
     public function isDayLagValid($survey_date) {
         global $module;
         if (!isset($this->portalConfig->validDayLag)) {
@@ -335,10 +352,15 @@ class Participant {
                 return true;
             }
         }
-        $module->emDebug("FAILED in valid day lag. Date DIff : ". $date_diff, $today, $survey_date);
+        $module->emDebug("FAILED in valid day lag. Date diff : ". $date_diff, $today, $survey_date);
         return false;
     }
 
+    /**
+     * @param $survey_date
+     * @return bool
+     * @throws Exception
+     */
     public function isStartTimeValid($survey_date) {
         global $module;
         if (!isset($this->portalConfig->earliestTimeAllowed)) {
@@ -368,7 +390,13 @@ class Participant {
 
 
 
-    /** This version only allows one */
+    /**
+     * This version only allows one
+     *
+     * @param $day_number
+     * @param $survey_date
+     * @return bool
+     */
     public function isMaxResponsePerDayValid($day_number, $survey_date) {
         global $module;
         $survey_date_str = $survey_date->format('Y-m-d');
@@ -383,9 +411,10 @@ class Participant {
 
     }
 
-
     /**
+     * Return the next instance id for this survey instrument
      *
+     * @return int|mixed
      */
     public function getNextInstanceID() {
         global $module;
@@ -412,6 +441,11 @@ class Participant {
         return $max_id + 1;
     }
 
+    /**
+     * @param $day_number
+     * @param $survey_date
+     * @return int|mixed
+     */
     public function getPartialResponseInstanceID($day_number, $survey_date) {
         global $module;
         $survey_date_str = $survey_date->format('Y-m-d');
@@ -471,6 +505,14 @@ class Participant {
 
     }
 
+    /**
+     *
+     *
+     * @param $day_number
+     * @param $survey_date
+     * @param $instance
+     * @return bool
+     */
     public function newSurveyEntry($day_number, $survey_date, $instance) {
         global $module;
 
@@ -511,6 +553,9 @@ class Participant {
 
     }
 
+    /**
+     * @return mixed
+     */
     public function getFirstDate() {
         global $module;
 
@@ -519,6 +564,9 @@ class Participant {
         return min($dates);
     }
 
+    /**
+     * @return mixed
+     */
     public function getLastDate() {
         global $module;
         $dates = array_keys($this->survey_status);
@@ -570,6 +618,12 @@ class Participant {
 
     }
 
+    /**
+     * Given the date, check if the repeating survey has been completed for this participant
+     *
+     * @param $date : date to check
+     * @return bool : true if completed, false if not completed
+     */
     public function isSurveyComplete($date) {
         global $module;
         $date_str = $date->format('Y-m-d');
@@ -582,58 +636,6 @@ class Participant {
         return false;
     }
 
-
-
-    /**
-     * // METHOD:   x()
-     * verify hash and personal url for record (called by save_record hook)
-     *
-     *
-
-     * // METHOD:  xx ($hash)
-     * retrieve record based on hash or record+config
-     *
-
-     * //METHOD:    xxx ($record, $config)
-     * calculate day number by retrieving start date and calculating against current date
-     *
-
-     * //METHOD:   xxxx($record, $config, $daynumber)
-     * validate window (time) for current time
-     *
-     */
-
-
-
-    // /**
-    //  * Factory method for creating a portal
-    //  *
-    //  * @param $field_name
-    //  * @param $form_name
-    //  * @param $field_label
-    //  * @param string $field_annotation
-    //  * @return Field
-    //  */
-    // public static function create($field_name, $form_name, $field_label, $field_annotation = '')
-    // {
-    //     // Any subclass can use this factory method because we detect the calling class
-    //     try {
-    //         $class = new \ReflectionClass(static::class);
-    //     } catch (\ReflectionException $e) {
-    //         // It is impossible for this to occur. static::class will always yield a valid class name
-    //         return new Portal();
-    //     }
-    //
-    //     /** @var Portal $portal */
-    //     $portal = $class->newInstance();
-    //     $portal->
-    //
-    //     $field->field_name = $field_name;
-    //     $field->form_name = $form_name;
-    //     $field->field_label = $field_label;
-    //     $field->field_annotation = $field_annotation;
-    //     return $field;
-    // }
 
     public function getParticipantPortalDisabled() {
         return $this->participant_portal_disabled;

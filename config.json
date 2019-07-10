@@ -285,7 +285,7 @@
         },
         {
           "key": "invitation-sms-text",
-          "name": "<div class='alert alert-info'><b>Invitation SMS Text</b></div><div class='alert alert-danger'>Send by SMS<br>Text invitations will be sent if the participant has not disabled text and has a valid phone number in their phone field</div><br>You can use piping to customize this message and use the special tag [invitation-url] for the link.  If not supplied, the link will automatically be added to the end of the message.  Messages over 160 characters may result in multiple text segments.",
+          "name": "<div class='alert alert-info'><b>Invitation SMS Text</b></div><div class='alert alert-danger'>Send by SMS<br>Text invitations will be sent if the participant has not disabled text and has a valid phone number in their phone field</div>The link will automatically be added to the end of the message.  Messages over 160 characters may result in multiple text segments.",
           "required": false,
           "type": "textarea"
         },
