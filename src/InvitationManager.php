@@ -264,7 +264,7 @@ class InvitationManager {
      */
     public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
         global $module;
-        //$module->emDebug("Incoming to check If Date Valii", $start_str, $date_str);
+        //$module->emDebug("Incoming to check If Date Valid", $start_str,$valid_day_number, $date_str);
         //use today
         $date = new DateTime($date_str);
         $start = new DateTime($start_str);

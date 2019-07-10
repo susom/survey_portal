@@ -163,7 +163,7 @@ class InsertInstrumentHelper
 
         $result = db_result(db_query($sql),0);
 
-        $this->emDebug($sql, $result);
+        //$this->emDebug($sql, $result);
 
         return $result;
     }

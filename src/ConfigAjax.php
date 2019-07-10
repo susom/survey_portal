@@ -11,7 +11,7 @@ require_once 'InsertInstrumentHelper.php';
 if (!empty($_POST['action'])) {
     $action = $_POST['action'];
     //$zip_loader = InsertInstrumentHelper::getInstance($module);
-    $module->emDebug($_POST);
+    //$module->emDebug($_POST);
     $message = $delay = $callback = null;
 
     switch ($action) {
