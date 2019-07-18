@@ -827,7 +827,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             }
         }
 
-        $this->emDebug("COULD NOT FIND HASH FIELD", $filter,$retrieve_array,  $records, $array_num);
+        $this->emDebug("COULD NOT FIND HASH FIELD", $filter, $records);
 
         return null;
 

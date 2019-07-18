@@ -63,8 +63,7 @@ class ReminderManager extends InvitationManager
      * TODO: use the reminder valid day array
      * @param $sub
      */
-    public function sendReminders($sub)
-    {
+    public function sendReminders($sub) {
         global $module;
 
         //sanity check that the subsetting matches the stored portalConfig;
@@ -100,6 +99,12 @@ class ReminderManager extends InvitationManager
             //$module->emDebug($candidate[$this->portalConfig->personalHashField], $this->portalConfig->personalHashField);
 
             if ($valid_day != null) {
+                //check that the valid_day is in the original valid_day_array
+                if (!in_array($valid_day, $this->portalConfig->validDayArray)) {
+                    $module->emError("Attempting to send reminder on a day not set as a Valid Day Number. Day: $valid_day / Valid Day Numbers : ".
+                                     $this->portalConfig->validDayNumber);
+                    continue;
+                }
 
                 //create a Participant object for the candidate and get the survey_status array
                 try {
@@ -109,12 +114,29 @@ class ReminderManager extends InvitationManager
                     continue;
                 }
 
-                //check that the survey has not already been completed
-                if ($participant->isSurveyComplete($lagged_day)) {
-                    $module->emDebug("Survey for $valid_day is already complete. Don't send invite for today");
+                //check that the portal is not disabled
+                if ( $participant->getParticipantPortalDisabled()) {
+                    $module->emDebug("Participant portal disabled for ". $participant->getParticipantID());
                     continue;
                 }
-//
+
+                //check that the survey has not already been completed
+                if ($participant->isSurveyComplete($lagged_day)) {
+                    $module->emDebug("Participant # ".$participant->getParticipantID().": Survey for $valid_day is already complete. Don't send the reminder for today");
+                    continue;
+                }
+
+                /**
+                 * TODO: QA Reminders
+                 * Do we need to create a new instance??? or just check that it exists???
+                 * If invites aren't used then might need to create one
+                 *
+                 *                 //create a new ID and prefill the new survey entry with the metadata
+                $next_id = $participant->getPartialResponseInstanceID($valid_day, new DateTime());
+                $participant->newSurveyEntry($valid_day, new DateTime(), $next_id);
+                 *
+                 *
+                 */
 //                //create array of valid dates and completion status (include allowed lag)
 //                $valid_dates = $participant->getValidDates();
 //                //$module->emDebug($valid_dates); exit;

@@ -128,6 +128,11 @@ class Participant {
 
         //$module->emDebug($this->$start_date, $date);
 
+        //if date is in the future then break out of loop
+        if ($date > $today) {
+            return null;
+        }
+
         //$module->emDebug($all_surveys, $min, $max); exit;
         for ($i = $min; $i <= $max; $i++) {
 
@@ -193,12 +198,15 @@ class Participant {
         $q = REDCap::getData($params);
         $records = json_decode($q, true);
 
+        //$module->emDebug($records);
+
         // return record_id or false
         //$main = current($records);  //can't assume that this gives the correct array. 0 seems to have blanks...
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
-        //$module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
+       //$module->emDebug("xFOUND ARRAY NUMBER: ".$array_num . " EMPTY?: ". (empty($array_num) === true) . " ISSET: ". isset($array_num));
 
-        if (empty($array_num)) {
+        //if (empty($array_num)) {  //?? this returns true if array_num = 0???
+        if (!isset($array_num)) {
             return null;
         }
 
@@ -239,7 +247,9 @@ class Participant {
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
         //$module->emDebug("FOUND ARRAY NUMBER: ".$array_num);
 
-        if (empty($array_num)) {
+
+        //if (empty($array_num)) {  //?? this returns true if array_num = 0???
+        if (!isset($array_num)) {
             $module->emError("could not locate this instance in the repeating instance array");
             return true;  //count it as disabled
         }
@@ -561,6 +571,8 @@ class Participant {
 
         $dates = array_keys($this->survey_status);
 
+        //$module->emDebug("MIN", min($dates));
+
         return min($dates);
     }
 
@@ -570,6 +582,9 @@ class Participant {
     public function getLastDate() {
         global $module;
         $dates = array_keys($this->survey_status);
+
+        //$module->emDebug("MAX", max($dates));
+
         return max($dates);
     }
 
@@ -582,7 +597,7 @@ class Participant {
      */
     public function getValidDates() {
         global $module;
-        //$module->emDebug($this->survey_status);
+        //$module->emDebug("VALID DATES:",$this->survey_status);
         $valid_dates = array();
         foreach ($this->survey_status as $date => $status) {
 

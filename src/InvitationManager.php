@@ -49,7 +49,10 @@ class InvitationManager {
         //$module->emDebug("in construct with ". $project_id, $sub, $this->configID, $this->portalConfig);
     }
 
-
+    /**
+     * @param $sub
+     * @throws Exception
+     */
     public function sendInvitations($sub) {
         global $module;
 
@@ -74,6 +77,13 @@ class InvitationManager {
 
             //NULL is returned if the date is not valid
             if ($valid_day != null)  {
+                //check that the valid_day is in the original valid_day_array
+                if (!in_array($valid_day, $this->portalConfig->validDayArray)) {
+                    $module->emError("Attempting to send invitation on a day not set for Valid Day Number. Day: $valid_day / Valid Day Numbers : ".
+                                     $this->portalConfig->validDayNumber);
+                    continue;
+                }
+
                 //check if valid (multiple allowed, window )
 
                 //set up the new record and prefill it with survey data
