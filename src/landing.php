@@ -32,7 +32,8 @@ try {
     $portalConfig = $portal->getPortalConfig();
 
     //$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber, $portalConfig, $portalConfig->getEnablePortal());
-    //$module->emDebug($participant->survey_status);
+    //$module->emDebug($participant->survey_status); exit;
+
 
     //If portal is not enabled, just bail
     if (!$portalConfig->getEnablePortal()) {

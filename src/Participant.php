@@ -82,7 +82,7 @@ class Participant {
             }
         }
 
-        //$module->emDebug(min($this->portalConfig->validDayArray), max($this->portalConfig->validDayArray),$this->survey_status, $this->getValidDates()); exit;
+        //$module->emDebug(min($this->portalConfig->validDayArray), max($this->portalConfig->validDayArray),$this->survey_status, $this->getValidDates());
         //$window_dates = $module->getValidDayNumbers($participant, $project_id, $cfg['START_DATE_FIELD'], $cfg['START_DATE_EVENT'], $valid_day_number_array);
 
 
@@ -126,11 +126,20 @@ class Participant {
 
         $today = new DateTime();
 
-        //$module->emDebug($this->$start_date, $date);
+
+
+        //offset the start date from the min
+        //if start_date is 0, what date is $min?
+
+        //$date->add(new DateInterval('P'.$min. 'D'));
+        $date = $start_date->modify('+ '.$min.' days');
+        //echo $date->format('Y-m-d H:i:s');
+
+        //$module->emDebug($this->start_date, $start_date, $date);
 
         //if date is in the future then break out of loop
         if ($date > $today) {
-            return null;
+            return $survey_status; //return empty array
         }
 
         //$module->emDebug($all_surveys, $min, $max); exit;
@@ -351,7 +360,7 @@ class Participant {
     public function isDayLagValid($survey_date) {
         global $module;
         if (!isset($this->portalConfig->validDayLag)) {
-            $module->emDebug("not set");
+            $module->emDebug("Day lag is not set");
             return true;
         } else {
             $today = new DateTime();

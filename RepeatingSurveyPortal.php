@@ -822,6 +822,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         //since 9.1, repeating instance return an empty array plus filtered array.
         foreach ($records as $k => $v) {
+            //$this->emDebug($v);
             if (!empty($v[$hash_field])) {
                 return $v[$hash_field];
             }
