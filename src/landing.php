@@ -410,6 +410,8 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
         // Example format:  var survey_dates = { '2016-02-04': 'some description', '2016-02-25': 'some other description' };
         var survey_dates = <?php echo json_encode($participant->getValidDates()) ?>;
         var invalid_dates = <?php echo json_encode($participant->getInvalidDates()) ?>;
+        var first_date = '<?php echo $participant->getFirstDate(); ?>';
+        var end_date = '<?php echo $participant->getLastDate(); ?>';
 
         // Convenience function for inserting innerHTML for 'select'
         var insertHtml = function (selector, html) {
@@ -426,8 +428,8 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
             // Initialize datepicker
             var d = $('#cal_date').datepicker({
                 format: 'yyyy-mm-dd',
-                startDate: '<?php echo $participant->getFirstDate(); ?>',
-                endDate: '<?php echo $participant->getLastDate(); ?>',
+                startDate: first_date,
+                endDate: end_date,
                 datesDisabled: invalid_dates,
                 autoclose: true,
                 todayBtn: 'linked',

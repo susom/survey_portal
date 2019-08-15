@@ -582,6 +582,14 @@ class Participant {
 
         //$module->emDebug("MIN", min($dates));
 
+        //no mindate (empty survey list no valid dates)
+        //utter hack to force calendar to display all grey: return tomorrow as first date
+        if ( !min($dates)) {
+            $datetime = new DateTime('tomorrow');
+            return $datetime->format('Y-m-d');
+
+        }
+
         return min($dates);
     }
 
@@ -593,6 +601,13 @@ class Participant {
         $dates = array_keys($this->survey_status);
 
         //$module->emDebug("MAX", max($dates));
+        //no maxdate (empty survey list no valid dates)
+        //utter hack to force calendar to display all grey: return yesterday as last date
+        if ( !max($dates)) {
+           // return  '2019-07-30';
+            $datetime = new DateTime('yesterday');
+            return $datetime->format('Y-m-d');
+        }
 
         return max($dates);
     }
