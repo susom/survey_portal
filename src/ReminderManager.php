@@ -95,6 +95,9 @@ class ReminderManager extends InvitationManager
             //check that today is a valid reminder day
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->reminderValidDayArray, $lagged_str);
 
+            //Need repeat_instance for piping
+            $repeat_instance = $candidate['redcap_repeat_instance'];
+
             //$module->emDebug($valid_day, $valid_day == null);
             //$module->emDebug($candidate[$this->portalConfig->personalHashField], $this->portalConfig->personalHashField);
 
@@ -167,10 +170,13 @@ class ReminderManager extends InvitationManager
                     //send email
 
                     $send_status = $this->sendEmail(
+                        $candidate[REDCap::getRecordIdField()],
                         $candidate[$this->portalConfig->emailField],
                         $this->portalConfig->reminderEmailFrom,
                         $this->portalConfig->reminderEmailSubject,
-                        $msg);
+                        $msg,
+                        $this->portalConfig->surveyEventID,
+                        $repeat_instance);
 
                     //TODO: log send status to REDCap Logging?
 

@@ -9,6 +9,7 @@ use \REDCap;
 use \DateTime;
 use \Message;
 use Exception;
+use Piping;
 
 require_once 'emLoggerTrait.php';
 require_once 'src/Participant.php';
@@ -204,7 +205,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param null $record
      * @param $instrument
      */
-    public function redcap_save_record($project_id, $record = NULL,  $instrument,  $event_id,  $group_id = NULL,  $survey_hash = NULL,  $response_id = NULL, $repeat_instance) {
+    public function redcap_save_record($project_id, $record,  $instrument,  $event_id,  $group_id = NULL,  $survey_hash = NULL,  $response_id = NULL, $repeat_instance) {
         //If instrument is the right one, create the portal url and save it to the designated field
 
         //iterate through all of the sub_settings
@@ -305,24 +306,34 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     //get the email field. if email is set, then send out invite
                     $email_to = $this->getFieldValue($record, $config_event, $email_to_field, $instrument, $repeat_instance);
                     if (!empty($email_to)) {
-                        $this->sendInitialPortalUrl($project_id, $record, $new_hash_url, $portal_url_label, $initial_invite_msg, $email_to, $email_from, $initial_invite_subject);
+
+
+                        //convert all to piped values
+                        $this->emDebug("RECORD:".$record. " / SUB: ".$sub. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
+                        $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $event_id,$repeat_instance, array(), false, null, false);
+                        $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $event_id,$repeat_instance, array(), false, null, false);
+                        //$this->emDebug($record. "piped subject: ". $piped_email_subject);
+                        //$this->emDebug($record. "piped msg: ". $piped_email_msg);
+
+                        $this->sendInitialPortalUrl($project_id, $record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
                     }
 
-                    //get the text field. if text is set, then send out invite
-                    $text_to = $this->getFieldValue($record, $config_event, $text_to_field, $instrument, $repeat_instance);
+                    //actually don't send initial portal out by text
+//                    //get the text field. if text is set, then send out invite
+//                    $text_to = $this->getFieldValue($record, $config_event, $text_to_field, $instrument, $repeat_instance);
 
-                    //$this->emDebug($text_to_field, $text_to);
+//                    //$this->emDebug($text_to_field, $text_to);
 
-                    if (!empty($text_to)) {
-                        $this->textInitialPortalUrl($project_id, $record, $new_hash_url, $initial_invite_msg, $text_to);
-                    }
+//                    if (!empty($text_to)) {
+//                        $this->textInitialPortalUrl($project_id, $record, $new_hash_url, $initial_invite_msg, $text_to);
+//                    }
 
                     //if both the text and email fields are empty, log so that admin know that record never got the initial invite
-                    if ((empty($email_to)) && (empty($text_to))) {
-                        $this->emLog("Portal invite was not sent for record $record because both email and text fields are empty.");
+                    if (empty($email_to)) { //&& (empty($text_to))) {
+                        $this->emLog("Portal invite was not sent for record $record because the email field is empty.");
                         REDCap::logEvent(
                             "Unable to send portal invite by Survey Portal EM", //action
-                            "Portal invite was not sent because both email and text fields are empty.",
+                            "Portal invite was not sent because both email field is empty.",
                             NULL, //sql optional
                             $record, //record optional
                             null,
@@ -518,6 +529,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     /**
      * Method to send out initial portal invitation by text
+     * Design change: no longer sending out portal url by text
+     * Method unused
      *
      * @param $project_id
      * @param $record

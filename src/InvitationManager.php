@@ -12,6 +12,7 @@ use REDCap;
 use DateTime;
 use Exception;
 use Message;
+use Piping;
 
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
@@ -75,6 +76,9 @@ class InvitationManager {
             $module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
             //$module->emDebug($this->portalConfig->inviteValidDayArray, "IN ARRAY");
 
+            //Need repeat_instance for piping
+            $repeat_instance = $candidate['redcap_repeat_instance'];
+
             //NULL is returned if the date is not valid
             if ($valid_day != null)  {
                 //check that the valid_day is in the original valid_day_array
@@ -137,10 +141,13 @@ class InvitationManager {
                     //send email
 
                     $send_status = $this->sendEmail(
+                        $candidate[REDCap::getRecordIdField()],
                         $candidate[$this->portalConfig->emailField],
                         $this->portalConfig->invitationEmailFrom,
                         $this->portalConfig->invitationEmailSubject,
-                        $msg);
+                        $msg,
+                        $this->portalConfig->surveyEventID,
+                        $repeat_instance);
 
 
                     //TODO: log send status to REDCap Logging?
@@ -336,15 +343,23 @@ class InvitationManager {
      * @param $msg
      * @return bool
      */
-    function sendEmail($to, $from, $subject, $msg) {
+    function sendEmail($record, $to, $from, $subject, $msg, $event_id, $repeat_instance) {
         global $module;
+
+        $module->emDebug("RECORD:".$record. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
+
+        $piped_email_subject = Piping::replaceVariablesInLabel($subject, $record, $event_id, $repeat_instance,array(), false, null, false);
+        $piped_email_msg = Piping::replaceVariablesInLabel($msg, $record, $event_id, $repeat_instance,array(), false, null, false);
+        //$module->emDebug($record. "piped subject: ". $piped_email_subject);
+        //$module->emDebug($record. "piped msg: ". $piped_email_msg);
+
 
         // Prepare message
         $email = new Message();
         $email->setTo($to);
         $email->setFrom($from);
-        $email->setSubject($subject);
-        $email->setBody($msg); //format message??
+        $email->setSubject($piped_email_subject);
+        $email->setBody($piped_email_msg); //format message??
 
         $result = $email->send();
         //$module->emDebug($to, $from, $subject, $msg, $result);
