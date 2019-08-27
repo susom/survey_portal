@@ -271,8 +271,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                 // First check if hashed portal already has been created
                 $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
-                $this->emDebug("Saving record with this sub: ". $sub . " and this hash field " . $personal_hash_field
-                    . " is it empty?" .empty($personal_hash_field) .  " has this value: " . $f_value);
 
                 if ($f_value == null) {
                     //generate a new URL
@@ -387,7 +385,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $enabled_invite = $this->getProjectSetting('enable-invitations', $pid)[$sub];
                 if ($enabled_invite == '1') {
 
-                    $this->emDebug("PROJECT $pid : SUB $sub scheduled at this hour $invite_time vs current hour: $current_hour");
+                    //$this->emDebug("PROJECT $pid : SUB $sub scheduled at this hour $invite_time vs current hour: $current_hour");
 
                     //if not hour, continue
                     if ($invite_time != $current_hour) continue;
@@ -439,7 +437,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $enabled_reminder = $this->getProjectSetting('enable-reminders', $pid)[$sub];
                 if ($enabled_reminder == '1') {
 
-                    $this->emDebug("project $pid - $sub scheduled at this hour $reminder_time vs current hour: $current_hour");
+                    //$this->emDebug("project $pid - $sub scheduled at this hour $reminder_time vs current hour: $current_hour");
 
                     //if not hour, continue
                     if ($reminder_time != $current_hour) continue;

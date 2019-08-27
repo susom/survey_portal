@@ -242,7 +242,7 @@ class Participant {
             'return_format' => 'json',
             'events'        => $this->portalConfig->mainConfigEventName,
             'records'       => $this->participantID,
-            'fields'        => array(REDCap::getRecordIdField(),$this->portalConfig->participantDisabled),
+            'fields'        => array(REDCap::getRecordIdField(),$this->portalConfig->participantDisabled,$this->portalConfig->personalHashField),
             'filterLogic'   => $filter
         );
 
@@ -250,8 +250,6 @@ class Participant {
         $q = REDCap::getData($params);
         $records = json_decode($q, true);
 
-        // return record_id or false
-        //$main = current($records);  //can't assume that 0 is the correct array-numb
 
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
         //$module->emDebug("FOUND ARRAY NUMBER: ".$array_num);

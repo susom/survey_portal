@@ -401,7 +401,7 @@
         },
         {
           "key": "phone-field",
-          "name": "<b>Phone Field</b><br>Field where phone is recorded for this participant (to be used for survey invtes/reminders ",
+          "name": "<b>Phone Field</b><br>Field where phone is recorded for this participant (to be used for survey invites/reminders ",
           "required": false,
           "type": "field-list"
         },
