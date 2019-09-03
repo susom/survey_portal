@@ -254,15 +254,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                 $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
                 $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
-
-                //prep for the initial invite email
-                $portal_url_label       = $this->getProjectSetting('portal-url-label')[$sub];
-                $initial_invite_msg     = $this->getProjectSetting('portal-invite-email')[$sub];
-                $initial_invite_subject = $this->getProjectSetting('portal-invite-subject')[$sub];
-                $email_from             = $this->getProjectSetting('portal-invite-from')[$sub];
-                $email_to_field         = $this->getProjectSetting('email-field')[$sub];
-                $text_to_field          = $this->getProjectSetting('phone-field')[$sub];
-
+                $portal_invite_checkbox = $this->getProjectSetting('send-portal-invite')[$sub];
 
                 /***********************************/
 
@@ -300,46 +292,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                         $this->emError($msg, $response['errors']);
                     }
 
-                    //the URL has been updated so send out an email
-                    //get the email field. if email is set, then send out invite
-                    $email_to = $this->getFieldValue($record, $config_event, $email_to_field, $instrument, $repeat_instance);
-                    if (!empty($email_to)) {
 
 
-                        //convert all to piped values
-                        $this->emDebug("RECORD:".$record. " / SUB: ".$sub. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
-                        $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $event_id,$repeat_instance, array(), false, null, false);
-                        $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $event_id,$repeat_instance, array(), false, null, false);
-                        //$this->emDebug($record. "piped subject: ". $piped_email_subject);
-                        //$this->emDebug($record. "piped msg: ". $piped_email_msg);
-
-                        $this->sendInitialPortalUrl($project_id, $record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
+                    if ($portal_invite_checkbox) {
+                        //$this->emDebug("PORTAL CHECKBOX: ". $portal_invite_checkbox,$this->getProjectSetting('send-portal-invite'));//exit;
+                        $this->handlePortalInvite($sub, $record, $instrument, $repeat_instance);
                     }
-
-                    //actually don't send initial portal out by text
-//                    //get the text field. if text is set, then send out invite
-//                    $text_to = $this->getFieldValue($record, $config_event, $text_to_field, $instrument, $repeat_instance);
-
-//                    //$this->emDebug($text_to_field, $text_to);
-
-//                    if (!empty($text_to)) {
-//                        $this->textInitialPortalUrl($project_id, $record, $new_hash_url, $initial_invite_msg, $text_to);
-//                    }
-
-                    //if both the text and email fields are empty, log so that admin know that record never got the initial invite
-                    if (empty($email_to)) { //&& (empty($text_to))) {
-                        $this->emLog("Portal invite was not sent for record $record because the email field is empty.");
-                        REDCap::logEvent(
-                            "Unable to send portal invite by Survey Portal EM", //action
-                            "Portal invite was not sent because both email field is empty.",
-                            NULL, //sql optional
-                            $record, //record optional
-                            null,
-                            $project_id //project ID optional
-                        );
-                    }
-
-
 
                     $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
                 }
@@ -458,6 +416,52 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /*  METHODS                                                                                                    */
     /***************************************************************************************************************** */
 
+    /**
+     * @param $sub
+     * @param $record
+     * @param $instrument
+     * @param $repeat_instance
+     */
+    function handlePortalInvite($sub, $record,$instrument, $repeat_instance ) {
+
+        //prep for the initial invite email
+        $config_event = $this->getProjectSetting('main-config-event-name')[$sub];
+        $portal_url_label       = $this->getProjectSetting('portal-url-label')[$sub];
+        $initial_invite_msg     = $this->getProjectSetting('portal-invite-email')[$sub];
+        $initial_invite_subject = $this->getProjectSetting('portal-invite-subject')[$sub];
+        $email_from             = $this->getProjectSetting('portal-invite-from')[$sub];
+        $email_to_field         = $this->getProjectSetting('email-field')[$sub];
+        $text_to_field          = $this->getProjectSetting('phone-field')[$sub];
+
+        //the URL has been updated so send out an email
+        //get the email field. if email is set, then send out invite
+        $email_to = $this->getFieldValue($record, $config_event, $email_to_field, $instrument, $repeat_instance);
+        if (!empty($email_to)) {
+
+
+            //convert all to piped values
+            $this->emDebug("RECORD:".$record. " / SUB: ".$sub. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
+            $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $event_id,$repeat_instance, array(), false, null, false);
+            $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $event_id,$repeat_instance, array(), false, null, false);
+            //$this->emDebug($record. "piped subject: ". $piped_email_subject);
+            //$this->emDebug($record. "piped msg: ". $piped_email_msg);
+
+            $this->sendInitialPortalUrl($project_id, $record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
+        } else {
+
+        //if both the text and email fields are empty, log so that admin know that record never got the initial invite
+            $this->emLog("Portal invite was not sent for record $record because the email field is empty.");
+            REDCap::logEvent(
+                "Unable to send portal invite by Survey Portal EM", //action
+                "Portal invite was not sent because both email field is empty.",
+                NULL, //sql optional
+                $record, //record optional
+                null,
+                $project_id //project ID optional
+            );
+        }
+
+    }
 
     /**
      * Method to send out the initial portal invitation by email
