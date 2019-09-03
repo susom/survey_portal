@@ -123,7 +123,7 @@ class InvitationManager {
 
                 $portal_url   = $module->getUrl("src/landing.php", true,true);
                 $survey_link = $candidate[$this->portalConfig->personalUrlField]."&d=" . $valid_day;
-                $module->emDebug($survey_link, $candidate[$this->portalConfig->disableParticipantEmailField."___1"],$candidate[$this->portalConfig->emailField]);
+                //$module->emDebug($survey_link, $candidate[$this->portalConfig->disableParticipantEmailField."___1"],$candidate[$this->portalConfig->emailField]);
 
                 //send invite to email OR SMS
 
@@ -153,7 +153,7 @@ class InvitationManager {
                     //TODO: log send status to REDCap Logging?
                     REDCap::logEvent(
                         "Email Invitation Sent from Survey Portal EM",  //action
-                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
+                        "Invite email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
                         $participant->getParticipantID(), //record optional
                         $this->portalConfig->surveyEventName, //event optional
@@ -166,7 +166,12 @@ class InvitationManager {
                         ($candidate[$this->portalConfig->phoneField] <> '')) {
                     $module->emDebug("Sending text invite to record id: ".$candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
-                    $msg = $this->formatTextMessage($this->portalConfig->invitationSmsText, $survey_link);
+                    $msg = $this->formatTextMessage($this->portalConfig->invitationSmsText,
+                                                    $survey_link,
+                                                    $candidate[REDCap::getRecordIdField()],
+                                                    $this->portalConfig->surveyEventID,
+                                                    $repeat_instance
+                    );
 
                     //$sms_status = $this->sms_messager->sendText($candidate[$phone_field], $msg);
                     //$twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
@@ -186,7 +191,7 @@ class InvitationManager {
                         $module->emDebug($twilio_status);
                         REDCap::logEvent(
                             "Text Invitation Sent from Survey Portal EM",  //action
-                            "Text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
+                            "Invite text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
                             NULL, //sql optional
                             $participant->getParticipantID(), //record optional
                             $this->portalConfig->surveyEventName, //event optional
@@ -381,7 +386,7 @@ class InvitationManager {
      * @param $survey_link
      * @return mixed|string
      */
-    function formatTextMessage($msg, $survey_link) {
+    function formatTextMessage($msg, $survey_link, $record, $event_id, $repeat_instance) {
 
         $target_str = "[invitation-url]";
 
@@ -392,7 +397,9 @@ class InvitationManager {
             $msg = $msg . "  Use this link to take the survey:".$survey_link;
         }
 
-        return $msg;
+        $piped_msg = Piping::replaceVariablesInLabel($msg, $record, $event_id, $repeat_instance,array(), false, null, false);
+
+        return $piped_msg;
     }
 
 }

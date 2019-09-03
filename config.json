@@ -169,6 +169,12 @@
           "type": "form-list"
         },
         {
+          "key": "send-portal-invite",
+          "name": "<div class='alert alert-warning'><b>Send Portal Invite</b><br>Send email invitation with portal url.</div>",
+          "required": false,
+          "type": "checkbox"
+        },
+        {
           "key": "portal-invite-subject",
           "name": "<div class='alert alert-warning'><b>Portal Notification Email Subject</b><br>When a participant is added to the project, they will receive an email to notify them of their personal portal url.</div><br><br>You can edit the suggested default.",
           "required": false,

@@ -487,7 +487,7 @@ class Participant {
             'filterLogic'         => $filter
         );
 
-        $module->emDebug($params);
+        //$module->emDebug($params);
         $q = REDCap::getData($params);
         $results = json_decode($q, true);
 

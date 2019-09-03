@@ -178,11 +178,9 @@ class ReminderManager extends InvitationManager
                         $this->portalConfig->surveyEventID,
                         $repeat_instance);
 
-                    //TODO: log send status to REDCap Logging?
-
                     REDCap::logEvent(
                         "Email Reminder Sent from Survey Portal EM",  //action
-                        "Email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
+                        "Reminder email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
                         $participant->getParticipantID(), //record optional
                         $this->portalConfig->surveyEventName, //event optional
@@ -196,7 +194,12 @@ class ReminderManager extends InvitationManager
                     ($candidate[$this->portalConfig->phoneField] <> '')) {
                     $module->emDebug("Sending text reminder to " . $candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
-                    $msg = $this->formatTextMessage($this->portalConfig->reminderSMSText, $survey_link);
+                    $msg = $this->formatTextMessage($this->portalConfig->reminderSMSText,
+                                                    $survey_link,
+                                                    $candidate[REDCap::getRecordIdField()],
+                                                    $this->portalConfig->surveyEventID,
+                                                    $repeat_instance
+                    );
 
                     //$sms_status = $this->sms_messager->sendText($candidate[$phone_field], $msg);
                     //$twilio_status = $text_manager->sendSms($candidate[$phone_field], $msg);
@@ -215,7 +218,7 @@ class ReminderManager extends InvitationManager
                     } else {
                         REDCap::logEvent(
                             "Text Reminder Sent from Survey Portal EM",  //action
-                            "Text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
+                            "Reminder text sent to " . $candidate[$this->portalConfig->phoneField],  //changes
                             NULL, //sql optional
                             $participant->getParticipantID(), //record optional
                             $this->portalConfig->surveyEventName, //event optional
