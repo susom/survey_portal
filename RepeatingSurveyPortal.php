@@ -225,7 +225,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 if ($config_event != $event_id) {
                     $this->emError("Event id $event_id is not not what is designated in the config: $config_event.");
                     return;
-                    //$this->exitAfterHook();  //todo: ask andy, this doesn't seem to exit?
+                    //$this->exitAfterHook();
                 }
 
                 //get the config_id for this participant
@@ -237,7 +237,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 if ($config_id == null) {
                     $this->emError("Config ID for record $record is not set.");
                     return;
-                    //$this->exitAfterHook();  //todo: ask andy, this doesn't seem to exit?
+                    //$this->exitAfterHook();
                 }
 
                 $sub = $this->getSubIDFromConfigID($config_id);
@@ -246,7 +246,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 if ($sub === false) {
                     $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
                     return;
-                    //$this->exitAfterHook(); //todo: ask andy, this doesn't seem to exit?
+                    //$this->exitAfterHook();
                 }
 
 
@@ -296,10 +296,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                     if ($portal_invite_checkbox) {
                         //$this->emDebug("PORTAL CHECKBOX: ". $portal_invite_checkbox,$this->getProjectSetting('send-portal-invite'));//exit;
-                        $this->handlePortalInvite($sub, $record, $instrument, $repeat_instance);
+                        $this->handlePortalInvite($sub, $record, $instrument, $repeat_instance,$new_hash_url);
                     }
 
-                    $this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
+                    //$this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
                 }
             }
         }
@@ -422,31 +422,31 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $instrument
      * @param $repeat_instance
      */
-    function handlePortalInvite($sub, $record,$instrument, $repeat_instance ) {
+    function handlePortalInvite($sub, $record,$instrument, $repeat_instance, $new_hash_url) {
 
         //prep for the initial invite email
         $config_event = $this->getProjectSetting('main-config-event-name')[$sub];
+        $email_to_field         = $this->getProjectSetting('email-field')[$sub];
+
         $portal_url_label       = $this->getProjectSetting('portal-url-label')[$sub];
         $initial_invite_msg     = $this->getProjectSetting('portal-invite-email')[$sub];
         $initial_invite_subject = $this->getProjectSetting('portal-invite-subject')[$sub];
         $email_from             = $this->getProjectSetting('portal-invite-from')[$sub];
-        $email_to_field         = $this->getProjectSetting('email-field')[$sub];
-        $text_to_field          = $this->getProjectSetting('phone-field')[$sub];
+
 
         //the URL has been updated so send out an email
         //get the email field. if email is set, then send out invite
         $email_to = $this->getFieldValue($record, $config_event, $email_to_field, $instrument, $repeat_instance);
         if (!empty($email_to)) {
 
-
             //convert all to piped values
-            $this->emDebug("RECORD:".$record. " / SUB: ".$sub. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
-            $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $event_id,$repeat_instance, array(), false, null, false);
-            $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $event_id,$repeat_instance, array(), false, null, false);
+            //$this->emDebug("RECORD:".$record. " / SUB: ".$sub. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
+            $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $config_event,$repeat_instance, array(), false, null, false);
+            $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $config_event,$repeat_instance, array(), false, null, false);
             //$this->emDebug($record. "piped subject: ". $piped_email_subject);
             //$this->emDebug($record. "piped msg: ". $piped_email_msg);
 
-            $this->sendInitialPortalUrl($project_id, $record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
+            $this->sendInitialPortalUrl($record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
         } else {
 
         //if both the text and email fields are empty, log so that admin know that record never got the initial invite
@@ -456,8 +456,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 "Portal invite was not sent because both email field is empty.",
                 NULL, //sql optional
                 $record, //record optional
-                null,
-                $project_id //project ID optional
+                null
+                //$project_id //project ID optional
             );
         }
 
@@ -475,7 +475,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $from
      * @param $subject
      */
-    public function sendInitialPortalUrl($project_id, $record, $portal_url,$portal_url_label, $msg,$email_to, $from, $subject) {
+    public function sendInitialPortalUrl($record, $portal_url,$portal_url_label, $msg,$email_to, $from, $subject) {
 
         //replace $portal_url the tag [portal-url]
         $target_str = "[portal-url]";
@@ -517,14 +517,13 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $send_status = 'Email with portal url was sent to '. $email_to;
         }
 
-        //TODO: log send status to REDCap Logging?
         REDCap::logEvent(
             $action_status, //action
             $send_status,
             NULL, //sql optional
             $record, //record optional
-            null,
-            $project_id //project ID optional
+            null
+            //project_id //project ID optional
         );
 
     }
