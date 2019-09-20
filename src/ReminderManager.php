@@ -101,7 +101,8 @@ class ReminderManager extends InvitationManager
             //$module->emDebug($valid_day, $valid_day == null);
             //$module->emDebug($candidate[$this->portalConfig->personalHashField], $this->portalConfig->personalHashField);
 
-            if ($valid_day != null) {
+            if (isset($valid_day)) {
+            //if ($valid_day != null) {
                 //check that the valid_day is in the original valid_day_array
                 if (!in_array($valid_day, $this->portalConfig->validDayArray)) {
                     $module->emError("Attempting to send reminder on a day not set as a Valid Day Number. Day: $valid_day / Valid Day Numbers : ".
