@@ -260,7 +260,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                 //$this->emDebug($sub,  $this->getProjectSetting('personal-url-field'),$personal_hash_field, $personal_url_field); exit;
 
-
                 // First check if hashed portal already has been created
                 $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
 
@@ -270,11 +269,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     $portal_url = $this->getUrl("src/landing.php", true, true);
                     $new_hash_url = $portal_url . "&h=" . $new_hash . "&c=" . $config_id;
 
-                    //$this->emDebug("this is new hash: " . $new_hash_url);
-
                     // Save it to the record (both as hash and hash_url for piping)
                     $event_name = REDCap::getEventNames(true, false, $config_event);
-                    //$this->emDebug($event_id, $event_name, $config_event);
 
                     $data = array(
                         REDCap::getRecordIdField() => $record,
@@ -293,7 +289,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     }
 
 
-
+                    //checkbox to send portal invite has been checked so send invite
                     if ($portal_invite_checkbox) {
                         //$this->emDebug("PORTAL CHECKBOX: ". $portal_invite_checkbox,$this->getProjectSetting('send-portal-invite'));//exit;
                         $this->handlePortalInvite($sub, $record, $instrument, $repeat_instance,$new_hash_url);
@@ -421,6 +417,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $record
      * @param $instrument
      * @param $repeat_instance
+     * @param $new_hash_url
      */
     function handlePortalInvite($sub, $record,$instrument, $repeat_instance, $new_hash_url) {
 
@@ -453,7 +450,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $this->emLog("Portal invite was not sent for record $record because the email field is empty.");
             REDCap::logEvent(
                 "Unable to send portal invite by Survey Portal EM", //action
-                "Portal invite was not sent because both email field is empty.",
+                "Portal invite was not sent because the email field is empty.",
                 NULL, //sql optional
                 $record, //record optional
                 null
@@ -466,7 +463,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /**
      * Method to send out the initial portal invitation by email
      *
-     * @param $project_id
      * @param $record
      * @param $portal_url
      * @param $portal_url_label
@@ -475,7 +471,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $from
      * @param $subject
      */
-    public function sendInitialPortalUrl($record, $portal_url,$portal_url_label, $msg,$email_to, $from, $subject) {
+    public function sendInitialPortalUrl($record, $portal_url,$portal_url_label, $msg, $email_to, $from, $subject) {
 
         //replace $portal_url the tag [portal-url]
         $target_str = "[portal-url]";
@@ -531,7 +527,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     /**
      * Method to send out initial portal invitation by text
      * Design change: no longer sending out portal url by text
-     * Method unused
+     * Method unused - delete?
      *
      * @param $project_id
      * @param $record

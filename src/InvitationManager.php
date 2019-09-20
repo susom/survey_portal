@@ -74,13 +74,16 @@ class InvitationManager {
             //check if today is a valid day for invitation:
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
             $module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
+            //,($valid_day == null), ($valid_day == ''), isset($valid_day) ); exit;
             //$module->emDebug($this->portalConfig->inviteValidDayArray, "IN ARRAY");
 
             //Need repeat_instance for piping
             $repeat_instance = $candidate['redcap_repeat_instance'];
 
             //NULL is returned if the date is not valid
-            if ($valid_day != null)  {
+            //0 is evaluating to null?
+            //if ($valid_day != null)  {
+            if (isset($valid_day)) {
                 //check that the valid_day is in the original valid_day_array
                 if (!in_array($valid_day, $this->portalConfig->validDayArray)) {
                     $module->emError("Attempting to send invitation on a day not set for Valid Day Number. Day: $valid_day / Valid Day Numbers : ".
