@@ -299,14 +299,21 @@ class InvitationManager {
         $date = new DateTime($date_str);
         $start = new DateTime($start_str);
 
-        $interval = $date->diff($start);
-        //$module->emDebug("DIFF in Days: ".  $interval->days);
+        $interval = $start->diff($date);
+
+        $diff_date = $interval->format("%r%a");
+        $diff_hours = $interval->format("%r%h");
+        $module->emDebug("DATE is {$date->format('Y-m-d H:i')} and start is {$start->format('Y-m-d H:i')} DIFF in DAYS: $diff_date /  DIFF in hours: ".  $diff_hours);
+        //$module->emDebug("INTERFAL: ".$diff_date, $diff_hours);
+        //$module->emDebug($interval->days, $interval->invert,$diff_date, $interval->days * ( $interval->invert ? -1 : 1));
 
         // need at add one day since start is day 0??
-        if (in_array($interval->days, $valid_day_number)) {
+        //Need to check that the diff in hours is greater than 0 as date diff is calculating against midnight today
+        //and partial days > 12 hours was being considered as 1 day.
+        if ( ($diff_hours >= 0) && (in_array($diff_date, $valid_day_number))) {
             //actually, don't add 1. start date should be 0.
             //return ($interval->days + 1);
-            return ($interval->days);
+            return ($diff_date);
         }
         return null;
 
