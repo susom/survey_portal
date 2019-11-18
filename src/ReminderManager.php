@@ -94,11 +94,12 @@ class ReminderManager extends InvitationManager
 
             //check that today is a valid reminder day
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->reminderValidDayArray, $lagged_str);
+            $module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
 
             //Need repeat_instance for piping
             $repeat_instance = $candidate['redcap_repeat_instance'];
 
-            //$module->emDebug($valid_day, $valid_day == null);
+            //$module->emDebug($valid_day, $valid_day == null, isset($valid_day)); exit;
             //$module->emDebug($candidate[$this->portalConfig->personalHashField], $this->portalConfig->personalHashField);
 
             if (isset($valid_day)) {
@@ -130,30 +131,9 @@ class ReminderManager extends InvitationManager
                     continue;
                 }
 
-                /**
-                 * TODO: QA Reminders
-                 * Do we need to create a new instance??? or just check that it exists???
-                 * If invites aren't used then might need to create one
-                 *
-                 *                 //create a new ID and prefill the new survey entry with the metadata
-                $next_id = $participant->getPartialResponseInstanceID($valid_day, new DateTime());
-                $participant->newSurveyEntry($valid_day, new DateTime(), $next_id);
-                 *
-                 *
-                 */
-//                //create array of valid dates and completion status (include allowed lag)
-//                $valid_dates = $participant->getValidDates();
-//                //$module->emDebug($valid_dates); exit;
-//
-//                //for each incomplete survey, fire off a reminder if a reminder day
-//                foreach ($valid_dates as $date_str => $status) {
-//
-//                    if ($status['STATUS'] != 2) {
-//                        $valid_day = $status['DAY_NUMBER'];
-
                 //send a reminder email
                 $survey_link = $candidate[$this->portalConfig->personalUrlField] . "&d=" . $valid_day;
-                $module->emDebug($survey_link, $candidate[$this->portalConfig->disableParticipantEmailField . "___1"], $candidate[$this->portalConfig->emailField]);
+                //$module->emDebug($survey_link, $candidate[$this->portalConfig->disableParticipantEmailField . "___1"], $candidate[$this->portalConfig->emailField]);
 
                 //send invite to email OR SMS
 

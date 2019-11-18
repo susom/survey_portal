@@ -47,7 +47,6 @@ class InvitationManager {
                 " in this subsetting :  ". $sub);
         }
 
-        //$module->emDebug("in construct with ". $project_id, $sub, $this->configID, $this->portalConfig);
     }
 
     /**
@@ -79,6 +78,8 @@ class InvitationManager {
 
             //Need repeat_instance for piping
             $repeat_instance = $candidate['redcap_repeat_instance'];
+
+            //$module->emDebug($valid_day, isset($valid_day)); exit;
 
             //NULL is returned if the date is not valid
             //0 is evaluating to null?
@@ -292,7 +293,7 @@ class InvitationManager {
      */
     public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
         global $module;
-        $module->emDebug("Incoming to check If this date valid:". $date_str . ' with this start date: '. $start_str);
+        //$module->emDebug("Incoming to check If this date valid:". $date_str . ' with this start date: '. $start_str);
         $module->emDebug("valid day array: ".implode(',',$valid_day_number));
 
         //use today
@@ -304,7 +305,8 @@ class InvitationManager {
         $diff_date = $interval->format("%r%a");
         $diff_hours = $interval->format("%r%h");
         $module->emDebug("DATE is {$date->format('Y-m-d H:i')} and start is {$start->format('Y-m-d H:i')} DIFF in DAYS: $diff_date /  DIFF in hours: ".  $diff_hours);
-        //$module->emDebug("INTERFAL: ".$diff_date, $diff_hours);
+
+        //$module->emDebug("INTERVAL: ".$diff_date, $diff_hours);
         //$module->emDebug($interval->days, $interval->invert,$diff_date, $interval->days * ( $interval->invert ? -1 : 1));
 
         // need at add one day since start is day 0??
@@ -365,9 +367,6 @@ class InvitationManager {
 
         $piped_email_subject = Piping::replaceVariablesInLabel($subject, $record, $event_id, $repeat_instance,array(), false, null, false);
         $piped_email_msg = Piping::replaceVariablesInLabel($msg, $record, $event_id, $repeat_instance,array(), false, null, false);
-        //$module->emDebug($record. "piped subject: ". $piped_email_subject);
-        //$module->emDebug($record. "piped msg: ". $piped_email_msg);
-
 
         // Prepare message
         $email = new Message();

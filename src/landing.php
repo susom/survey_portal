@@ -31,6 +31,7 @@ try {
     $participant = $portal->getParticipant(); //$portal->getParticipant();
     $portalConfig = $portal->getPortalConfig();
 
+    $module->emDebug("Just fired up portal for ".$participant->getParticipantID());
     //$module->emDebug($_SESSION, "SESSION AT LANDING ", $p_hash, $p_config, $p_daynumber, $portalConfig, $portalConfig->getEnablePortal());
     //$module->emDebug($participant->survey_status); exit;
 
@@ -189,7 +190,7 @@ if (!empty($survey_date)) {
 
 if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
 
-    $module->emDebug("Valid DAY NUMBER : " . $survey_date->format('Y-m-d'). ' and daynumber: '.  $day_number);
+    $module->emDebug("ParticipantID: " .$participant->getParticipantID().  " Valid DAY NUMBER : " . $survey_date->format('Y-m-d'). ' and daynumber: '.  $day_number);
 
     //check for partial survey today
     $next_id = $participant->getPartialResponseInstanceID($day_number, $survey_date);
