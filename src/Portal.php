@@ -46,12 +46,15 @@ class Portal
         //$module->emDebug($valid_day_array, $this->validDayNumber, $config['valid-day-number']['value'][$sub],"VALID DAY"); exit;
         //setup the participant
         //TODO: if multiple response per day is allowed, then use different class, ParticipantMultipleResponse
-
+        //MultipleResponse not yet implmented. Until then, just use the single Participant
+        $this->participant = new Participant($this->portalConfig, $hash);
+        /**
         if ($this->portalConfig->maxResponsePerDay != 1) {
             $this->participant = new ParticipantMultipleResponse($this->portalConfig, $hash);
         } else {
-            $this->participant = new Participant($this->portalConfig, $hash);
+        $this->participant = new Participant($this->portalConfig, $hash);
         }
+         */
 
         $this->participantID = $this->participant->getParticipantID();
 
@@ -137,9 +140,6 @@ class Portal
     /* GETTER METHODS                                                                                                    */
     /***************************************************************************************************************** */
 
-    public function getParticipantId() {
-        $this->participant->participant_id;
-    }
 
     public function getParticipant() {
         return $this->participant;

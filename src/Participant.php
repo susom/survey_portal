@@ -391,8 +391,6 @@ class Participant {
                 $allowed_earliest = $survey_date->setTime($this->portalConfig->earliestTimeAllowed, 0);
             }
 
-            $module->emDebug($allowed_earliest);
-
             $now = new DateTime();
 
             if ($now >= $allowed_earliest ) {

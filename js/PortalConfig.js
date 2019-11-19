@@ -317,8 +317,7 @@ PortalConfig.defaultSelectSettings = {
 
 PortalConfig.defaultTextSettings = {
     'portal-invite-subject' :  'Survey Portal URL',
-    'portal-invite-from'    : 'no-reply@stanford.edu',
-    'max-response-per-day'  : '1'
+    'portal-invite-from'    : 'no-reply@stanford.edu'
 };
 
 PortalConfig.defaultTextAreaSettings = {

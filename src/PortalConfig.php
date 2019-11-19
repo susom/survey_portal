@@ -99,7 +99,7 @@ class PortalConfig {
         'survey-date-field'               => 'surveyDateField',
         'survey-launch-ts-field'          => 'surveyLaunchTSField',
         'valid-day-number'                => 'validDayNumber',
-        'max-response-per-day'            => 'maxResponsePerDay',
+//        'max-response-per-day'            => 'maxResponsePerDay',    // multiple responses per day not yet implemented
         'valid-day-lag'                   => 'validDayLag',
         'earliest-time-allowed'           => 'earliestTimeAllowed',
         'landing-page-header'             => 'landingPageHeader',
@@ -160,7 +160,8 @@ class PortalConfig {
             $this->{$v} =  $config[$k]['value'][$sub];
         }
 
-
+        //Multiple response not implemented. Until then, just hardcode as 1.
+        $this->maxResponsePerDay = 1;
 
         //setup the valid day arrays
         $this->validDayArray = PortalConfig::parseRangeString($this->validDayNumber);

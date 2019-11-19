@@ -158,40 +158,46 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $repeat_instance
      */
     public function redcap_survey_complete($project_id, $record, $instrument, $event_id, $group_id,  $survey_hash,  $response_id,  $repeat_instance) {
+
+        //retrieve the config (ex: parent or child config)  from the cookie that was stored when started from the landing page
+        //TODO: Ask Andy: If there multiple protocols (ex: parent and child) on machine at same time, we cannot distinguish which survey this is related to
         $cookie_key = $this->PREFIX."_".$project_id."_".$record;  //this won't work if mother/child are on same machine at same time.
-            //$module->PREFIX."_".$project_id."_".$portal->getParticipantId()
         $cookie_config = $_COOKIE[$cookie_key];
 
         $this->emDebug("COOKIE KEY ". $cookie_key);
-        $this->emDebug("COOKIE CONFIG ". $cookie_config);
-
 
         //if redirect has been turned on redirect to the landing page
 
         $sub = $this->getSubIDFromConfigID($cookie_config);
-        //$this->emDebug("COOKIE CONFIG ". $cookie_config . "SUB ".$sub);
+        $this->emDebug("COOKIE CONFIG <". $cookie_config . "> found SUB: ".$sub);
 
         $redirect = $this->getProjectSetting('survey-complete-redirect')[$sub];
 
         if (isset($redirect) && ($redirect == $instrument) ) {
-            $this->emDebug($redirect);
+            $this->emDebug("Redirecting to landing page after this survey completed: " . $redirect);
 
-            $config_event_id = $this->getProjectSetting('main-config-event-name')[$sub];
-            $config_event_name = REDCap::getEventNames(true, false, $config_event_id);
-            $config_field = $this->getProjectSetting('participant-config-id-field');
-            $hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
-            $hash  = $this->retrieveParticipantFieldWithFilter($record, $config_event_name, $config_field,$cookie_config, $hash_field );
+            if (empty($cookie_config) || $cookie_config == '') {
+                $this->emError("Unable to redirect to landing page since unable to retrieve config info from cookie: " . $cookie_key);
+                $this->exitAfterHook();  //this doesn't really exit!  it continues on to attempt redirect so will put redirect in else block
+                //die("Unable to return to portal page. Please use the link from your email.");
+            } else {
 
-            //$this->emDebug("HASH:  ". $hash);
+                $config_event_id = $this->getProjectSetting('main-config-event-name')[$sub];
+                $config_event_name = REDCap::getEventNames(true, false, $config_event_id);
+                $config_field = $this->getProjectSetting('participant-config-id-field');
+                $hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
+                $hash = $this->retrieveParticipantFieldWithFilter($record, $config_event_name, $config_field, $cookie_config, $hash_field);
 
-            $portal_url   = $this->getUrl("src/landing.php", true,true);
-            $return_hash_url = $portal_url. "&h=" . $hash . "&c=" . $cookie_config;
+                //$this->emDebug("HASH:  ". $hash);
 
-            $this->emDebug("this is new hash: ". $return_hash_url);
+                $portal_url = $this->getUrl("src/landing.php", true, true);
+                $return_hash_url = $portal_url . "&h=" . $hash . "&c=" . $cookie_config;
 
-            //now redirect back to the landing page
-            header("Location: " . $return_hash_url);
-            $this->exitAfterHook();  //TODO: should there be an exit at the end of the hook?
+                $this->emDebug("this is new hash url: " . $return_hash_url);
+
+                //now redirect back to the landing page
+                header("Location: " . $return_hash_url);
+            }
         }
 
 

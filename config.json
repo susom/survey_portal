@@ -199,29 +199,10 @@
           "type": "text"
         },
         {
-          "key": "max-response-per-day",
-          "name": "<div class='alert alert-warning'><b>Maximum Survey Responses per Day</b><br>Number of surveys allowed for per day number.</div><br>Allow multiple responses for the same day number. For example, multiple adverse events might occur on the same day and you want them all associated with the same date.<br><br>If you want to allow survey entries for previous days, not just the current day, use the Valid Day Lag field below. <b><div class='alert alert-dark'>Currently only supporting 1 response per day.</div></b>",
-          "default": "1",
-          "required": false,
-          "type": "text"
-        },
-        {
           "key": "valid-day-lag",
           "name": "<div class='alert alert-warning'><b>Valid Day Lag</b><br>Number of days in the past someone can still enter a response.</div><br> For example: <br> 0 : Only allow entry of current day's survey. <br>1 : Allow entry of yesterday's survey. <br>3 : Allow entry for the last 3 days' surveys. <br> ==LEAVE BLANK== : Allow entry for any previous survey.",
           "required": false,
           "type": "text"
-        },
-        {
-          "key": "show-calendar",
-          "name": "<div class='alert alert-warning'><b>Show Calendar</b><br>Show the date-picker calendar to allow participants to select dates for responses.</div><br>This is required if you want to allow people to enter data for days in the past",
-          "required": false,
-          "type": "checkbox"
-        },
-        {
-          "key": "show-missing-day-buttons",
-          "name": "<div class='alert alert-warning'><b>Show Missing Day Buttons</b></div><br>Show easy links to start response for any valid, incomplete survey dates",
-          "required": false,
-          "type": "checkbox"
         },
         {
           "key": "earliest-time-allowed",
