@@ -192,24 +192,8 @@ function renderSummaryTableRows($row_data, $date_window) {
     <title><?php echo $module->getModuleName()?></title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
 
-
-
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="<?php print $module->getUrl("img/favicon/stanford_favicon.ico",false,true) ?>">
-
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <!--script src="<?php print $module->getUrl("js/jquery-3.2.1.min.js",false,true) ?>"></script-->
-
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <!--
-    <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>
--->
-    <!-- Include DataTables for Bootstrap -->
-    <!--
-    <script src="<?php print $module->getUrl("js/datatables.min.js", false, true) ?>"></script>
-    <style><?php echo $module->dumpResource('css/datatables.min.css'); ?></style>
-    -->
 
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
@@ -255,7 +239,7 @@ function renderSummaryTableRows($row_data, $date_window) {
                 <div class="form-group">
                     <label>START</label>
                     <div class='input-group date' id='datetimepicker6'>
-                        <input name="start_date" type='text' class="form-control" />
+                        <input name="start_date" type='text' placeholder='YYYY-MM-DD' class="form-control" />
                         <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
                 </span>
@@ -266,7 +250,7 @@ function renderSummaryTableRows($row_data, $date_window) {
                 <div class="form-group">
                     <label>END</label>
                     <div class='input-group date' id='datetimepicker7'>
-                        <input name="end_date" type='text' class="form-control" />
+                        <input name="end_date" type='text'  placeholder='YYYY-MM-DD' class="form-control" />
                         <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
                 </span>

@@ -56,14 +56,9 @@
     ],
     "project": [
       {
-        "name": "RSP: Test Cron Links",
+        "name": "RSP Admin: Test Cron Links",
         "icon": "gear",
         "url": "src/DisplayCronLinks.php"
-      },
-      {
-        "name": "RSP: Survey Schedule Report",
-        "icon": "gear",
-        "url": "src/forecast.php"
       }
     ]
   },

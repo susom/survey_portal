@@ -323,7 +323,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function inviteCron() {
 
-        $this->emDebug("STARTING INVITE CRON");
+
         //* 1) Determine projects that are using this EM
         //get all projects that are enabled for this module
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
@@ -333,6 +333,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         while ($proj = db_fetch_assoc($enabled)) {
             $pid = $proj['project_id'];
+            $this->emDebug("STARTING INVITE CRON for pid ". $pid);
 
             //check scheduled hour of send
             $scheduled_hour = $this->getProjectSetting('invitation-time', $pid);
@@ -375,8 +376,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function reminderCron() {
 
-        $this->emDebug("STARTING REMINDER CRON");
-
         //* 1) Determine projects that are using this EM
         //get all projects that are enabled for this module
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
@@ -386,6 +385,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         while ($proj = db_fetch_assoc($enabled)) {
             $pid = $proj['project_id'];
+            $this->emDebug("STARTING REMINDER CRON for pid ". $pid);
 
             //check scheduled hour of send
             $scheduled_hour = $this->getProjectSetting('reminder-time', $pid);

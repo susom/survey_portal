@@ -94,7 +94,7 @@ class InvitationManager {
 
                 //check if valid (multiple allowed, window )
 
-                //set up the new record and prefill it with survey data
+                //set up the new record and prefill it with survey metadata
                 //create participant object. we need it to know the next instance.
                 try {
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
@@ -294,7 +294,7 @@ class InvitationManager {
     public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
         global $module;
         //$module->emDebug("Incoming to check If this date valid:". $date_str . ' with this start date: '. $start_str);
-        $module->emDebug("valid day array: ".implode(',',$valid_day_number));
+        //$module->emDebug("valid day array: ".implode(',',$valid_day_number));
 
         //use today
         $date = new DateTime($date_str);

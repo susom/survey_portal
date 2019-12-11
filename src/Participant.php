@@ -458,15 +458,15 @@ class Participant {
 
     /**
      * @param $day_number
-     * @param $survey_date
+     * @param $survey_date  //currently not using survey_date to retrieve ID, just day_number
      * @return int|mixed
      */
     public function getPartialResponseInstanceID($day_number, $survey_date) {
         global $module;
         $survey_date_str = $survey_date->format('Y-m-d');
         $survey_complete = $this->survey_status[$survey_date_str]['completed'];
-        $filter  =  "[" . $this->portalConfig->surveyEventName . "][".$this->portalConfig->surveyDayNumberField."] = '$day_number'";  // and config_id is config
-        $filter .= " and [" . $this->portalConfig->surveyEventName . "][" .$this->portalConfig->surveyConfigField . "] = '{$this->portalConfig->configID}'";
+        $filter  =  "[" . $this->portalConfig->surveyEventName . "][".$this->portalConfig->surveyDayNumberField."] = '$day_number'";  // day number is passed in number
+        $filter .= " and [" . $this->portalConfig->surveyEventName . "][" .$this->portalConfig->surveyConfigField . "] = '{$this->portalConfig->configID}'"; // and config_id is config
 
         //can only get redcap_repeat_instance if all the fields are retrieved!!
         $get_fields = array(
@@ -496,6 +496,8 @@ class Participant {
         $survey_complete = $results[$latest_key][$this->portalConfig->surveyInstrument . '_complete'];
         $timestamp       = $results[$latest_key][$this->portalConfig->surveyLaunchTSField];
 
+        //$module->emDebug("Latest Key". $latest_key,array_keys($results, max($results)), $timestamp); // $results, max($results), array_keys($results,
+
 
         //$module->emDebug($results, $q, $results[0]['rsp_survey_day_number'],count($results), $this->portalConfig->surveyEventID, $this->participantID);
         $module->emDebug($this->portalConfig->participantID . ' Participant ID: ' . $this->participantID.' : Looking for Day number: '.$day_number.
@@ -503,7 +505,7 @@ class Participant {
                          ' in event '.  $this->portalConfig->surveyEventID);
         //$module->emDebug($this->portalConfig->surveyInstrument . '_complete',            $survey_complete, $survey_complete == '0', $survey_complete == '1'); exit;
 
-        $max_repeat_instance = 0;
+        $max_repeat_instance = 0;  //reset to 0
         //if (($survey_complete == '0') || ($survey_complete == '1')) {
         if (isset($timestamp)) {
             $max_repeat_instance =  $results[$latest_key]['redcap_repeat_instance'];
