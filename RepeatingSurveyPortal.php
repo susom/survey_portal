@@ -217,7 +217,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //iterate through all of the sub_settings
         $target_forms        = $this->getProjectSetting('main-config-form-name');
 
-
         foreach ($target_forms as $sub => $target_form) {
 
 
@@ -225,11 +224,19 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                 $config_field = $this->getProjectSetting('participant-config-id-field');
                 $config_event = $this->getProjectSetting('main-config-event-name')[$sub];
+                $start_date_field = $this->getProjectSetting('start-date-field')[$sub];
 
-                //CHECK that the config event set for rsp_oparticipant_event is the same as this current event
-                //$this->emDebug($event_id, $config_event);
+                //CHECK that the config event set for rsp_participant_event is the same as this current event
                 if ($config_event != $event_id) {
                     $this->emError("Event id $event_id is not not what is designated in the config: $config_event.");
+                    return;
+                    //$this->exitAfterHook();
+                }
+
+                //check that the start date for the portal is set, if not set then return
+                $start_date = $this->getFieldValue($record, $event_id, $start_date_field, $instrument, $repeat_instance);
+                if ($start_date == null) {
+                    $this->emError("Start Date for record $record is not set. Will not create portal url for this record.");
                     return;
                     //$this->exitAfterHook();
                 }
@@ -237,17 +244,14 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 //get the config_id for this participant
                 $config_id = $this->getFieldValue($record, $event_id, $config_field, $instrument, $repeat_instance);
 
-                //$this->emDebug($record, $event_id, $config_field, $config_id);
-
-                //CHECK that the config ID for this record is set
+                //CHECK that the config ID for this record is set, if not set then return
                 if ($config_id == null) {
-                    $this->emError("Config ID for record $record is not set.");
+                    $this->emError("Config ID for record $record is not set.  Will not create portal url for this record.");
                     return;
                     //$this->exitAfterHook();
                 }
 
                 $sub = $this->getSubIDFromConfigID($config_id);
-
                 //if sub is empty, then the participant is using a config_id that doesn't exist.
                 if ($sub === false) {
                     $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
@@ -263,8 +267,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $portal_invite_checkbox = $this->getProjectSetting('send-portal-invite')[$sub];
 
                 /***********************************/
-
-                //$this->emDebug($sub,  $this->getProjectSetting('personal-url-field'),$personal_hash_field, $personal_url_field); exit;
 
                 // First check if hashed portal already has been created
                 $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);

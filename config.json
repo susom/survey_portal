@@ -200,6 +200,18 @@
           "type": "text"
         },
         {
+          "key": "show-calendar",
+          "name": "<div class='alert alert-warning'><b>Show Calendar</b><br>Show the date-picker calendar to allow participants to select dates for responses.</div><br>This is required if you want to allow people to enter data for days in the past",
+          "required": false,
+          "type": "checkbox"
+        },
+        {
+          "key": "show-missing-day-buttons",
+          "name": "<div class='alert alert-warning'><b>Show Missing Day Buttons</b></div><br>Show easy links to start response for any valid, incomplete survey dates",
+          "required": false,
+          "type": "checkbox"
+        },
+        {
           "key": "earliest-time-allowed",
           "name": "<div class='alert alert-warning'><b>Earliest Time Allowed</b><br>Earliest allowed hour of the day (0-24) to collect surveys (e.g. 22 for 8PM)</div><br>Do not allow responses for 'today' before this time (leave blank for any time)",
           "required": false,
