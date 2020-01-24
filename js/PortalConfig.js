@@ -16,6 +16,9 @@ PortalConfig.config = function() {
     //clear out old one from before
     $('#config_status').remove();
 
+    // Add an event handler so on any change to the form, we update the status
+    configureModal.on('change', 'input, select, textarea', PortalConfig.getStatus.bind(this));
+
     var alertWindow = $('<div></div>')
         .attr('id', 'config_status')
         .prependTo($('.modal-body', '#external-modules-configure-modal'));
@@ -31,14 +34,14 @@ PortalConfig.config = function() {
             PortalConfig.doAction(this);
         });
 
-    console.log("starting with this: ", this);
+    //console.log("starting with this: ", this);
 
     //set the defaults for the current config
     PortalConfig.setDefaults();
 
     PortalConfig.getStatus();
 
-    return;
+    //return;  xxyjl: need this??
 
 }
 
@@ -103,136 +106,18 @@ PortalConfig.doAction = function (e) {
             PortalConfig.getStatus();
         });
 
-
-    //const event  = $(e).data('event');
-    //const form   = $(e).data('form');
-
-    //console.log(e, action, event, form);
-
-    //switch (action) {
-    //    case 'create_pi_form':
-    //        PortalConfig.insertForm('pi');
-    //        break;
-    //    case 'create_md_form':
-    //        PortalConfig.insertForm('md');
-    //        break;
-    //    case 'designate_event':
-    //        PortalConfig.designateForm(form, event);
-    //        break;
-    //    default:
-    //        alert ("Invalid action received from status button");
-    //}
-
 };
 
 
-PortalConfig.designateForm = function(form, event) {
-    console.log("DESIGNATING FORM TO EVENT");
-
-    const data = {
-        'action' : 'designateForm',
-        'form'   : form,
-        'event'  : event
-    }
-
-    var jqxhr = $.ajax({
-        method: "POST",
-        url: PortalConfig.url,
-        data: data,
-        dataType: "json"
-    })
-        .done(function (data) {
-            //if (data.result === 'success') {
-                // all is good
-                var configStatus = $('#config_status');
-                configStatus.empty();
-                console.log(configStatus);
-
-                const status = data.isValid;
-
-                const alerts = data.alerts;
-
-            if (status) {
-                $('<div></div>')
-                    .addClass('alert alert-success')
-                    .html("Your configuration appears valid")
-                    .appendTo(configStatus);
-
-                //since configuration is set, set the defaults for the first configuration
-                setTimeout(PortalConfig.setDefaults, 1000);
-            }
-            $.each(alerts, function (i, alert) {
-                $('<div></div>')
-                    .addClass('alert')
-                    .html(alert)
-                    .appendTo(configStatus);
-            })
-
-        })
-        .fail(function () {
-            alert("error");
-        })
-        .always(function() {
-
-        });
-}
-
-PortalConfig.insertForm = function(form) {
-    console.log("INSERT FORM");
-
-    const data = {
-        'action' : 'insertForm',
-        'form'   : form
-    }
-
-    var jqxhr = $.ajax({
-        method: "POST",
-        url: PortalConfig.url,
-        data: data,
-        dataType: "json"
-    })
-        .done(function (data) {
-            //if (data.result === 'success') {
-                // all is good
-                var configStatus = $('#config_status');
-                configStatus.empty();
-                console.log(configStatus);
-
-                const status = data.isValid;
-
-                const alerts = data.alerts;
-
-            if (status) {
-                $('<div></div>')
-                    .addClass('alert alert-success')
-                    .html("Your configuration appears valid")
-                    .appendTo(configStatus);
-
-                //since configuration is set, set the defaults for the first configuration
-                setTimeout(PortalConfig.setDefaults, 1000);
-            }
-            $.each(alerts, function (i, alert) {
-                $('<div></div>')
-                    .addClass('alert')
-                    .html(alert)
-                    .appendTo(configStatus);
-            })
-
-        })
-        .fail(function () {
-            alert("error");
-        })
-        .always(function() {
-
-        });
-}
-
 
 PortalConfig.getStatus = function () {
-    console.log("GET STATUS");
-    const data = {
-        'action' : 'getStatus'
-    }
+    console.log("!GET STATUS JS");
+
+    var raw = this.getRawForm();
+    var data = {
+        'action'    : 'get_status',
+        'raw'       : raw
+    };
 
     var jqxhr = $.ajax({
         method: "POST",
@@ -268,51 +153,66 @@ PortalConfig.getStatus = function () {
 
 };
 
-PortalConfig.checkForms = function () {
-    var data = {
-        "action" : "checkForms"
-    }
+PortalConfig.getRawForm = function() {
+    var data = {};
+    var inputs = $('#external-modules-configure-modal').find('input, select, textarea');
 
+    //this.log(inputs.each(function(i,e){ this.log(i, $(e).attr('name')); }));
 
-    var jqxhr = $.ajax({
-        method: "POST",
-        url: PortalConfig.url,
-        data: data,
-        dataType: "json"
-    })
-        .done(function (data) {
-            if (data.result === 'success') {
-                // all is good
-            } else {
-                // an error occurred
-                simpleDialog("Unable to Save<br><br>" + data.message, "ERROR - SAVE FAILURE" );
+    inputs.each(function(index, element) {
+
+        element = $(element);
+        var type = element[0].type;
+        var name = element[0].getAttribute('name'); //.name.value; //element.attr('name');
+        var name = element.attr('name');
+        //console.log("--", element[0].attributes.name.nodeValue, name, element[0]);
+
+        if(!name || (type === 'radio' && !element.is(':checked'))){
+            this.log("Skipping", element);
+            return;
+        }
+
+        if (type === 'file') {
+            this.log("Skipping File", element);
+            return;
+        }
+
+        var value;
+        if(type === 'checkbox'){
+            value = element.prop('checked');
+        } else if(element.hasClass('external-modules-rich-text-field')) {
+            var id = element.attr('id');
+            if (id != null) {
+                value = tinymce.get(id).getContent();
             }
 
-        })
-        .fail(function () {
-            alert("error");
-        })
-        .always(function() {
+        } else{
+            value = element.val();
+        }
 
-        });
+        data[name] = value;
+    });
 
+    //this.log("DATA", data);
+    return data;
+};
 
-}
 
 PortalConfig.defaultSelectSettings = {
-    'participant-disabled'  :'rsp_prt_part_disabled',
-    'main-config-form-name' :'rsp_participant_info',
-    'start-date-field'      : 'rsp_prt_start_date',
-    'personal-hash-field'   : 'rsp_prt_portal_hash',
-    'personal-url-field'    : 'rsp_prt_portal_url',
-    'email-field'           : 'rsp_prt_portal_email',
+    'participant-config-id-field'     :'rsp_prt_config_id',
+    'participant-disabled'            :'rsp_prt_part_disabled',
+    'main-config-form-name'           :'rsp_participant_info',
+    'start-date-field'                : 'rsp_prt_start_date',
+    'personal-hash-field'             : 'rsp_prt_portal_hash',
+    'personal-url-field'              : 'rsp_prt_portal_url',
+    'email-field'                     : 'rsp_prt_portal_email',
     'disable-participant-email-field' : 'rsp_prt_disable_email',
-    'phone-field'           : 'rsp_prt_portal_phone',
-    'disable-participant-sms-field' : 'rsp_prt_disable_sms',
-    'survey-config-field'   : 'rsp_survey_config',
-    'survey-day-number-field' : 'rsp_survey_day_number',
-    'survey-date-field'     : 'rsp_survey_date',
-    'survey-launch-ts-field': 'rsp_survey_launch_ts'
+    'phone-field'                     : 'rsp_prt_portal_phone',
+    'disable-participant-sms-field'   : 'rsp_prt_disable_sms',
+    'survey-config-field'             : 'rsp_survey_config',
+    'survey-day-number-field'         : 'rsp_survey_day_number',
+    'survey-date-field'               : 'rsp_survey_date',
+    'survey-launch-ts-field'          : 'rsp_survey_launch_ts'
 };
 
 PortalConfig.defaultTextSettings = {
@@ -333,7 +233,7 @@ PortalConfig.setDefaults  = function() {
         dropdowns.each(function() {
             if ($(this ).val() ==  "") {
                 $(this).val(PortalConfig.defaultSelectSettings[key]);
-                console.log($(this ).val() );
+                //console.log($(this ).val() );
             }
 
         });
@@ -347,7 +247,7 @@ PortalConfig.setDefaults  = function() {
         textfields.each(function() {
             if ($(this ).val() ==  "") {
                 $(this).val(PortalConfig.defaultTextSettings[key]);
-                console.log($(this ).val() );
+                //console.log($(this ).val() );
             }
 
         });
@@ -361,7 +261,7 @@ PortalConfig.setDefaults  = function() {
         textfields.each(function() {
             if ($(this ).val() ==  "") {
                 $(this).val(PortalConfig.defaultTextAreaSettings[key]);
-                console.log($(this ).val() );
+                //console.log($(this ).val() );
             }
 
         });

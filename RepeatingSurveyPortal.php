@@ -11,6 +11,8 @@ use \Message;
 use Exception;
 use Piping;
 
+require_once("src/ConfigInstance.php");
+
 require_once 'emLoggerTrait.php';
 require_once 'src/Participant.php';
 require_once 'src/PortalConfig.php';
@@ -39,7 +41,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     use emLoggerTrait;
 
-    const KEY_VALID_CONFIGURATION = "survey_portal_config_valid";
     const PARTICIPANT_INFO_FORM   = "rsp_participant_info";
     const SURVEY_METADATA_FORM   = "rsp_survey_metadata";
 
@@ -139,7 +140,15 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     // SAVE CONFIG HOOK
     // if config-id is null, then generate a config id for that the configs...
     //todo: HOLD ON THIS. saving works, but delete ignores this setting we add. punt for now.
+    /**
+     * Save config hook:
+     *    1. validate configuratio on save
+     * @param $project_id
+     */
     public function redcap_module_save_configuration($project_id) {
+
+        list($result, $message)  = $this->getConfigStatus();
+
     }
 
 
@@ -580,6 +589,48 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         );
     }
 
+
+    /**
+     * This function takes the settings for each configuration and rearranges them into arrays of subsettings
+     * instead of arrays of key/value pairs. This is called from javascript so each configuration
+     * can be verified in real-time.
+     *
+     * @param $key - JSON key where the subsettings are stored
+     * @param $settings - retrieved list of subsettings from the html modal
+     * @return array - the array of subsettings for each configuration
+     */
+    public function parseSubsettingsFromSettings($key, $settings) {
+        $config = $this->getSettingConfig($key);
+        if ($config['type'] !== "sub_settings") return false;
+
+        // Get the keys that are part of this subsetting
+        $keys = [];
+        foreach ($config['sub_settings'] as $subSetting) {
+            $keys[] = $subSetting['key'];
+        }
+
+        // Loop through the keys to pull values from $settings
+        $subSettings = [];
+        foreach ($keys as $key) {
+            $values = $settings[$key];
+            foreach ($values as $i => $value) {
+                $subSettings[$i][$key] = $value;
+            }
+        }
+        return $subSettings;
+    }
+
+
+
+
+
+
+
+    /*******************************************************************************************************************/
+    /* PORTAL CONFIGURATION METHODS                                                                                    */
+    /*******************************************************************************************************************/
+
+
     /**
      * Check the EM configuration for validity
      * 1. Make sure form, rsp_participant_info, exist
@@ -594,126 +645,55 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      *
      * @return array
      */
-    public function getConfigStatus() {
+    public function getConfigStatus($configs = null, $fix = true) {
 
         $iih = new InsertInstrumentHelper($this);
 
         $alerts = array();
         $result = false;
 
-        //This is the event that holds the main config form: rsp_participant_info
-        //Check that rsp_participant_info is a repeating form
-        //TODO: should this EM just create the  event and set it?
-        $main_events = $this->getProjectSetting('main-config-event-name');
 
-        //This is the event that holds the survey_metadata form AND repeating surveys
-        ////check that the event is repeating
-        $survey_events = $this->getProjectSetting('survey-event-name');
-        //$this->emDebug("SURVEY",$survey_events);
-
+        //check that default forms exist in project
         //     * 1. Make sure form, rsp_participant_info, exist
-        //     * 2. rsp_participant_info designated in main event
-        //     * 3. rsp_participant_info is repeating form
         if (!$iih->formExists(self::PARTICIPANT_INFO_FORM)) {
             $p = "<b>Participant Info form has not yet been created. </b> 
               <div class='btn btn-xs btn-primary float-right' data-action='insert_form' data-form='" . self::PARTICIPANT_INFO_FORM ."'>Create Form</div>";
             $alerts[] = $p;
-        } else {
-            // Form exists - check if enabled on event
-            foreach ($main_events as $sub => $event) {
-                if (isset($event)) {
-                    if (!$iih->formDesignatedInEvent(self::PARTICIPANT_INFO_FORM, $event)) {
-                        $event_name = REDCap::getEventNames(false, true, $event);
-                        $pe = "<b>Config $sub: Participant Info form has not been designated to the event selected <br>for the main event: " . $event_name .
-                            " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='" . $event .
-                            "' data-form='" . self::PARTICIPANT_INFO_FORM . "'>Designate Form</div>";
-                        $alerts[] = $pe;
-                    }
-
-                    //check if form is repeating
-                    if (!$iih->isFormRepeating(self::PARTICIPANT_INFO_FORM, $event)) {
-                        $this->emDebug($event);
-                        $event_name = REDCap::getEventNames(false, true, $event);
-                        $pe = "<b>Config $sub: Participant Info form has not been designated as a repeating form <br>in the main event: " . $event_name .
-                            " </b><div class='btn btn-xs btn-primary float-right' data-action='set_form_repeating' data-event='" . $event .
-                            "' data-form='" . self::PARTICIPANT_INFO_FORM . "'>Make Form Repeating</div>";
-                        $alerts[] = $pe;
-
-                    }
-                }
-            }
         }
 
-        //     * 4. Form, rsp_survey_metadata, exists
-        //     * 5. rsp_survey_metadata designated in survey event
-        //     * 6. Survey event is repeating event
+        //make sure that metadata form exists
         if (!$iih->formExists(self::SURVEY_METADATA_FORM)) {
             $s=  "<b>Survey Info form has not yet been created. </b> 
               <div class='btn btn-xs btn-primary float-right' data-action='insert_form' data-form='" . self::SURVEY_METADATA_FORM . "'>Create Form</div>";
             $alerts[] = $s;
-        } else {
-            foreach ($survey_events as $sub => $event) {
-                if (isset($event)) {
-                    if (!$iih->formDesignatedInEvent(self::SURVEY_METADATA_FORM, $event)) {
-                        $event_name = REDCap::getEventNames(false, true, $event);
-                        $se = "<b>Config $sub: Survey Metadata form has not been designated to the event selected <br>for the survey event: ".$event_name.
-                            " </b><div class='btn btn-xs btn-primary float-right' data-action='designate_event' data-event='".$event.
-                            "' data-form='".self::SURVEY_METADATA_FORM."'>Designate Form</div>";
-                        $alerts[] = $se;
-                    }
-
-                    //make sure that the survey event is repeating
-                    if (!$iih->isEventRepeating($event)) {
-
-                        $event_name = REDCap::getEventNames(false, true, $event);
-
-                        $pe = "<b>Config $sub: The survey event, {$event_name}, has not been designated as a <br>repeating event: " .
-                            " </b><div class='btn btn-xs btn-primary float-right' data-action='set_event_repeating' data-event='" . $event .
-                            "' data-label='survey_repeat_label'>Make Event Repeating</div>";
-                        $alerts[] = $pe;
-                    }
-                }
-            }
-        }
-
-        //* 7. If exists, invitation-days are a subset of valid-day-number
-        //* 8. If exists, reminder-days are a subset of valid-day-number
-        $valid_day_number = $this->getProjectSetting('valid-day-number');
-        $invitation_days_settings = $this->getProjectSetting('invitation-days');
-        $reminder_days_settings = $this->getProjectSetting('reminder-days');
-
-        //$this->emDebug($invitation_days_settings,$reminder_days_settings);
-
-        foreach ($invitation_days_settings as $sub => $invitation_days) {
-            $valid_day_array = self::parseRangeString($valid_day_number[$sub]);
-            if (!empty($invitation_days)) {
-                $invite_array = self::parseRangeString($invitation_days);
-
-                if (!empty(array_diff($invite_array, $valid_day_array))) {
-                    $se = "<b>Config $sub: Invitation days is not a subset of Valid Day of Responses. Please check the values for Invitation Days under Invitations Settings.: ".
-                        $invitation_days . " vs " . $valid_day_number[$sub]." </div>";
-                    $alerts[] = $se;
-                }
-            }
-        }
-
-        foreach ($reminder_days_settings as $sub => $reminder_days) {
-            $valid_day_array = self::parseRangeString($valid_day_number[$sub]);
-            if (!empty($reminder_days)) {
-                $reminder_array = self::parseRangeString($reminder_days);
-                //$this->emDebug("DIFF:",$reminder_array, $valid_day_array, array_diff($invite_array,$valid_day_array), empty(array_diff($invite_array,$valid_day_array)));
-                if (!empty(array_diff($reminder_array, $valid_day_array))) {
-                    $se = "<b>Config $sub: Reminder days is not a subset of Valid Day of Responses. Please check the values for Reminder Days under Reminder Settings.: ".
-                        $reminder_days . " vs " . $valid_day_number[$sub]." </div>";
-                    $alerts[] = $se;
-                }
-            }
         }
 
 
-        //$this->emDebug($alerts);
+        //This is the event that holds the main config form: rsp_participant_info
+        //Check that rsp_participant_info is a repeating form
+        //TODO: should this EM just create the  event and set it?
 
-        if (empty($alerts)) {
+        //check that the forms exist
+        if (empty($configs)) {
+            //create config_instance
+            $configs = $this->getSubSettings('survey-portals');
+        }
+
+        foreach ($configs as $i => $config) {
+            $c_instance = new ConfigInstance($this, $config, $i);
+            list($c_result, $c_alerts) = $c_instance->validateConfig();
+
+            if ($c_result == false) {
+                $alerts = array_merge($alerts, $c_alerts);
+                $alerts2[] = $c_alerts;
+
+            }
+
+        }
+
+        $this->emDebug('!CONFIG STATUS', $alerts);
+
+        if (empty($alerts) && !empty($configs)) {
             $result = true;
             $alerts[] = "Your configuration appears valid!";
         }
@@ -721,7 +701,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         return array( $result, $alerts );
     }
 
+
     public function insertForm($form) {
+        $this->emDebug("!INSERT FORM: ". $form );
         $iih = new InsertInstrumentHelper($this);
 
         $result = $iih->insertForm($form);
@@ -743,7 +725,6 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 //        $errors = $status ? null :$iih->getErrors();
 //
 //        //$status = $this->getConfigStatus();
-        $this->emDebug("RETURN STATUS", $result, $message);
 
         return array($result, $message);
 
@@ -793,7 +774,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     public function makeEventRepeat($event) {
         $iih = new InsertInstrumentHelper($this);
 
-        $this->emDebug("MAKE EVENT REPEATING: ". $event );
+        $this->emDebug("!MAKE EVENT REPEATING: ". $event );
         $result = $iih->makeEventRepeating($event);
 
         if ($result) {

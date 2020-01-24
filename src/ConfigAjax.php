@@ -20,12 +20,12 @@ if (!empty($_POST['action'])) {
             list($result, $message) = $module->insertForm($form);
 
 
-            $module->emDebug("INSERT FORM", $result);
+            $module->emDebug("!INSERT FORM", $result);
             $message = $result ? "$form Created!" : $message;
 
             break;
         case "designate_event":
-            $module->emDebug("DESIGNATING EVENT");
+            $module->emDebug("!DESIGNATING EVENT");
             $form = $_POST['form'];
             $event = $_POST['event'];
             list($result, $message) = $module->designateEvent($form, $event);
@@ -42,52 +42,34 @@ if (!empty($_POST['action'])) {
             //$module->emDebug("result",  $result);
             break;
         case "set_event_repeating":
-
+            $module->emDebug("!Make EVENT repeating");
             $event = $_POST['event'];
 
-            //$module->emDebug("AJAX: Make Event repeating", $event);
             list($result, $message) = $module->makeEventRepeat($event);
-            $module->emDebug("result",  $result);
+
             break;
-        case "getStatus":
+        case "get_status":
+            $raw = $_POST['raw'];
+            $data = \ExternalModules\ExternalModules::formatRawSettings($module->PREFIX, $module->getProjectId(), $raw);
+            // At this point we have the settings in individual arrays for each value.  The equivalent to ->getProjectSettings();
 
 
-            //does participant form exist
+            // For this module, we want the subsettings of 'instance' - the repeating block of config
+            // $module->emDebug( $module->getSettingConfig('instance') );
+            $instances = $module->parseSubsettingsFromSettings('survey-portals', $data);
+            // $module->emDebug($instances);
 
             //does the rsp_metadata form exit
-            list($result,$message) = $module->getConfigStatus();
-            //$module->emDebug("GET STATUS", $result, $message);
+            list($result,$message) = $module->getConfigStatus($instances, true);
+            //$module->emDebug("!GETSTATUS config ajax", $result, $message);
 
             break;
-        case "checkForms":
-//            if (!$zip_loader->formExists('participant_info')) {
-//                 $f_p_status = $zip_loader->insertParticipantInfoForm();
-//            };
-//            if (!$zip_loader->formExists('rsp_survey_metadata')) {
-//                $f_m_status= $zip_loader->insertSurveyMetadataForm();
-//            };
-//
-//            $status = $f_p_status && $f_m_status;
-//
-//            if ($f_p_status) {
-//                $msg = "The participant_info form was succesfully uploaded";
-//            } else {
-//                $msg = "The attempt to upload participant_info failed.";
-//            }
-//
-//            if ($status) {
-//                $result = array(
-//                    'result' => 'success',
-//                    'message' =>
-//                );
-//            }
 
-            break;
         case "test":
 
 
             // SAVE A CONFIGURATION
-            $participant_config_id = $_POST['config_field'];
+            //$participant_config_id = $_POST['config_field'];
 
 
             // $module->debug($raw_config,"DEBUG","Raw Config");
