@@ -155,9 +155,14 @@ class InvitationManager {
 
 
                     //TODO: log send status to REDCap Logging?
+                    if ($send_status === false) {
+                        $send_status_msg = "Error sending email to ";
+                    } else {
+                        $send_status_msg = "Invite email sent to ";
+                    }
                     REDCap::logEvent(
                         "Email Invitation Sent from Survey Portal EM",  //action
-                        "Invite email sent to " . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
+                        $send_status_msg . $candidate[$this->portalConfig->emailField] . " for day_number " . $valid_day . " with status " .$send_status,  //changes
                         NULL, //sql optional
                         $participant->getParticipantID(), //record optional
                         $this->portalConfig->surveyEventName, //event optional

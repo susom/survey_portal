@@ -692,7 +692,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         }
 
-        $this->emDebug('!CONFIG STATUS', $alerts);
+        //$this->emDebug('!CONFIG STATUS', $alerts);
 
         if (empty($alerts) && !empty($configs)) {
             $result = true;
