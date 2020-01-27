@@ -103,6 +103,7 @@ PortalConfig.doAction = function (e) {
             alert("error");
         })
         .always(function() {
+            PortalConfig.setDefaults();
             PortalConfig.getStatus();
         });
 

@@ -72,7 +72,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
             $key = array_search($repeat_instance, array_column($records, 'redcap_repeat_instance'));
 
-            if ($key) {
+            if (trim($key) !== '') {
+
                 $selected = $records[$key][$config_id_field_name];
             }
 
