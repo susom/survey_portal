@@ -159,18 +159,11 @@ if(isset($_POST['cal_submit'])) {
     }
 }
 
-
-//confirm valid window
-//todo: should i split this up to get better error messages?
-//if (!$participant->newSurveyValidNow($day_number, $survey_date)) {
-//    $error_msg[] = "This date/time is not a valid window.";
-//}
-
-
 //if (isset($survey_date)) {  //blanks are counting as set??
 if (!empty($survey_date)) {
     //$module->emDebug(get_class($participant));
-    if ($day_number == null) {
+
+    if ($day_number === null) {
         $error_msg[] = $survey_date->format('Y-m-d'). " does not correspond to a valid day number. It is not in the range.";
     }
 
@@ -387,7 +380,6 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
     </footer>
     <script src="<?php echo $module->getUrl('js/jquery-3.2.1.min.js', true, true) ?>"></script>
     <script src="<?php echo $module->getUrl('js/bootstrap.min.js', true, true) ?>"></script>
-    <script src="<?php echo $module->getUrl('js/SurveyPortal.js', true, true) ?>"></script>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
     <!--  i am having a lot of trouble getting 1.6.0 datapicker to work.
