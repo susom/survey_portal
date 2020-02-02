@@ -335,7 +335,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function inviteCron() {
 
-
+        $this->emDebug("Starting invite cron for ".$this->PREFIX);
         //* 1) Determine projects that are using this EM
         //get all projects that are enabled for this module
         $enabled = ExternalModules::getEnabledProjects($this->PREFIX);
@@ -343,7 +343,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //get the noAuth api endpoint for Cron job.
         $url = $this->getUrl('src/InviteCron.php', true, true);
 
-        while ($proj = db_fetch_assoc($enabled)) {
+        //while ($proj = db_fetch_assoc($enabled)) {
+        while($proj = $enabled->fetch_assoc()){
+
             $pid = $proj['project_id'];
             $this->emDebug("STARTING INVITE CRON for pid ". $pid);
 

@@ -72,7 +72,7 @@ class InvitationManager {
 
             //check if today is a valid day for invitation:
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
-            $module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
+            //$module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
             //,($valid_day == null), ($valid_day == ''), isset($valid_day) ); exit;
             //$module->emDebug($this->portalConfig->inviteValidDayArray, "IN ARRAY");
 
@@ -309,7 +309,7 @@ class InvitationManager {
 
         $diff_date = $interval->format("%r%a");
         $diff_hours = $interval->format("%r%h");
-        $module->emDebug("DATE is {$date->format('Y-m-d H:i')} and start is {$start->format('Y-m-d H:i')} DIFF in DAYS: $diff_date /  DIFF in hours: ".  $diff_hours);
+        //$module->emDebug("DATE is {$date->format('Y-m-d H:i')} and start is {$start->format('Y-m-d H:i')} DIFF in DAYS: $diff_date /  DIFF in hours: ".  $diff_hours);
 
         //$module->emDebug("INTERVAL: ".$diff_date, $diff_hours);
         //$module->emDebug($interval->days, $interval->invert,$diff_date, $interval->days * ( $interval->invert ? -1 : 1));
