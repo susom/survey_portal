@@ -397,7 +397,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         //get the noAuth api endpoint for Cron job.
         $url = $this->getUrl('src/ReminderCron.php', true, true);
 
-        while ($proj = db_fetch_assoc($enabled)) {
+        //while ($proj = db_fetch_assoc($enabled)) {
+        while($proj = $enabled->fetch_assoc()){
             $pid = $proj['project_id'];
             $this->emDebug("STARTING REMINDER CRON for pid ". $pid);
 
