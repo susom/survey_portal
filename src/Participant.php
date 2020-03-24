@@ -199,7 +199,8 @@ class Participant {
         // Use alternative passing of parameters as an associate array
         $params = array(
             'return_format' => 'json',
-            'events'        =>  $this->portalConfig->mainConfigEventName,
+            'events'        => $this->portalConfig->mainConfigEventId,
+//            'events'        =>  $this->portalConfig->mainConfigEventName,
             'fields'        => array( REDCap::getRecordIdField(), $this->portalConfig->personalHashField, $this->portalConfig->startDateField),
             'filterLogic'   => $filter
         );
