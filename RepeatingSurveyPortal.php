@@ -78,8 +78,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             }
 
 
-            //if the are settings for the the config id, convert from a text field to a  dropdown
-            //todo: hardcoding the field for 'rsp_prt_config_id'. do i need to handle cases where they veered off our forms?
+            //if the are settings for the the config id, convert from a text field to a dropdown
             $config_fields = $this->getProjectSetting('config-id');
             $option_str = '<option value></option>';
             foreach ($config_fields as $option) {
@@ -229,7 +228,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
         foreach ($target_forms as $sub => $target_form) {
 
-
+            /**
+             * In default install, $target_form should be rsp_participant_info
+             *
+             */
             if ($instrument == $target_form) {
 
                 $config_field = $this->getProjectSetting('participant-config-id-field');
