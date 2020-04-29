@@ -46,6 +46,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
     public $iih;
 
+    public $project_id;
+
     /*******************************************************************************************************************/
     /* HOOK METHODS                                                                                                    */
     /***************************************************************************************************************** */
@@ -220,11 +222,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param null $record
      * @param $instrument
      */
-    public function redcap_save_record($project_id, $record,  $instrument,  $event_id,  $group_id = NULL,  $survey_hash = NULL,  $response_id = NULL, $repeat_instance) {
+    public function redcap_save_record($project_id, $record,  $instrument,  $event_id,  $group_id = NULL,  $survey_hash = NULL,  $response_id = NULL, $repeat_instance = NULL) {
         //If instrument is the right one, create the portal url and save it to the designated field
+        $this->project_id = $project_id;
 
         //iterate through all of the sub_settings
-        $target_forms        = $this->getProjectSetting('main-config-form-name');
+        $target_forms        = $this->getProjectSetting('main-config-form-name', $project_id);
 
         foreach ($target_forms as $sub => $target_form) {
 
@@ -234,9 +237,9 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
              */
             if ($instrument == $target_form) {
 
-                $config_field = $this->getProjectSetting('participant-config-id-field');
-                $config_event = $this->getProjectSetting('main-config-event-name')[$sub];
-                $start_date_field = $this->getProjectSetting('start-date-field')[$sub];
+                $config_field = $this->getProjectSetting('participant-config-id-field', $project_id);
+                $config_event = $this->getProjectSetting('main-config-event-name', $project_id)[$sub];
+                $start_date_field = $this->getProjectSetting('start-date-field', $project_id)[$sub];
 
                 //CHECK that the config event set for rsp_participant_event is the same as this current event
                 if ($config_event != $event_id) {
@@ -246,7 +249,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 }
 
                 //check that the start date for the portal is set, if not set then return
-                $start_date = $this->getFieldValue($record, $event_id, $start_date_field, $instrument, $repeat_instance);
+                $start_date = $this->getFieldValue($project_id, $record, $event_id, $start_date_field, $instrument, $repeat_instance);
                 if ($start_date == null) {
                     $this->emError("Start Date for record $record is not set. Will not create portal url for this record.");
                     return;
@@ -254,7 +257,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 }
 
                 //get the config_id for this participant
-                $config_id = $this->getFieldValue($record, $event_id, $config_field, $instrument, $repeat_instance);
+                $config_id = $this->getFieldValue($project_id,$record, $event_id, $config_field, $instrument, $repeat_instance);
 
                 //CHECK that the config ID for this record is set, if not set then return
                 if ($config_id == null) {
@@ -263,7 +266,10 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     //$this->exitAfterHook();
                 }
 
-                $sub = $this->getSubIDFromConfigID($config_id);
+                //$sub = $this->getSubIDFromConfigID($config_id);
+                $config_ids = $this->getProjectSetting('config-id', $project_id);
+                $sub = array_search($config_id, $config_ids);
+
                 //if sub is empty, then the participant is using a config_id that doesn't exist.
                 if ($sub === false) {
                     $this->emError("This $config_id entered in participant $record is not found the EM config settings.");
@@ -274,23 +280,39 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                 /***********************************/
 
-                $personal_hash_field = $this->getProjectSetting('personal-hash-field')[$sub];
-                $personal_url_field = $this->getProjectSetting('personal-url-field')[$sub];
-                $portal_invite_checkbox = $this->getProjectSetting('send-portal-invite')[$sub];
+                $personal_hash_field = $this->getProjectSetting('personal-hash-field',$project_id)[$sub];
+                $personal_url_field = $this->getProjectSetting('personal-url-field', $project_id)[$sub];
+                $portal_invite_checkbox = $this->getProjectSetting('send-portal-invite',$project_id)[$sub];
 
                 /***********************************/
 
                 // First check if hashed portal already has been created
-                $f_value = $this->getFieldValue($record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
+                $f_value = $this->getFieldValue($project_id, $record, $config_event, $personal_hash_field, $instrument, $repeat_instance);
 
                 if ($f_value == null) {
                     //generate a new URL
                     $new_hash = $this->generateUniquePersonalHash($project_id, $personal_hash_field, $config_event);
+
+
+
                     $portal_url = $this->getUrl("src/landing.php", true, true);
+
+                    //sometimes coming from differnt project context
+                    if ($_GET['pid'] != $project_id) {
+                        //the pid needs to be replaced
+                        $portal_url = preg_replace( '/&pid=\d+/', "&pid={$project_id}", $portal_url);
+                    }
+
+
                     $new_hash_url = $portal_url . "&h=" . $new_hash . "&c=" . $config_id;
 
                     // Save it to the record (both as hash and hash_url for piping)
+                    //this doesn't work out of context
                     $event_name = REDCap::getEventNames(true, false, $config_event);
+
+                    //because we will hit this code from different project context we need to get the correct event name to save.
+                    $proj = new \Project($project_id);
+                    $event_name = $proj->getUniqueEventNames($config_event);
 
                     $data = array(
                         REDCap::getRecordIdField() => $record,
@@ -300,7 +322,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                         $personal_url_field => $new_hash_url,
                         $personal_hash_field => $new_hash
                     );
-                    $response = REDCap::saveData('json', json_encode(array($data)));
+                    $response = REDCap::saveData($project_id, 'json', json_encode(array($data)));
                     //$this->emDebug($sub, data, $response,  "Save Response for count"); exit;
 
                     if (!empty($response['errors'])) {
@@ -312,7 +334,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     //checkbox to send portal invite has been checked so send invite
                     if ($portal_invite_checkbox) {
                         //$this->emDebug("PORTAL CHECKBOX: ". $portal_invite_checkbox,$this->getProjectSetting('send-portal-invite'));//exit;
-                        $this->handlePortalInvite($sub, $record, $instrument, $repeat_instance,$new_hash_url);
+                        $this->handlePortalInvite($project_id,$sub, $record, $instrument, $repeat_instance,$new_hash_url);
                     }
 
                     //$this->emDebug($record . ": Set unique Hash Url to $new_hash_url with result " . json_encode($response));
@@ -442,27 +464,28 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $repeat_instance
      * @param $new_hash_url
      */
-    function handlePortalInvite($sub, $record,$instrument, $repeat_instance, $new_hash_url) {
+    function handlePortalInvite($project_id, $sub, $record,$instrument, $repeat_instance, $new_hash_url) {
 
         //prep for the initial invite email
-        $config_event = $this->getProjectSetting('main-config-event-name')[$sub];
-        $email_to_field         = $this->getProjectSetting('email-field')[$sub];
+        $config_event           = $this->getProjectSetting('main-config-event-name', $project_id)[$sub];
+        $email_to_field         = $this->getProjectSetting('email-field', $project_id)[$sub];
 
-        $portal_url_label       = $this->getProjectSetting('portal-url-label')[$sub];
-        $initial_invite_msg     = $this->getProjectSetting('portal-invite-email')[$sub];
-        $initial_invite_subject = $this->getProjectSetting('portal-invite-subject')[$sub];
-        $email_from             = $this->getProjectSetting('portal-invite-from')[$sub];
+        $portal_url_label       = $this->getProjectSetting('portal-url-label', $project_id)[$sub];
+        $initial_invite_msg     = nl2br($this->getProjectSetting('portal-invite-email', $project_id)[$sub]);
+
+        $initial_invite_subject = $this->getProjectSetting('portal-invite-subject', $project_id)[$sub];
+        $email_from             = $this->getProjectSetting('portal-invite-from', $project_id)[$sub];
 
 
         //the URL has been updated so send out an email
         //get the email field. if email is set, then send out invite
-        $email_to = $this->getFieldValue($record, $config_event, $email_to_field, $instrument, $repeat_instance);
+        $email_to = $this->getFieldValue($project_id, $record, $config_event, $email_to_field, $instrument, $repeat_instance);
         if (!empty($email_to)) {
 
             //convert all to piped values
             //$this->emDebug("RECORD:".$record. " / SUB: ".$sub. " / EVENTID: ".$event_id. " /REP INSTANCE: ".$repeat_instance);
-            $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $config_event,$repeat_instance, array(), false, null, false);
-            $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $config_event,$repeat_instance, array(), false, null, false);
+            $piped_email_subject = Piping::replaceVariablesInLabel($initial_invite_subject, $record, $config_event,$repeat_instance, array(), false, $project_id, false);
+            $piped_email_msg = Piping::replaceVariablesInLabel($initial_invite_msg, $record, $config_event,$repeat_instance, array(), false, $project_id, false);
             //$this->emDebug($record. "piped subject: ". $piped_email_subject);
             //$this->emDebug($record. "piped msg: ". $piped_email_msg);
 
@@ -476,8 +499,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 "Portal invite was not sent because the email field is empty.",
                 NULL, //sql optional
                 $record, //record optional
-                null
-                //$project_id //project ID optional
+                null,
+                $project_id//$project_id //project ID optional
             );
         }
 
@@ -925,12 +948,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $target_field
      * @return |null
      */
-    public function getFieldValue($record, $event, $target_field, $instrument, $repeat_instance = 1) {
-
+    public function getFieldValue($project_id, $record, $event, $target_field, $instrument, $repeat_instance = 1) {
 
         //Right instrument, carry on
         // First check if hashed portal already has been created
         $params = array(
+            'project_id'          => $project_id,
             'return_format'       => 'json',
             'records'             => $record,
             //'fields'              => array($target_field, 'redcap_repeat_instance'), //include this doesn't return repeat_instance, repeat_instrument

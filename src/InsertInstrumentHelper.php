@@ -75,6 +75,7 @@ class InsertInstrumentHelper
         // Parse DD
         $this->dd_array = \Design::excel_to_array($dd_filename);
 
+
         // Get rid of temp file
         unlink($dd_filename);
 
