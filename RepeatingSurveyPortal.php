@@ -950,6 +950,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      */
     public function getFieldValue($project_id, $record, $event, $target_field, $instrument, $repeat_instance = 1) {
 
+        $this->emDebug("project_id $project_id, record = $record, event = $event, repeat_instance = $repeat_instance");
         //Right instrument, carry on
         // First check if hashed portal already has been created
         $params = array(
