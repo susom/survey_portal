@@ -172,7 +172,9 @@ class InvitationManager {
                 }
 
                 if (($candidate[$this->portalConfig->disableParticipantSMSField."___1"] <> '1') &&
-                        ($candidate[$this->portalConfig->phoneField] <> '')) {
+                        ($candidate[$this->portalConfig->phoneField] <> '')
+                    && $this->project_id != 19184
+                ) {
                     $module->emDebug("Sending text invite to record id: ".$candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
                     $msg = $this->formatTextMessage($this->portalConfig->invitationSmsText,
