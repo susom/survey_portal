@@ -243,14 +243,14 @@ class Participant {
 
             $records = array();
             if ($row = db_fetch_assoc($q)) {
-                $this->emDebug($row);
+                $module->emDebug($row);
                 // $this->participantID = $row['record'];
                 // $this->start_date = $row['start_date'];
             } else {
                 return null;
             }
         } catch (\Exception $e) {
-            $this->emDebug("Found Exception", $e->getMessage());
+            $module->emDebug("Found Exception", $e->getMessage());
         }
 
 
