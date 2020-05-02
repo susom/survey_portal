@@ -28,7 +28,10 @@ $error_msg = null;
 //todo bail if no hash , no config
 try {
     $portal = new Portal($p_config, $p_hash);
+    $module->emDebug("About to load participant $p_hash");
     $participant = $portal->getParticipant(); //$portal->getParticipant();
+
+    $module->emDebug("About to load config $p_config");
     $portalConfig = $portal->getPortalConfig();
 
     $module->emDebug("Just fired up portal for ".$participant->getParticipantID());
