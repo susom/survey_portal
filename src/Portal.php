@@ -38,8 +38,10 @@ class Portal
     public function __construct($config_id, $hash) {
         global $module;
 
+        $module->emDebug("About to make new portal config for $config_id");
         $this->portalConfig = new PortalConfig($config_id);
 
+        $module->emDebug("Getting sub-settings");
         $sub = $this->portalConfig->getSubsettingID();
         //$module->emDebug("Using SUB:  ". $sub . ' for CONFIG_ID: '. $config_id);
 
@@ -47,6 +49,8 @@ class Portal
         //setup the participant
         //TODO: if multiple response per day is allowed, then use different class, ParticipantMultipleResponse
         //MultipleResponse not yet implmented. Until then, just use the single Participant
+
+        $module->emDebug("Creating participant object");
         $this->participant = new Participant($this->portalConfig, $hash);
         /**
         if ($this->portalConfig->maxResponsePerDay != 1) {
@@ -55,7 +59,7 @@ class Portal
         $this->participant = new Participant($this->portalConfig, $hash);
         }
          */
-
+        $module->emDebug("Getting participant ID");
         $this->participantID = $this->participant->getParticipantID();
 
 
