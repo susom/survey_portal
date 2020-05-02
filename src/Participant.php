@@ -208,6 +208,7 @@ class Participant {
             'filterLogic'   => $filter
         );
 
+        $module->emDebug("About to location participant with getData", $params);
         $q = REDCap::getData($params);
         $records = json_decode($q, true);
 
@@ -215,6 +216,7 @@ class Participant {
 
         // return record_id or false
         //$main = current($records);  //can't assume that this gives the correct array. 0 seems to have blanks...
+        $module->emDebug("find repeating instance");
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
        //$module->emDebug("xFOUND ARRAY NUMBER: ".$array_num . " EMPTY?: ". (empty($array_num) === true) . " ISSET: ". isset($array_num));
 
@@ -225,6 +227,8 @@ class Participant {
 
         $this->participantID = $records[$array_num][REDCap::getRecordIdField()];
         $this->start_date    = $records[$array_num][$this->portalConfig->startDateField];
+
+        $module->emDebug(__FUNCTION__ . " done");
 
         //$module->emDebug($this->getParticipantID(),$records,$main, $this->portalConfig->startDateField,$this->start_date);
         return ($this->participantID);
