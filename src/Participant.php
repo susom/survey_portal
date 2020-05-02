@@ -6,9 +6,9 @@ namespace Stanford\RepeatingSurveyPortal;
 
 
 
-/** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
-/** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
-/** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
+/** @var RepeatingSurveyPortal $module */
+/** @var Portal $Portal */
+/** @var PortalConfig $portalConfig */
 
 use DateInterval;
 use DateTime;
@@ -202,7 +202,7 @@ class Participant {
         // Use alternative passing of parameters as an associate array
         $params = array(
             'return_format' => 'json',
-            'events'        => $this->portalConfig->mainConfigEventId,
+            'events'        => $this->portalConfig->mainConfigEventID,
 //            'events'        =>  $this->portalConfig->mainConfigEventName,
             'fields'        => array( REDCap::getRecordIdField(), $this->portalConfig->personalHashField, $this->portalConfig->startDateField),
             'filterLogic'   => $filter
@@ -234,7 +234,7 @@ class Participant {
                 and rd.value = '%s'",
                 $this->portalConfig->startDateField,
                 $this->portalConfig->personalHashField,
-                $this->portalConfig->mainConfigEventId,
+                $this->portalConfig->mainConfigEventID,
                 $module->getProjectId(),
                 $hash
             );
