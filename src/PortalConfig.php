@@ -174,6 +174,8 @@ class PortalConfig {
         $this->mainConfigEventName = REDCap::getEventNames(true, false, $this->mainConfigEventID);
         $this->surveyEventName = REDCap::getEventNames(true, false, $this->surveyEventID);
 
+        $module->emDebug($this);
+
     }
 
 
