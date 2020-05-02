@@ -196,22 +196,23 @@ class Participant {
     public function locateParticipantFromHash($hash) {
         global $module;
 
-        //limit surveys to this
-        $filter = "[" . $this->portalConfig->mainConfigEventName . "][" . $this->portalConfig->personalHashField . "] = '$hash'";
+        // 2020-05-01 replace getData with direct SQL to improve performance from 6sec to 50ms
 
-        // Use alternative passing of parameters as an associate array
-        $params = array(
-            'return_format' => 'json',
-            'events'        => $this->portalConfig->mainConfigEventID,
-//            'events'        =>  $this->portalConfig->mainConfigEventName,
-            'fields'        => array( REDCap::getRecordIdField(), $this->portalConfig->personalHashField, $this->portalConfig->startDateField),
-            'filterLogic'   => $filter
-        );
-
-        $module->emDebug("About to location participant with getData", $params);
-        $q = REDCap::getData($params);
-        $records = json_decode($q, true);
-        $module->emDebug("Found: ", $records);
+        // //limit surveys to this
+        // $filter = "[" . $this->portalConfig->mainConfigEventName . "][" . $this->portalConfig->personalHashField . "] = '$hash'";
+        //
+        // // Use alternative passing of parameters as an associate array
+        // $params = array(
+        //     'return_format' => 'json',
+        //     'events'        => $this->portalConfig->mainConfigEventID,
+        //     'fields'        => array( REDCap::getRecordIdField(), $this->portalConfig->personalHashField, $this->portalConfig->startDateField),
+        //     'filterLogic'   => $filter
+        // );
+        //
+        // $module->emDebug("About to location participant with getData", $params);
+        // $q = REDCap::getData($params);
+        // $records = json_decode($q, true);
+        // $module->emDebug("Found: ", $records);
 
         // Try a better way to do this:
         try {
@@ -243,30 +244,29 @@ class Participant {
 
             // $records = array();
             if ($row = db_fetch_assoc($q)) {
-                $module->emDebug($row);
-                // $this->participantID = $row['record'];
-                // $this->start_date = $row['start_date'];
+                // $module->emDebug($row);
+                $this->participantID = $row['record'];
+                $this->start_date = $row['start_date'];
             } else {
-                // return null;
+                return null;
             }
         } catch (\Exception $e) {
             $module->emDebug("Found Exception", $e->getMessage());
-        }
-
-
-
-        $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
-        //$module->emDebug("xFOUND ARRAY NUMBER: ".$array_num . " EMPTY?: ". (empty($array_num) === true) . " ISSET: ". isset($array_num));
-
-        //if (empty($array_num)) {  //?? this returns true if array_num = 0???
-        if (!isset($array_num)) {
             return null;
         }
 
-        $this->participantID = $records[$array_num][REDCap::getRecordIdField()];
-        $this->start_date    = $records[$array_num][$this->portalConfig->startDateField];
-
-        $module->emDebug(__FUNCTION__ . " done");
+        // $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
+        // //$module->emDebug("xFOUND ARRAY NUMBER: ".$array_num . " EMPTY?: ". (empty($array_num) === true) . " ISSET: ". isset($array_num));
+        //
+        // //if (empty($array_num)) {  //?? this returns true if array_num = 0???
+        // if (!isset($array_num)) {
+        //     return null;
+        // }
+        //
+        // $this->participantID = $records[$array_num][REDCap::getRecordIdField()];
+        // $this->start_date    = $records[$array_num][$this->portalConfig->startDateField];
+        //
+        // $module->emDebug(__FUNCTION__ . " done");
 
         //$module->emDebug($this->getParticipantID(),$records,$main, $this->portalConfig->startDateField,$this->start_date);
         return ($this->participantID);
