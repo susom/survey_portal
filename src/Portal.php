@@ -38,10 +38,10 @@ class Portal
     public function __construct($config_id, $hash) {
         global $module;
 
-        $module->emDebug("About to make new portal config for $config_id");
+        // $module->emDebug("About to make new portal config for $config_id");
         $this->portalConfig = new PortalConfig($config_id);
 
-        $module->emDebug("Getting sub-settings");
+        // $module->emDebug("Getting sub-settings");
         $sub = $this->portalConfig->getSubsettingID();
         //$module->emDebug("Using SUB:  ". $sub . ' for CONFIG_ID: '. $config_id);
 

@@ -45,6 +45,7 @@ class Participant {
 
         //setup the participant surveys
         //given the hash, find the participant and set id and start date in object
+        $module->emDebug("locating participant from hash");
         $this->participantID =  $this->locateParticipantFromHash($hash);
         //$module->emDebug($this->participantID, $hash);
 
@@ -54,11 +55,13 @@ class Participant {
         }
 
         //check that this participant's portal is not disabled
+        $module->emDebug("is portal enabled?");
         $this->participant_portal_disabled = $this->checkPortalDisabled($hash);
         //$module->emDebug("PORTAL DISABLED? :  ". $this->participant_portal_disabled, $hash); exit;
 
 
         //get all Surveys for this particpant and determine status
+        $module->emDebug("getting survey status");
         $this->survey_status = $this->getAllSurveyStatus(
             $this->participantID,
             min($this->portalConfig->validDayArray),
