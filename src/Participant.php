@@ -211,14 +211,52 @@ class Participant {
         $module->emDebug("About to location participant with getData", $params);
         $q = REDCap::getData($params);
         $records = json_decode($q, true);
+        $module->emDebug("Found: ", $records);
 
-        //$module->emDebug($records);
+        // Try a better way to do this:
+        try {
+            $sql = spintf("
+                select
+                    rd.record,
+                    rd2.value as 'start_date'
+                from
+                    redcap_data rd
+                join redcap_data rd2
+                    on rd.project_id = rd2.project_id
+                    and rd.event_id = rd2.event_id
+                    and rd.record = rd2.record
+                    and rd.instance <=> rd2.instance
+                    and rd2.field_name = '%s'
+                where
+                    rd.field_name = '%s'
+                and rd.event_id = %d
+                and rd.project_id = %d
+                and rd.value = '%s'",
+                $this->portalConfig->startDateField,
+                $this->portalConfig->personalHashField,
+                $this->portalConfig->mainConfigEventId,
+                $module->getProjectId(),
+                $hash
+            );
+            $module->emDebug($sql);
+            $q = db_query($sql);
 
-        // return record_id or false
-        //$main = current($records);  //can't assume that this gives the correct array. 0 seems to have blanks...
-        $module->emDebug("find repeating instance");
+            $records = array();
+            if ($row = db_fetch_assoc($q)) {
+                $this->emDebug($row);
+                // $this->participantID = $row['record'];
+                // $this->start_date = $row['start_date'];
+            } else {
+                return null;
+            }
+        } catch (\Exception $e) {
+            $this->emDebug("Found Exception", $e->getMessage());
+        }
+
+
+
         $array_num = $module->findRepeatingInstance($records, $this->portalConfig->mainConfigFormName);
-       //$module->emDebug("xFOUND ARRAY NUMBER: ".$array_num . " EMPTY?: ". (empty($array_num) === true) . " ISSET: ". isset($array_num));
+        //$module->emDebug("xFOUND ARRAY NUMBER: ".$array_num . " EMPTY?: ". (empty($array_num) === true) . " ISSET: ". isset($array_num));
 
         //if (empty($array_num)) {  //?? this returns true if array_num = 0???
         if (!isset($array_num)) {
