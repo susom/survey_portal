@@ -215,7 +215,7 @@ class Participant {
 
         // Try a better way to do this:
         try {
-            $sql = spintf("
+            $sql = sprintf("
                 select
                     rd.record,
                     rd2.value as 'start_date'
