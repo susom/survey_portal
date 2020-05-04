@@ -473,102 +473,176 @@ class Participant {
     }
 
     /**
-     * Return the next instance id for this survey instrument
-     *
+     * Return the next instance id for this survey config
      * @return int|mixed
      */
     public function getNextInstanceID() {
         global $module;
-        $record = $this->participantID;
-        $event = $this->portalConfig->surveyEventID;
-        $instrument = $this->portalConfig->surveyInstrument;
 
-        //$module->emDebug("MAX ID 2", $record, $event, $instrument);
-        //getData for all surveys for this reocrd
-         //get the survey for this day_number and survey_data
-        //TODO: return_format of 'array' returns nothing if using repeatint events???
-        //$get_data = array('redcap_repeat_instance');
-        $params = array(
-            'return_format'       => 'json',
-            //'fields'              => $get_data, //we need to leave this open in order to get the instance id
-            'records'             => $this->participantID,
-            'events'              => $this->portalConfig->surveyEventID
+        // $record = $this->participantID;
+        // $event = $this->portalConfig->surveyEventID;
+        // $instrument = $this->portalConfig->surveyInstrument;
+        // //$module->emDebug("MAX ID 2", $record, $event, $instrument);
+        // //getData for all surveys for this reocrd
+        //  //get the survey for this day_number and survey_data
+        // //TODO: return_format of 'array' returns nothing if using repeatint events???
+        // //$get_data = array('redcap_repeat_instance');
+        // $params = array(
+        //     'return_format'       => 'json',
+        //     //'fields'              => $get_data, //we need to leave this open in order to get the instance id
+        //     'records'             => $this->participantID,
+        //     'events'              => $this->portalConfig->surveyEventID
+        // );
+        // $q = REDCap::getData($params);
+        // $results = json_decode($q, true);
+        //
+        // $max_id = max(array_column($results, 'redcap_repeat_instance'));
+        //
+        // return $max_id + 1;
+
+        // get the greatest instance id for the current configID
+        $sql = sprintf("
+            select
+                max(instance) as 'max_instance'
+            from
+                redcap_data rd
+            where
+                rd.record = '%s'
+            and rd.event_id = %d
+            and rd.project_id = %d
+            and rd.field_name = '%s'
+            and rd.value = '%s'",
+            db_escape($this->participantID),
+            db_escape($this->portalConfig->surveyEventID),
+            $module->getProjectId(),
+            db_escape($this->portalConfig->surveyConfigField),
+            db_escape($this->portalConfig->configID)
         );
-        $q = REDCap::getData($params);
-        $results = json_decode($q, true);
+        $module->emDebug($sql);
+        $q = db_query($sql);
 
-        $max_id = max(array_column($results, 'redcap_repeat_instance'));
+        if ($row=db_fetch_assoc($q)) {
+            $instance = empty( $row['max_instance'] ) ? 0 : $row['max_instance'];
+            $module->emDebug($row, $instance);
+        } else {
+            $instance = 0;
+        }
 
-        return $max_id + 1;
+        return $instance + 1;
     }
 
     /**
+     * Return instance if exists for day_number or get the next available instance
      * @param $day_number
-     * @param $survey_date  //currently not using survey_date to retrieve ID, just day_number
+     * @param $survey_date_TO_BE_DELETED  //currently not using survey_date to retrieve ID, just day_number
      * @return int|mixed
      */
-    public function getPartialResponseInstanceID($day_number, $survey_date) {
+    public function getPartialResponseInstanceID($day_number, $survey_date_TO_BE_DELETED) {
         global $module;
-        $survey_date_str = $survey_date->format('Y-m-d');
-        $survey_complete = $this->survey_status[$survey_date_str]['completed'];
-        $filter  =  "[" . $this->portalConfig->surveyEventName . "][".$this->portalConfig->surveyDayNumberField."] = '$day_number'";  // day number is passed in number
-        $filter .= " and [" . $this->portalConfig->surveyEventName . "][" .$this->portalConfig->surveyConfigField . "] = '{$this->portalConfig->configID}'"; // and config_id is config
+        // $survey_date_str = $survey_date->format('Y-m-d');
+        // $survey_complete = $this->survey_status[$survey_date_str]['completed'];
+        //
+        // $filter  =  "[" . $this->portalConfig->surveyEventName . "][".$this->portalConfig->surveyDayNumberField."] = '$day_number'";  // day number is passed in number
+        // $filter .= " and [" . $this->portalConfig->surveyEventName . "][" .$this->portalConfig->surveyConfigField . "] = '{$this->portalConfig->configID}'"; // and config_id is config
+        //
+        // //can only get redcap_repeat_instance if all the fields are retrieved!!
+        // $get_fields = array(
+        //     'redcap_repeat_instance',
+        //     $this->portalConfig->surveyDayNumber,
+        //     $this->portalConfig->surveyDateNumber,
+        //     $this->portalConfig->surveyInstrument . '_complete'
+        // );
+        //
+        // //get the survey for this day_number and survey_data
+        // $params = array(
+        //     'return_format'       => 'json',
+        //     //'fields'              => $get_fields,
+        //     'records'             => $this->participantID, //$this->portalConfig->participantID,
+        //     'events'              => $this->portalConfig->surveyEventID,
+        //     'filterLogic'         => $filter
+        // );
+        // $module->emDebug($params);
+        // $q = REDCap::getData($params);
+        // $results = json_decode($q, true);
 
-        //can only get redcap_repeat_instance if all the fields are retrieved!!
-        $get_fields = array(
-            'redcap_repeat_instance',
-            $this->portalConfig->surveyDayNumber,
-            $this->portalConfig->surveyDateNumber,
-            $this->portalConfig->surveyInstrument . '_complete'
+        // Changing from getData to direct query to speed performance
+        $sql = sprintf("
+            select
+                rd.record,
+                rd.instance,
+                rd.value  as 'survey_day_number',
+                rd2.value as 'survey_config'
+            from
+                redcap_data rd
+            join redcap_data rd2
+                on rd.project_id = rd2.project_id
+                and rd.event_id = rd2.event_id
+                and rd.record = rd2.record
+                and rd.instance <=> rd2.instance
+                and rd2.field_name = '%s' -- rsp_survey_config
+            where
+                rd.record = '%s'
+            and rd.event_id = %d
+            and rd.project_id = %d
+            and rd.field_name = 'rsp_survey_day_number'
+            and rd.value = '%d'           -- day number
+            and rd2.value = '%s'          -- config, e.g. daily",
+            db_escape($this->portalConfig->surveyConfigField),
+            db_escape($this->participantID),
+            $this->portalConfig->surveyEventID,
+            $module->getProjectId(),
+            $day_number,
+            db_escape($this->portalConfig->configID)
         );
+        $module->emDebug("SQL:", $sql);
 
-        //get the survey for this day_number and survey_data
-        $params = array(
-            'return_format'       => 'json',
-            //'fields'              => $get_fields,
-            'records'             => $this->participantID, //$this->portalConfig->participantID,
-            'events'              => $this->portalConfig->surveyEventID,
-            'filterLogic'         => $filter
-        );
+        $q = db_query($sql);
 
-        $module->emDebug($params);
-        $q = REDCap::getData($params);
-        $results = json_decode($q, true);
-
-        //just in case there are more than one (shouldn't happen), get the key by the largest timestamp
-        $latest_key = array_keys($results, max($results))[0];
-
-        //if 0 or 1, return the redcap_repeat_instance, otherwise
-        $survey_complete = $results[$latest_key][$this->portalConfig->surveyInstrument . '_complete'];
-        $timestamp       = $results[$latest_key][$this->portalConfig->surveyLaunchTSField];
-
-        //$module->emDebug("Latest Key". $latest_key,array_keys($results, max($results)), $timestamp); // $results, max($results), array_keys($results,
-
-
-        //$module->emDebug($results, $q, $results[0]['rsp_survey_day_number'],count($results), $this->portalConfig->surveyEventID, $this->participantID);
-        $module->emDebug($this->portalConfig->participantID . ' Participant ID: ' . $this->participantID.' : Looking for Day number: '.$day_number.
-                         ' and found day number '.$results[0]['rsp_survey_day_number'] . ' in instance number: '. $results[0]['redcap_repeat_instance'].
-                         ' in event '.  $this->portalConfig->surveyEventID);
-        //$module->emDebug($this->portalConfig->surveyInstrument . '_complete',            $survey_complete, $survey_complete == '0', $survey_complete == '1'); exit;
-
-        $max_repeat_instance = 0;  //reset to 0
-        //if (($survey_complete == '0') || ($survey_complete == '1')) {
-        if (isset($timestamp)) {
-            $max_repeat_instance =  $results[$latest_key]['redcap_repeat_instance'];
-            $module->emDebug("EXISTING Instance: $max_repeat_instance surveycomplete: $survey_complete "); //,$results[$latest_key],
+        if ($row = db_fetch_assoc($q)) {
+            // We found a result
+            $module->emDebug($row);
+            $instance = $row['instance'];
         } else {
-            //it's new, so just get the next instance id to create new one.
-            //can't return this->max_instance because instance IDs are shared between parent and child.
-            //so need to get max instance ID for this RECORD, instance ids are sequential by record.
-            //$max_repeat_instance = $this->max_instance +1;
-
-            $max_repeat_instance  = $this->getNextInstanceID();
-
-            $module->emDebug("USING NEW Instance: $max_repeat_instance surveycomplete: $survey_complete "); //,$results[$latest_key],
-
+            $instance = $this->getNextInstanceID();
         }
 
-        return $max_repeat_instance;
+        $module->emDebug("About to return $instance");
+        return $instance;
+
+        // //just in case there are more than one (shouldn't happen), get the key by the largest timestamp
+        // $latest_key = array_keys($results, max($results))[0];
+        //
+        // //if 0 or 1, return the redcap_repeat_instance, otherwise
+        // $survey_complete = $results[$latest_key][$this->portalConfig->surveyInstrument . '_complete'];
+        // $timestamp       = $results[$latest_key][$this->portalConfig->surveyLaunchTSField];
+        //
+        // //$module->emDebug("Latest Key". $latest_key,array_keys($results, max($results)), $timestamp); // $results, max($results), array_keys($results,
+        //
+        //
+        // //$module->emDebug($results, $q, $results[0]['rsp_survey_day_number'],count($results), $this->portalConfig->surveyEventID, $this->participantID);
+        // $module->emDebug($this->portalConfig->participantID . ' Participant ID: ' . $this->participantID.' : Looking for Day number: '.$day_number.
+        //                  ' and found day number '.$results[0]['rsp_survey_day_number'] . ' in instance number: '. $results[0]['redcap_repeat_instance'].
+        //                  ' in event '.  $this->portalConfig->surveyEventID);
+        // //$module->emDebug($this->portalConfig->surveyInstrument . '_complete',            $survey_complete, $survey_complete == '0', $survey_complete == '1'); exit;
+        //
+        // $max_repeat_instance = 0;  //reset to 0
+        // //if (($survey_complete == '0') || ($survey_complete == '1')) {
+        // if (isset($timestamp)) {
+        //     $max_repeat_instance =  $results[$latest_key]['redcap_repeat_instance'];
+        //     $module->emDebug("EXISTING Instance: $max_repeat_instance surveycomplete: $survey_complete "); //,$results[$latest_key],
+        // } else {
+        //     //it's new, so just get the next instance id to create new one.
+        //     //can't return this->max_instance because instance IDs are shared between parent and child.
+        //     //so need to get max instance ID for this RECORD, instance ids are sequential by record.
+        //     //$max_repeat_instance = $this->max_instance +1;
+        //
+        //     $max_repeat_instance  = $this->getNextInstanceID();
+        //
+        //     $module->emDebug("USING NEW Instance: $max_repeat_instance surveycomplete: $survey_complete "); //,$results[$latest_key],
+        //
+        // }
+        //
+        // return $max_repeat_instance;
 
     }
 
