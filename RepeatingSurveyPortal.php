@@ -489,7 +489,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             //$this->emDebug($record. "piped subject: ". $piped_email_subject);
             //$this->emDebug($record. "piped msg: ". $piped_email_msg);
 
-            $this->sendInitialPortalUrl($record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
+            $this->sendInitialPortalUrl($project_id, $record, $new_hash_url, $portal_url_label, $piped_email_msg, $email_to, $email_from, $piped_email_subject);
         } else {
 
         //if both the text and email fields are empty, log so that admin know that record never got the initial invite
@@ -517,7 +517,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
      * @param $from
      * @param $subject
      */
-    public function sendInitialPortalUrl($record, $portal_url,$portal_url_label, $msg, $email_to, $from, $subject) {
+    public function sendInitialPortalUrl($project_id,$record, $portal_url,$portal_url_label, $msg, $email_to, $from, $subject) {
 
         //replace $portal_url the tag [portal-url]
         $target_str = "[portal-url]";
@@ -564,8 +564,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
             $send_status,
             NULL, //sql optional
             $record, //record optional
-            null
-            //project_id //project ID optional
+            null,
+            $project_id //project ID optional
         );
 
     }
