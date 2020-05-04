@@ -129,8 +129,13 @@ class InvitationManager {
                 $survey_link = $candidate[$this->portalConfig->personalUrlField]."&d=" . $valid_day;
                 //$module->emDebug($survey_link, $candidate[$this->portalConfig->disableParticipantEmailField."___1"],$candidate[$this->portalConfig->emailField]);
 
-                //send invite to email OR SMS
+                // SKIP EMAILS FOR 19184 (TODO: MUST REMOVE THIS AFTERNOON !!!)
+                if ($this->project_id == 19184) {
+                    $module->emDebug("Sending invite/reminder for " . $participant->getParticipantID());
+                    continue;
+                }
 
+                //send invite to email OR SMS
                 if (($candidate[$this->portalConfig->disableParticipantEmailField."___1"] <> '1') &&
                     ($candidate[$this->portalConfig->emailField] <> '')) {
 
