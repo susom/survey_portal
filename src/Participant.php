@@ -577,7 +577,7 @@ class Participant {
             $instance = $this->getNextInstanceID();
         }
 
-        $this->emDebug("About to return $instance");
+        $module->emDebug("About to return $instance");
         return $instance;
 
         // //just in case there are more than one (shouldn't happen), get the key by the largest timestamp
