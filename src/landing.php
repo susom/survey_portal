@@ -141,7 +141,8 @@ if(isset($_POST['cal_submit'])) {
     if ($p_daynumber != "") {
         $day_number = intval($p_daynumber);
         $survey_date = $participant->getSurveyDateFromDayNumber($day_number);
-        $module->emDebug($survey_date, "Day number is set, so confirm in allowed window and start: " . $day_number);
+        $module->emDebug("Day number is set, so confirm in allowed window and start: " . $day_number);
+        // $module->emDebug($survey_date);
     } else {
 
         //if no calendar option, then assume auto_start and derive survey_date as today
