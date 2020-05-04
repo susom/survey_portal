@@ -473,33 +473,62 @@ class Participant {
     }
 
     /**
-     * Return the next instance id for this survey instrument
-     *
+     * Return the next instance id for this survey config
      * @return int|mixed
      */
     public function getNextInstanceID() {
         global $module;
-        $record = $this->participantID;
-        $event = $this->portalConfig->surveyEventID;
-        $instrument = $this->portalConfig->surveyInstrument;
 
-        //$module->emDebug("MAX ID 2", $record, $event, $instrument);
-        //getData for all surveys for this reocrd
-         //get the survey for this day_number and survey_data
-        //TODO: return_format of 'array' returns nothing if using repeatint events???
-        //$get_data = array('redcap_repeat_instance');
-        $params = array(
-            'return_format'       => 'json',
-            //'fields'              => $get_data, //we need to leave this open in order to get the instance id
-            'records'             => $this->participantID,
-            'events'              => $this->portalConfig->surveyEventID
+        // $record = $this->participantID;
+        // $event = $this->portalConfig->surveyEventID;
+        // $instrument = $this->portalConfig->surveyInstrument;
+        // //$module->emDebug("MAX ID 2", $record, $event, $instrument);
+        // //getData for all surveys for this reocrd
+        //  //get the survey for this day_number and survey_data
+        // //TODO: return_format of 'array' returns nothing if using repeatint events???
+        // //$get_data = array('redcap_repeat_instance');
+        // $params = array(
+        //     'return_format'       => 'json',
+        //     //'fields'              => $get_data, //we need to leave this open in order to get the instance id
+        //     'records'             => $this->participantID,
+        //     'events'              => $this->portalConfig->surveyEventID
+        // );
+        // $q = REDCap::getData($params);
+        // $results = json_decode($q, true);
+        //
+        // $max_id = max(array_column($results, 'redcap_repeat_instance'));
+        //
+        // return $max_id + 1;
+
+        // get the greatest instance id for the current configID
+        $sql = sprintf("
+            select
+                max(instance) as 'max_instance'
+            from
+                redcap_data rd
+            where
+                rd.record = '%s'
+            and rd.event_id = %d
+            and rd.project_id = %d
+            and rd.field_name = '%s'
+            and rd.value = '%s'",
+            db_escape($this->participantID),
+            db_escape($this->portalConfig->surveyEventID),
+            $module->getProjectId(),
+            db_escape($this->portalConfig->surveyConfigField),
+            db_escape($this->portalConfig->configID)
         );
-        $q = REDCap::getData($params);
-        $results = json_decode($q, true);
+        $module->emDebug($sql);
+        $q = db_query($sql);
 
-        $max_id = max(array_column($results, 'redcap_repeat_instance'));
+        if ($row=db_fetch_assoc($q)) {
+            $instance = empty( $row['max_instance'] ) ? 0 : $row['max_instance'];
+            $module->emDebug($row, $instance);
+        } else {
+            $instance = 0;
+        }
 
-        return $max_id + 1;
+        return $instance + 1;
     }
 
     /**
