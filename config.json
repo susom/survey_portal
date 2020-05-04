@@ -37,14 +37,14 @@
       "cron_description": "Cron to send survey invitation",
       "method": "inviteCron",
       "cron_frequency": "3600",
-      "cron_max_run_time": "1200"
+      "cron_max_run_time": "3000"
     },
     {
       "cron_name": "em_survey_portal_reminder",
       "cron_description": "Cron to send survey reminder",
       "method": "reminderCron",
       "cron_frequency": "3600",
-      "cron_max_run_time": "1200"
+      "cron_max_run_time": "3000"
     }
   ],
 
