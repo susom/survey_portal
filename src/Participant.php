@@ -608,11 +608,13 @@ class Participant {
             // We found a result
             //$module->emDebug($row);
             $instance = $row['instance'];
+            $module->emDebug("About to return found $instance");
         } else {
             $instance = $this->getNextInstanceID();
+            $module->emDebug("About to return new $instance");
         }
 
-        $module->emDebug("About to return $instance");
+
         return $instance;
 
         // //just in case there are more than one (shouldn't happen), get the key by the largest timestamp
