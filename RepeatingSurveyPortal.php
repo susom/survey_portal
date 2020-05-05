@@ -394,7 +394,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
 
                     $resp = http_get($this_url);
                     //$this->cronAttendanceReport($pid);
-                    $this->emDebug("cron for invitations: " . $resp);
+                    $this->emDebug("Invite Cron Response:",$resp);
                 }
             }
         }
