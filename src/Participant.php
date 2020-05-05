@@ -528,12 +528,13 @@ class Participant {
 
         if ($row=db_fetch_assoc($q)) {
             $instance = empty( $row['max_instance'] ) ? 0 : $row['max_instance'];
-            $module->emDebug($row, $instance);
+
         } else {
             $instance = 0;
         }
-
-        return $instance + 1;
+        var $result = $instance +1;
+        $module->emDebug("Returning instance $result");
+        return $result;
     }
 
     /**
