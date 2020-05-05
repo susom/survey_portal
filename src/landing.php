@@ -129,7 +129,7 @@ if(isset($_POST['cal_submit'])) {
 
     //if (isset($survey_date)) {
     if (!empty($survey_date)) {
-        $module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
+        //$module->emDebug("From Calendar launch: Starting with date: ", $survey_date);
         $day_number = $participant->getDayNumberFromDate($survey_date);
         $module->emDebug("From Calendar launch: Starting with date: " . $survey_date->format('Y-m-d'). ' and daynumber: '. $day_number);
     } else {
