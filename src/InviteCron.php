@@ -30,4 +30,5 @@ try {
     echo "COMPLETED Sub $sub for project " . $module->getProjectId();
 } catch (\Exception $e) {
     $this->emError("Excepting in InvitationManager " . $e->getMessage());
+    echo "ERROR: " . $e->getMessage();
 }
