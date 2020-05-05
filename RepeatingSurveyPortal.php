@@ -2,14 +2,14 @@
 
 namespace Stanford\RepeatingSurveyPortal;
 
-
-
 use ExternalModules\ExternalModules;
 use \REDCap;
 use \DateTime;
 use \Message;
 use Exception;
 use Piping;
+
+use GuzzleHttp;
 
 require_once("src/ConfigInstance.php");
 
@@ -392,9 +392,17 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     $this_url = $url . '&pid=' . $pid . "&s=" . $sub;
                     $this->emDebug("INVITE CRON URL IS " . $this_url);
 
-                    $resp = http_get($this_url);
+                    // $timeout = 3600;
+                    // // Without a timeout, it appears that after 10 minutes the curl request was 'restarting'
+                    // $resp = http_get($this_url, $timeout);
+
+                    $client = new GuzzleHttp\Client();
+                    $resp = $client->request('GET', $this_url, [
+                            GuzzleHttp\RequestOptions::SYNCHRONOUS => true
+                    ]);
+
                     //$this->cronAttendanceReport($pid);
-                    $this->emDebug("Invite Cron Response:",$resp);
+                    $this->emDebug("Invite Cron Response:",$resp->getBody());
                 }
             }
         }
