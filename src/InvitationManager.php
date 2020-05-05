@@ -146,8 +146,8 @@ class InvitationManager {
                 if ($this->project_id == 19184) {
                     $module->emDebug("Sending invite/reminder for " . $participant->getParticipantID());
                     usleep(600000);
+                    continue;
                 }
-                continue;
 
                 //send invite to email OR SMS
                 if (($candidate[$this->portalConfig->disableParticipantEmailField."___1"] <> '1') &&

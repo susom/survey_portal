@@ -8,6 +8,11 @@ use REDCap;
 
 require_once 'InvitationManager.php';
 
+$bt = debug_backtrace();
+$module->emDebug("INVITATION_CRON", $_REQUEST, $bt);
+
+
+
 $sub = isset($_GET['s']) ? $_GET['s'] : "";
 
 $module->emLog("------- Starting Repeating Survey Portal:  Invitation Cron for  $project_id with config sub-setting $sub-------");
