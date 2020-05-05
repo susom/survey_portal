@@ -606,7 +606,7 @@ class Participant {
 
         if ($row = db_fetch_assoc($q)) {
             // We found a result
-            $module->emDebug($row);
+            //$module->emDebug($row);
             $instance = $row['instance'];
         } else {
             $instance = $this->getNextInstanceID();
