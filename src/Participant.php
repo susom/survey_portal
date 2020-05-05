@@ -608,6 +608,10 @@ class Participant {
             // We found a result
             //$module->emDebug($row);
             $instance = $row['instance'];
+
+            if (empty($instance)) {
+                $instance = 1;
+            }
             $module->emDebug("About to return found $instance");
         } else {
             $instance = $this->getNextInstanceID();

@@ -8,22 +8,27 @@ use REDCap;
 
 require_once 'InvitationManager.php';
 
+// $bt = debug_backtrace();
+// $module->emDebug("INVITATION_CRON", $_REQUEST, $bt);
+
 $sub = isset($_GET['s']) ? $_GET['s'] : "";
 
-$module->emLog("------- Starting Repeating Survey Portal:  Invitation Cron for  $project_id with config sub-setting $sub-------");
-echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------";
+$module->emLog("Starting Invitation Manager for " . $module->getProjectId() . " with config $sub");
+// echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------";
 
 //check if this $sub is enabled
 $enabled = $module->getSubSettings('survey-portals')[$sub]['enable-portal'];
 if (! $enabled ) {
-    $module->emLog("Subsetting $sub is not enabled. Not sending invitations.");
+    $module->emLog("Subsetting $sub is not enabled -- skipping");
     exit;
 }
 
-
-
-$inviteMgr = new InvitationManager($project_id, $sub);
-
-if (isset($inviteMgr)) {
+// Process
+try {
+    $inviteMgr = new InvitationManager($module->getProjectId(), $sub);
     $inviteMgr->sendInvitations($sub);
+    echo "COMPLETED Sub $sub for project " . $module->getProjectId();
+} catch (\Exception $e) {
+    $this->emError("Excepting in InvitationManager " . $e->getMessage());
+    echo "ERROR: " . $e->getMessage();
 }
