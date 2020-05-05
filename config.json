@@ -56,7 +56,7 @@
     ],
     "project": [
       {
-        "name": "RSP Admin: Test Cron Links",
+        "name": "RSP Admins: Test Cron Links",
         "icon": "gear",
         "url": "src/DisplayCronLinks.php"
       }
@@ -129,13 +129,13 @@
         },
         {
           "key": "disable-texts",
-          "name": "<div class='alert alert-success'><b>Disable Text</b><br>Check this checkbox to turn off texting</div>",
+          "name": "<div class='alert alert-success'><b>Disable Texts</b><br>Check this checkbox to turn off texting for this portal</div>",
           "required": false,
           "type": "checkbox"
         },
         {
           "key": "disable-emails",
-          "name": "<div class='alert alert-success'><b>Disable Text</b><br>Check this checkbox to turn off emails</div>",
+          "name": "<div class='alert alert-success'><b>Disable Emails</b><br>Check this checkbox to turn off emails for this portal</div>",
           "required": false,
           "type": "checkbox"
         },

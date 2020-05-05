@@ -82,6 +82,8 @@ class PortalConfig {
     private $sub_map = array(
         'config-id'                       => 'configID',
         'enable-portal'                   => 'enablePortal',
+        'disable-texts'                   => 'disableTexts',
+        'disable-emails'                  => 'disableEmails',
         'main-config-event-name'          => 'mainConfigEventID',
         'main-config-form-name'           => 'mainConfigFormName',
         'participant-disabled'            => 'participantDisabled',

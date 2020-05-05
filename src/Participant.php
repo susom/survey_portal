@@ -196,6 +196,11 @@ class Participant {
     public function locateParticipantFromHash($hash) {
         global $module;
 
+        if (!isset($hash) || (empty($hash))) {
+            $module->emDebug("hash is $hash");
+            return null;
+        }
+
         // 2020-05-01 replace getData with direct SQL to improve performance from 6sec to 50ms
 
         // //limit surveys to this

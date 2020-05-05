@@ -61,6 +61,15 @@ class InvitationManager {
             $module->emError("Wrong subsetting received while sending Invitations from cron");
         }
 
+        //check if either the emails or texts have been disabled for this portal
+        $text_disabled = $this->portalConfig->disableTexts;
+        $email_disabled = $this->portalConfig->disableEmails;
+
+        if (($text_disabled === true) && ($email_disabled === true)) {
+            $module->emLog("Text and Email both disabled for project: ". $this->project_id . " today: ". date('Y-m-d'));
+            return;
+        }
+
         $candidates = $this->getInviteReminderCandidates();
 
         if (empty($candidates)) {
@@ -69,6 +78,9 @@ class InvitationManager {
         }
 
         foreach ($candidates as $candidate) {
+
+            //TODO: this is to test the doubled cron job
+            //sleep(60);
 
             //check if today is a valid day for invitation:
             $valid_day = $this->checkIfDateValid($candidate[$this->portalConfig->startDateField], $this->portalConfig->inviteValidDayArray);
@@ -97,6 +109,7 @@ class InvitationManager {
                 //set up the new record and prefill it with survey metadata
                 //create participant object. we need it to know the next instance.
                 try {
+
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
                     $module->emDebug("Checking invitations for ". $participant->getParticipantID());
                 } catch (Exception $e) {
@@ -137,7 +150,9 @@ class InvitationManager {
 
                 //send invite to email OR SMS
                 if (($candidate[$this->portalConfig->disableParticipantEmailField."___1"] <> '1') &&
-                    ($candidate[$this->portalConfig->emailField] <> '')) {
+                    ($candidate[$this->portalConfig->emailField] <> '') &&
+                    ($email_disabled === false)
+                ) {
 
 
                     $module->emDebug("Sending email invite to participant record id: ".$candidate[REDCap::getRecordIdField()]);
@@ -176,9 +191,10 @@ class InvitationManager {
 
                 }
 
+
                 if (($candidate[$this->portalConfig->disableParticipantSMSField."___1"] <> '1') &&
-                        ($candidate[$this->portalConfig->phoneField] <> '')
-                    && $this->project_id != 19184
+                        ($candidate[$this->portalConfig->phoneField] <> '') &&
+                    ($text_disabled === false)
                 ) {
                     $module->emDebug("Sending text invite to record id: ".$candidate[REDCap::getRecordIdField()]);
                     //TODO: implement text sending of URL
