@@ -145,6 +145,7 @@ class InvitationManager {
                 // SKIP EMAILS FOR 19184 (TODO: MUST REMOVE THIS AFTERNOON !!!)
                 if ($this->project_id == 19184) {
                     $module->emDebug("Sending invite/reminder for " . $participant->getParticipantID());
+                    usleep(600000);
                 }
                 continue;
 
