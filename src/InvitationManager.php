@@ -113,7 +113,7 @@ class InvitationManager {
                     $participant = new Participant($this->portalConfig, $candidate[$this->portalConfig->personalHashField]);
                     $module->emDebug("Checking invitations for ". $participant->getParticipantID());
                 } catch (Exception $e) {
-                    $module->emError($e);
+                    $module->emError($e->getMessage());
                     continue;
                 }
 
