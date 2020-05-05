@@ -402,7 +402,8 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     ]);
 
                     //$this->cronAttendanceReport($pid);
-                    $this->emDebug("Invite Cron Response:",$resp->getBody());
+                    // $this->emDebug("Invite Cron Response:",$resp->getBody());
+                    // TODO: How to inspect guzzle response for errors?
                 }
             }
         }
