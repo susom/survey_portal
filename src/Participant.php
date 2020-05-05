@@ -532,7 +532,7 @@ class Participant {
         } else {
             $instance = 0;
         }
-        var $result = $instance +1;
+        $result = $instance +1;
         $module->emDebug("Returning instance $result");
         return $result;
     }
