@@ -27,8 +27,10 @@ if (! $enabled ) {
 try {
     $inviteMgr = new InvitationManager($module->getProjectId(), $sub);
     $inviteMgr->sendInvitations($sub);
-    echo "COMPLETED Sub $sub for project " . $module->getProjectId();
+    $msg = "COMPLETED Sub $sub for project " . $module->getProjectId();
+    echo $msg;
+    $module->emDebug($msg);
 } catch (\Exception $e) {
-    $this->emError("Excepting in InvitationManager " . $e->getMessage());
+    $module->emError("Excepting in InvitationManager " . $e->getMessage());
     echo "ERROR: " . $e->getMessage();
 }

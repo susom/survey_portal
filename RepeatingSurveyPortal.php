@@ -396,10 +396,15 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     // // Without a timeout, it appears that after 10 minutes the curl request was 'restarting'
                     // $resp = http_get($this_url, $timeout);
 
-                    $client = new GuzzleHttp\Client();
-                    $resp = $client->request('GET', $this_url, [
-                            GuzzleHttp\RequestOptions::SYNCHRONOUS => true
-                    ]);
+                    try{
+                        $client = new GuzzleHttp\Client();
+                        $resp = $client->request('GET', $this_url, [
+                                GuzzleHttp\RequestOptions::SYNCHRONOUS => true
+                        ]);
+                        $this->emDebug("Guzzle done", $resp->getBody()->getContents());
+                    } catch (GuzzleHttp\Exception\ConnectException $e) {
+                        $this->emDebug("Guzzle exception: " . $e->getMessage());
+                    }
 
                     //$this->cronAttendanceReport($pid);
                     // $this->emDebug("Invite Cron Response:",$resp->getBody());
@@ -453,9 +458,19 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                     $this_url = $url . '&pid=' . $pid . "&s=" . $sub;
                     $this->emDebug("REMINDER CRON URL IS " . $this_url);
 
-                    $resp = http_get($this_url);
-                    //$this->cronAttendanceReport($pid);
-                    $this->emDebug("cron for reminder: " . $resp);
+                    // $resp = http_get($this_url);
+                    // //$this->cronAttendanceReport($pid);
+                    // $this->emDebug("cron for reminder: " . $resp);
+
+                    try{
+                        $client = new GuzzleHttp\Client();
+                        $resp = $client->request('GET', $this_url, [
+                                GuzzleHttp\RequestOptions::SYNCHRONOUS => true
+                        ]);
+                        $this->emDebug("Guzzle done", $resp->getBody()->getContents());
+                    } catch (GuzzleHttp\Exception\ConnectException $e) {
+                        $this->emDebug("Guzzle exception: " . $e->getMessage());
+                    }
                 }
             }
         }
