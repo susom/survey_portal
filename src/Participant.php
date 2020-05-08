@@ -523,7 +523,7 @@ class Participant {
             db_escape($this->portalConfig->surveyConfigField),
             db_escape($this->portalConfig->configID)
         );
-        //$module->emDebug($sql);
+        $module->emDebug($sql);
         $q = db_query($sql);
 
         if ($row=db_fetch_assoc($q)) {
