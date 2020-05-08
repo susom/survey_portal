@@ -508,7 +508,7 @@ class Participant {
         // get the greatest instance id for the current configID
         $sql = sprintf("
             select
-                max(instance) as 'max_instance'
+               rd.record, max(instance) as 'max_instance'
             from
                 redcap_data rd
             where
@@ -523,12 +523,18 @@ class Participant {
             db_escape($this->portalConfig->surveyConfigField),
             db_escape($this->portalConfig->configID)
         );
-        $module->emDebug($sql);
+        //$module->emDebug($sql);
         $q = db_query($sql);
 
         if ($row=db_fetch_assoc($q)) {
             $instance = empty( $row['max_instance'] ) ? 0 : $row['max_instance'];
 
+            //max instance will be returned empty if n= 1 OR n=0
+            //so check the existence of $row['record'] to determine if 0 or 1
+            if (($instance == 0) && $row['record'] == $this->participantID) {
+                $module->emDebug("found 1 row, next instance should be 2");
+                $instance = 1;
+            }
         } else {
             $instance = 0;
         }
