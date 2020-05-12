@@ -154,7 +154,7 @@ class InstrumentHelper {
 }
 
 
-
+/**
 echo " TEst to insert an instrument ";
 echo "<pre>";
 
@@ -167,4 +167,80 @@ if (!$result) {
 } else {
     echo "SUCCESS\n";
 }
+ *
+
+ */
+
+
+    global $module;
+    $sub = 0;
+
+    echo "Running test for inviteReminderCandidates for project_id $project_id and sub $sub";
+
+    //get the config id from the passed in hash
+    $configID = $module->getConfigIDFromSubID($sub);
+    $portalConfig;
+
+    if ($configID != null) {
+
+        $portalConfig = new PortalConfig($configID);
+    } else {
+        $module->emError("Cron job to send invitations attempted for a non-existent configId: ". $configID .
+                         " in this subsetting :  ". $sub);
+    }
+
+    if ($portalConfig->configID == null) {
+        $module->emError("config ID is not set!");
+        return false;
+    }
+
+    $enrollment_arm = $portalConfig->mainConfigEventName;
+
+    //1. Obtain all records where this 'config-id' matches the in the patient record
+    //Also filter that either email or sms  is populated.
+    $filter = "(" .
+        "([$enrollment_arm][" . $portalConfig->participantConfigIDField . "] = '{$portalConfig->configID}') AND " .
+        "(" .
+        "(([$enrollment_arm][" . $portalConfig->disableParticipantEmailField . "(1)] <> 1) and  ([$enrollment_arm][" . $portalConfig->emailField . "] <> ''))" .
+        " OR " .
+        "(([$enrollment_arm][" . $portalConfig->disableParticipantSMSField . "(1)] <> 1) and  ([$enrollment_arm][" . $portalConfig->phoneField . "] <> ''))"
+        . ")"
+        . ")";
+
+    $filter = "[enrollment_arm_1][rsp_prt_config_id] = 'daily'";
+
+    $module->emDebug($filter);
+    $params = array(
+        'return_format' => 'json',
+        'fields' => array(
+            \REDCap::getRecordIdField(),
+            $portalConfig->emailField,
+            $portalConfig->phoneField,
+            $portalConfig->personalUrlField,
+            $portalConfig->startDateField,
+            $portalConfig->emailField,
+            $portalConfig->disableParticipantEmailField,
+            $portalConfig->phoneField,
+            $portalConfig->disableParticipantSMSField,
+            $portalConfig->personalHashField
+        ),
+        'events' => $portalConfig->mainConfigEventName,
+        'filterLogic' => $filter
+    );
+
+    //$module->emDebug($params, "PARAMS");
+    $q = \REDCap::getData($params);
+    $result = json_decode($q, true);
+
+    //there is a bug since 9.1 where the filter returns an empty array for every found array.
+    //iterate over the returned result and delete the ones where redcap_repeat_instance is blank
+    $not_empty = array();
+    foreach ($result as $k => $v) {
+        if (!empty($v['redcap_repeat_instance'])) {
+            $not_empty[] = $v;
+        }
+    }
+
+    $module->emDebug($params, $result, $not_empty, "Count of invitations to be sent:  ".count($result). " not empty". count($not_empty));
+    //exit;
 

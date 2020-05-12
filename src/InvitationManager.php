@@ -260,14 +260,16 @@ class InvitationManager {
             return false;
         }
 
+        $enrollment_arm = $this->portalConfig->mainConfigEventName;
+
         //1. Obtain all records where this 'config-id' matches the in the patient record
         //Also filter that either email or sms  is populated.
         $filter = "(".
-            "([".$this->portalConfig->participantConfigIDField ."] = '{$this->portalConfig->configID}') AND ".
+            "([$enrollment_arm][".$this->portalConfig->participantConfigIDField ."] = '{$this->portalConfig->configID}') AND ".
             "(".
-            "(([".$this->portalConfig->disableParticipantEmailField."(1)] <> 1) and  ([".$this->portalConfig->emailField."] <> ''))".
+            "(([$enrollment_arm][".$this->portalConfig->disableParticipantEmailField."(1)] <> 1) and  ([$enrollment_arm][".$this->portalConfig->emailField."] <> ''))".
             " OR ".
-            "(([".$this->portalConfig->disableParticipantSMSField."(1)] <> 1) and  ([".$this->portalConfig->phoneField."] <> ''))"
+            "(([$enrollment_arm][".$this->portalConfig->disableParticipantSMSField."(1)] <> 1) and  ([$enrollment_arm][".$this->portalConfig->phoneField."] <> ''))"
             .")"
             .")";
 
