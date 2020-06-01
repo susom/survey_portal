@@ -182,10 +182,12 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
         $sub = $this->getSubIDFromConfigID($cookie_config);
         $this->emDebug("COOKIE CONFIG <". $cookie_config . "> found SUB: ".$sub);
 
-        $redirect = $this->getProjectSetting('survey-complete-redirect')[$sub];
+        $redirect     = $this->getProjectSetting('survey-complete-redirect', $project_id)[$sub];
+        $survey_event = $this->getProjectSetting('survey-event-name', $project_id)[$sub];
 
-        if (isset($redirect) && ($redirect == $instrument) ) {
-            $this->emDebug("Redirecting to landing page after this survey completed: " . $redirect);
+
+        if (isset($redirect) && ($redirect == $instrument) && ($event_id == $survey_event)) {
+            $this->emDebug("Redirecting to landing page after this survey completed in target event ($event_id): " . $redirect);
 
             if (empty($cookie_config) || $cookie_config == '') {
                 $this->emError("Unable to redirect to landing page since unable to retrieve config info from cookie: " . $cookie_key);
@@ -204,7 +206,7 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
                 $portal_url = $this->getUrl("src/landing.php", true, true);
                 $return_hash_url = $portal_url . "&h=" . $hash . "&c=" . $cookie_config;
 
-                $this->emDebug("this is new hash url: " . $return_hash_url);
+                //$this->emDebug("this is new hash url: " . $return_hash_url);
 
                 //now redirect back to the landing page
                 header("Location: " . $return_hash_url);
