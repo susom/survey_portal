@@ -52,6 +52,8 @@ class PortalConfig {
 
     public $enableInvitations;
     public $invitationDays;
+    public $invitationDaysModInactivity;
+    public $invitationDaysModLog;
     public $invitationTime;
     public $invitationEmailText;
     public $invitationUrlLabel;
@@ -85,6 +87,12 @@ class PortalConfig {
         'disable-texts'                   => 'disableTexts',
         'disable-emails'                  => 'disableEmails',
         'main-config-event-name'          => 'mainConfigEventID',
+        'survey-event-name'               => 'surveyEventID',
+        'survey-instrument'               => 'surveyInstrument',
+        'valid-day-number'                => 'validDayNumber',
+        'survey-complete-redirect'        => 'surveyCompleteRedirect',
+        'portal-invite-subject'           => 'surveyInviteSubject',
+        'portal-invite-from'              => 'surveyInviteFrom',
         'main-config-form-name'           => 'mainConfigFormName',
         'participant-disabled'            => 'participantDisabled',
         'start-date-field'                => 'startDateField',
@@ -94,13 +102,10 @@ class PortalConfig {
         'disable-participant-email-field' => 'disableParticipantEmailField',
         'phone-field'                     => 'phoneField',
         'disable-participant-sms-field'   => 'disableParticipantSMSField',
-        'survey-event-name'               => 'surveyEventID',
-        'survey-instrument'               => 'surveyInstrument',
         'survey-config-field'             => 'surveyConfigField',
         'survey-day-number-field'         => 'surveyDayNumberField',
         'survey-date-field'               => 'surveyDateField',
         'survey-launch-ts-field'          => 'surveyLaunchTSField',
-        'valid-day-number'                => 'validDayNumber',
 //        'max-response-per-day'            => 'maxResponsePerDay',    // multiple responses per day not yet implemented
         'valid-day-lag'                   => 'validDayLag',
         'earliest-time-allowed'           => 'earliestTimeAllowed',
@@ -108,13 +113,12 @@ class PortalConfig {
         'show-calendar'                   => 'showCalendar',
         'show-missing-day-buttons '       => 'showMissingDayButtons',
         'auto-start-survey'               => 'autoStartSurvey',
-        'survey-complete-redirect'        => 'surveyCompleteRedirect',
         'portal-invite-email'             => 'surveyInviteEmail',
         'portal-url-label'                => 'surveyUrlLabel',
-        'portal-invite-subject'           => 'surveyInviteSubject',
-        'portal-invite-from'              => 'surveyInviteFrom',
         'enable-invitations'              => 'enableInvitations',
         'invitation-days'                 => 'invitationDays',
+        'invitation-days-mod-inactivity'  => 'invitationDaysModInactivity',
+        'invitation-days-mod-logic'       => 'invitationDaysModLogic',
         'invitation-time'                 => 'invitationTime',
         'invitation-email-text'           => 'invitationEmailText',
         'invitation-url-label'            => 'invitationUrlLabel',

@@ -77,6 +77,9 @@ class InvitationManager {
             return;
         }
 
+        $modifier_by_logic = $this->portalConfig->invitationDaysModLogic;
+
+
         foreach ($candidates as $candidate) {
 
             //TODO: this is to test the doubled cron job
@@ -87,6 +90,13 @@ class InvitationManager {
             //$module->emDebug("ID: " .$candidate[REDCap::getRecordIdField()] .  " / VALID DAY NUMBER: ".$valid_day);
             //,($valid_day == null), ($valid_day == ''), isset($valid_day) ); exit;
             //$module->emDebug($this->portalConfig->inviteValidDayArray, "IN ARRAY");
+
+            //check the logic if there is logic
+            if (isset($modifier_by_logic)) {
+                $result = REDCap::evaluateLogic($modifier_by_logic, $this->project_id, $candidate[REDCap::getRecordIdField()], $this->portalConfig->surveyEventID); // repeat instance
+            }
+
+
 
             //Need repeat_instance for piping
             $repeat_instance = $candidate['redcap_repeat_instance'];
@@ -305,6 +315,10 @@ class InvitationManager {
             }
         }
 
+        $sql_ct = $this->getRecordsBySql();
+
+        $module->emDebug("count by getData: ".count($not_empty). " / count by sql: ".count($sql_ct));
+
        //$module->emDebug($result, $not_empty, "Count of invitations to be sent:  ".count($result). " not empty". count($not_empty));
        //exit;
 
@@ -313,6 +327,155 @@ class InvitationManager {
 
     }
 
+    public function getRecordsBySql() {
+        global $module;
+
+        $allowed_inactive_days = $this->portalConfig->invitationDaysModInactivity;
+        $allowed_logic         = $this->portalConfig->invitationDaysModLogic;
+
+        $fields = array(
+            $this->portalConfig->emailField,
+            $this->portalConfig->phoneField,
+            $this->portalConfig->personalUrlField,
+            $this->portalConfig->startDateField,
+            $this->portalConfig->disableParticipantEmailField,
+            $this->portalConfig->disableParticipantSMSField,
+            $this->portalConfig->personalHashField,
+            $this->portalConfig->participantConfigIDField
+        );
+
+        $select_str = "select distinct(r0.record), r0.event_id";
+        $from_str   = " from redcap_data r0 ";
+        $where_str  = " where r0.project_id = %d and r0.event_id = %d";
+        $cross_str = " and (
+    (coalesce(r5.value,'') != '1') and (coalesce(r1.value,'') != '')
+    or
+    (coalesce(r6.value,'') != '1') and (coalesce(r2.value,'') != '')
+    )
+    and (coalesce(r8.value,'') = '{$this->portalConfig->configID}')";
+
+        $i = 1;
+        foreach ($fields as $k => $v) {
+            $select_str .= ",r{$i}.value as '{$v}'";
+            $from_str .= " left join redcap_data r{$i} on r0.project_id = r{$i}.project_id and ".
+                "r0.event_id = r{$i}.event_id and r0.record = r{$i}.record and ".
+                "r0.instance <=> r{$i}.instance and r{$i}.field_name = '%s'\n ";
+            $i++;
+        }
+
+        array_push($fields, $this->project_id, $this->portalConfig->mainConfigEventID);
+
+        $inactive_sql = '';
+        if (!empty($allowed_inactive_days)) {
+            $inactive_sql = $this->getInactiveSql();
+
+            //
+            array_push($fields,$this->project_id,
+                       $this->portalConfig->surveyInstrument,
+                       $this->portalConfig->surveyEventID,
+                       $allowed_inactive_days,
+                       $this->project_id);
+        }
+
+        try {
+            $sql = vsprintf($select_str . $from_str . $where_str . $cross_str . $inactive_sql,
+                            $fields);
+
+            //$module->emDebug($sql);
+
+            $q = db_query($sql);
+
+            //make conversions so that the sql result looks like the getData result
+            while ($row = db_fetch_assoc($q)) {
+                //convert event_id to redcap_event_name
+
+                //convert
+                $foo[] = $row;
+
+
+            }
+
+            return $foo;
+
+        } catch (\Exception $e) {
+            $module->emError("Exception while executing sql to find inactive records", $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getInactiveSql()
+    {
+        $sql_str = " and r0.record in (select distinct(rd.record) from  redcap_data rd
+    left join (
+        select
+            rsr.record
+        from
+            redcap_surveys_response rsr
+        join redcap_surveys_participants rsp on rsr.participant_id = rsp.participant_id
+        where
+            rsp.survey_id = (select survey_id from redcap_surveys where project_id = %d and form_name = '%s')
+            and rsp.event_id = %d
+        group by
+            rsr.record
+        having
+            max(rsr.completion_time) >= NOW() - INTERVAL %d DAY
+     ) as old on rd.record = old.record
+where
+    rd.project_id = %d
+    and old.record is null)";
+
+        return $sql_str;
+    }
+
+    public function getInactiveRecords($project_id, $allowed_inactive_days) {
+        global $module;
+
+        try {
+            $sql = sprintf("
+select distinct(rd.record)
+from
+    redcap_data rd
+    left join (
+        select
+            rsr.record
+        from
+            redcap_surveys_response rsr
+        join redcap_surveys_participants rsp on rsr.participant_id = rsp.participant_id
+        where
+            rsp.survey_id = (select survey_id from redcap_surveys where project_id = %d and form_name = '%s')
+            and rsp.event_id = %d
+        group by
+            rsr.record
+        having
+            max(rsr.completion_time) >= NOW() - INTERVAL %d DAY
+     ) as old on rd.record = old.record
+where
+    rd.project_id = %d
+    and old.record is null",
+                $project_id,
+                $this->portalConfig->surveyInstrument,
+                $this->portalConfig->surveyEventID,
+                $allowed_inactive_days,
+                $project_id
+           );
+
+            $module->emDebug($sql);
+
+            $q = db_query($sql);
+            $foo = db_fetch_array($q);
+            $foo1 = db_fetch_object($q);
+            $foo2 = db_fetch_assoc($q);
+
+            return $foo;
+
+        } catch (\Exception $e) {
+            $module->emError("Exception while executing sql to find inactive records", $e->getMessage());
+            return null;
+        }
+
+
+
+    }
 
     /**
      * Given start date and valid_day_number array, check if date is a valid survey date

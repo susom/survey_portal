@@ -254,6 +254,18 @@
           "type": "text"
         },
         {
+          "key": "invitation-days-mod-inactivity",
+          "name": "<div class='alert alert-info'><b><span class='text-lg badge badge-lg badge-info'>Optional Invitation Days Modifier - Inactive Window</span></h6></b><br>Allowed number of days of inactivity ",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "key": "invitation-days-mod-logic",
+          "name": "<div class='alert alert-info'><b><span class='text-lg badge badge-lg badge-info'>Optional Invitation Days Modifier - Logic</span></h6></b><br>Before sending the invite, this logic will be checked before sending. ",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "invitation-time",
           "name": "<div class='alert alert-info'><b>Invitation Time</b><br>Hour of the day (0-24) to send invitation (e.g. 18 for 6PM)</div>",
           "required": false,
