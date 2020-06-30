@@ -63,6 +63,8 @@ class PortalConfig {
 
     public $enableReminders;
     public $reminderDays;
+    public $reminderDaysModInactivity;
+    public $reminderDaysModLog;
     public $reminderTime;
     public $reminderLag;
     public $reminderEmailText;
@@ -129,6 +131,8 @@ class PortalConfig {
         'reminder-time'                   => 'reminderTime',
         'reminder-lag'                    => 'reminderLag',
         'reminder-days'                   => 'reminderDays',
+        'reminder-days-mod-inactivity'    => 'reminderDaysModInactivity',
+        'reminder-days-mod-logic'         => 'reminderDaysModLogic',
         'reminder-email-text'             => 'reminderEmailText',
         'reminder-url-label'              => 'reminderUrlLabel',
         'reminder-email-subject'          => 'reminderEmailSubject',

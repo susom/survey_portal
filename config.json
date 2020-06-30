@@ -338,6 +338,18 @@
           "type": "text"
         },
         {
+          "key": "reminder-days-mod-inactivity",
+          "name": "<div class='alert alert-primary'><b><span class='text-lg badge badge-lg badge-info'>Optional Reminder Days Modifier - Inactive Window</span></h6></b><br>Allowed number of days of inactivity ",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "key": "reminder-days-mod-logic",
+          "name": "<div class='alert alert-primary'><b><span class='text-lg badge badge-lg badge-info'>Optional Reminder Days Modifier - Logic</span></h6></b><br>Before sending the reminder, this logic will be checked before sending. ",
+          "required": false,
+          "type": "text"
+        },
+        {
           "key": "reminder-email-subject",
           "name": "<div class='alert alert-primary'><b>Reminder Email Subject</b></div>",
           "required": false,
