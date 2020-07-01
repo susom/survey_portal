@@ -618,10 +618,10 @@ class Participant {
             if (empty($instance)) {
                 $instance = 1;
             }
-            $module->emDebug("About to return found $instance");
+            //$module->emDebug("About to return found $instance");
         } else {
             $instance = $this->getNextInstanceID();
-            $module->emDebug("About to return new $instance");
+            //$module->emDebug("About to return new $instance");
         }
 
 

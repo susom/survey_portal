@@ -35,21 +35,21 @@ class InvitationManager {
 
     public $project_id;
 
-    private $email_from;
-    private $email_subject;
-    private $email_type; //Invite or Reminder
-    private $email_text;
-    private $email_url_label;
-    private $sms_text;
-    private $modifier_by_logic;
-    private $valid_day_array;
-    private $allowed_inactive_days;
+    protected $email_from;
+    protected $email_subject;
+    protected $email_type; //Invite or Reminder
+    protected $email_text;
+    protected $email_url_label;
+    protected $sms_text;
+    protected $modifier_by_logic;
+    protected $valid_day_array;
+    protected $allowed_inactive_days;
 
-    private $config_text_disabled;
-    private $config_email_disabled;
+    protected $config_text_disabled;
+    protected $config_email_disabled;
 
-    private $target_day;
-    private $target_day_str;
+    protected $target_day;
+    protected $target_day_str;
 
 
     public function __construct($project_id, $sub) {
@@ -74,7 +74,7 @@ class InvitationManager {
         $this->email_text            = $this->portalConfig->invitationEmailText;
         $this->email_url_label       = $this->portalConfig->invitationUrlLabel;
         $this->sms_text              = $this->portalConfig->invitationSmsText;
-        $this->modifier_by_logic     = $this->portalConfig->invitationDaysModLog;
+        $this->modifier_by_logic     = $this->portalConfig->invitationDaysModLogic;
         $this->allowed_inactive_days = $this->portalConfig->invitationDaysModInactivity;
 
         $this->config_text_disabled  = $this->portalConfig->disableTexts;
@@ -106,10 +106,11 @@ class InvitationManager {
      * @param $sub
      * @throws Exception
      */
-    public function countInvitations($sub)
+    function countInvitations($sub)
     {
         global $module;
 
+        $module->emDebug("Invite type is : ".$this->email_type);
         $module->emDebug("inactive is ".$this->allowed_inactive_days);
         $module->emDebug("target day is ".$this->target_day_str);
 
@@ -120,6 +121,7 @@ class InvitationManager {
         }
 
         $msgs= array();
+
         // search all records where config_id = ConfigID
         // AND email not null and not disabled
         /// OR phonenum not null and not idsabled
@@ -175,6 +177,8 @@ class InvitationManager {
             return;
         }
 
+        $ct_sent_email = 0;
+        $ct_sent_sms = 0;
 
         foreach ($candidates as $candidate) {
 
@@ -236,16 +240,23 @@ class InvitationManager {
                     ($candidate[$this->portalConfig->emailField] <> '') &&
                     ($this->config_email_disabled === false))
                 {
-                    $this->sendEmail($rec_id, $survey_link, $candidate[$this->portalConfig->emailField], $repeat_instance,
+                    $email_status = $this->sendEmail($rec_id, $survey_link, $candidate[$this->portalConfig->emailField], $repeat_instance,
                                      $valid_day,$this->email_subject,$this->email_text,$this->email_url_label,$this->email_from, $this->email_type);
+
+                    if ($email_status == true) $ct_sent_email++;
                 }
 
                 if (($disable_sms <> '1') &&
                     ($candidate[$this->portalConfig->phoneField] <> '') &&
                     ($this->config_text_disabled === false))
                 {
-                    $this->sendSms($rec_id,$survey_link, $candidate[$this->portalConfig->phoneField], $repeat_instance,
+                    $sms_status = $this->sendSms($rec_id,$survey_link, $candidate[$this->portalConfig->phoneField], $repeat_instance,
                                    $valid_day, $this->sms_text, $this->email_type);
+                    if ($sms_status === true) {
+                        $ct_sent_sms++;
+                        $module->emDebug($sms_status);
+                    }
+
 
                 }
 
@@ -253,6 +264,17 @@ class InvitationManager {
 
 
         }
+
+        $module->emDebug("{$this->email_type} : Sent $ct_sent_email emails");
+        $module->emDebug("{$this->email_type} : Sent $ct_sent_sms texts");
+        REDCap::logEvent(
+            "Count of {$this->email_type} Sent from Survey Portal EM",  //action
+            " Sent $ct_sent_email emails and $ct_sent_sms texts",  //changes
+            NULL, //sql optional
+            NULL, //$participant->getParticipantID(), //record optional
+            $this->portalConfig->surveyEventName, //event optional
+            $this->project_id //project ID optional
+        );
 
 
     }
@@ -340,6 +362,7 @@ class InvitationManager {
             $this->portalConfig->surveyEventName, //event optional
             $this->project_id //project ID optional
         );
+        return $send_status;
     }
 
     public function sendSms($rec_id, $survey_link, $phone_num, $repeat_instance, $valid_day, $sms_text, $email_type) {
@@ -380,6 +403,7 @@ class InvitationManager {
             );
         }
 
+        return $twilio_status;
     }
 
 
@@ -460,7 +484,7 @@ class InvitationManager {
     public function getInviteReminderCandidatesBySQL($allowed_inactive_days) {
         global $module;
 
-        $module->emDebug("get sql: inactive: ". $allowed_inactive_days);
+        $module->emDebug("Running count for {$this->email_type} getting sql: inactive: ". $allowed_inactive_days);
 
         if ($this->portalConfig->configID  == null) {
             $module->emError("config ID is not set!");

@@ -55,7 +55,7 @@ class PortalConfig {
     public $enableInvitations;
     public $invitationDays;
     public $invitationDaysModInactivity;
-    public $invitationDaysModLog;
+    public $invitationDaysModLogic;
     public $invitationTime;
     public $invitationEmailText;
     public $invitationUrlLabel;
@@ -66,7 +66,7 @@ class PortalConfig {
     public $enableReminders;
     public $reminderDays;
     public $reminderDaysModInactivity;
-    public $reminderDaysModLog;
+    public $reminderDaysModLogic;
     public $reminderTime;
     public $reminderLag;
     public $reminderEmailText;
