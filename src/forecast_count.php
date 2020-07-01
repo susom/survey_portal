@@ -9,16 +9,14 @@ use DatePeriod;
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 
 require_once 'InvitationManager.php';
-require_once 'ReminderManager.php';
 
 $begin = '';
 $end = '';
 
-$sub = isset($_GET['s']) ? $_GET['s'] : "0";
+$sub = isset($_GET['s']) ? $_GET['s'] : "";
 
 $module->emLog("Starting Invitation Manager for " . $module->getProjectId() . " with config $sub");
-echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------<br>";
-echo "To change the sub add &s=1<br>";
+echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------";
 
 //check if this $sub is enabled
 $enabled = $module->getSubSettings('survey-portals')[$sub]['enable-portal'];
@@ -45,40 +43,14 @@ if ((! $enabled ) || (! $invite_enabled) ||  (($text_disabled == true) && ($emai
 
 try {
     $inviteMgr = new InvitationManager($module->getProjectId(), $sub);
-    $count_msg = $inviteMgr->countInvitations($sub);
-    $msg = "<COMPLETED Sub $sub for project " . $module->getProjectId();
-    echo "<br>";
+    $inviteMgr->countInvitations($sub);
+    $msg = "COMPLETED Sub $sub for project " . $module->getProjectId();
     echo $msg;
-    echo "<br>";
-    echo "Inactive window set to ".$module->getSubSettings('survey-portals')[$sub]['invitation-days-mod-inactivity'];
-    foreach ($count_msg as $msg) {
-        echo "<br>";
-        echo $msg;
-    }
+    $module->emDebug($msg);
 } catch (\Exception $e) {
     $module->emError("InvitationManager not started: " . $e->getMessage());
     echo "ERROR: " . $e->getMessage();
 }
-echo "<br>";
-echo "<br>";
-echo "------- Starting Repeating Survey Portal:  Reminder Count for $project_id with config sub-setting $sub-------<br>";
-try {
-    $remindMgr = new ReminderManager($module->getProjectId(), $sub);
-    $count_msg = $remindMgr->countReminders($sub);
-    $msg = "<COMPLETED Sub $sub for project " . $module->getProjectId();
-    echo "<br>";
-    echo $msg;
-    echo "<br>";
-    echo "Inactive window set to ".$module->getSubSettings('survey-portals')[$sub]['reminder-days-mod-inactivity'];
-    foreach ($count_msg as $msg) {
-        echo "<br>";
-        echo $msg;
-    }
-} catch (\Exception $e) {
-    $module->emError("ReminderManager not started: " . $e->getMessage());
-    echo "ERROR: " . $e->getMessage();
-}
-
 
 exit;
 

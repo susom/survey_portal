@@ -51,7 +51,7 @@ if ((! $enabled ) || (! $reminder_enabled) || (!isset($reminder_lag))|| (($text_
 try {
     $inviteMgr = new ReminderManager($module->getProjectId(), $sub);
     //$inviteMgr->sendReminders($sub);
-    $inviteMgr->sendInvitations($sub);
+    $inviteMgr->sendReminders($sub);
     $msg = "COMPLETED Sub $sub for project " . $module->getProjectId();
     echo $msg;
     $module->emDebug($msg);

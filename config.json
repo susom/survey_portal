@@ -59,6 +59,11 @@
         "name": "RSP Admins: Test Cron Links",
         "icon": "gear",
         "url": "src/DisplayCronLinks.php"
+      },
+      {
+        "name": "RSP Admins: Forecast",
+        "icon": "gear",
+        "url": "src/forecast.php"
       }
     ]
   },
