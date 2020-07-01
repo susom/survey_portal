@@ -35,20 +35,21 @@ class InvitationManager {
 
     public $project_id;
 
-    public $email_from;
-    public $email_subject;
-    public $email_type; //Invite or Reminder
-    public $email_text;
-    public $email_url_label;
-    public $sms_text;
-    public $modifier_by_logic;
-    public $valid_day_array;
+    private $email_from;
+    private $email_subject;
+    private $email_type; //Invite or Reminder
+    private $email_text;
+    private $email_url_label;
+    private $sms_text;
+    private $modifier_by_logic;
+    private $valid_day_array;
+    private $allowed_inactive_days;
 
-    public $config_text_disabled;
-    public $config_email_disabled;
+    private $config_text_disabled;
+    private $config_email_disabled;
 
-    public $target_day;
-    public $target_day_str;
+    private $target_day;
+    private $target_day_str;
 
 
     public function __construct($project_id, $sub) {
@@ -67,22 +68,26 @@ class InvitationManager {
             throw new Exception($err_msg);
         }
 
-        $this->email_from = $this->portalConfig->invitationEmailFrom;
-        $this->email_subject = $this->portalConfig->invitationEmailSubject;
-        $this->email_type = "Invite";
-        $this->email_text = $this->portalConfig->invitationEmailText;
-        $this->email_url_label = $this->portalConfig->invitationUrlLabel;
-        $this->sms_text = $this->portalConfig->invitationSmsText;
-        $this->modifier_by_logic = $this->portalConfig->invitationDaysModLogic;
+        $this->email_from            = $this->portalConfig->invitationEmailFrom;
+        $this->email_subject         = $this->portalConfig->invitationEmailSubject;
+        $this->email_type            = "Invite";
+        $this->email_text            = $this->portalConfig->invitationEmailText;
+        $this->email_url_label       = $this->portalConfig->invitationUrlLabel;
+        $this->sms_text              = $this->portalConfig->invitationSmsText;
+        $this->modifier_by_logic     = $this->portalConfig->invitationDaysModLog;
+        $this->allowed_inactive_days = $this->portalConfig->invitationDaysModInactivity;
 
-        $this->config_text_disabled = $this->portalConfig->disableTexts;
+        $this->config_text_disabled  = $this->portalConfig->disableTexts;
         $this->config_email_disabled = $this->portalConfig->disableEmails;
 
         $this->valid_day_array = $this->portalConfig->inviteValidDayArray;
 
         //for invitations, use current day for lagged_str
         $this->target_day  = new DateTime();
-        $this->lagged_str = $this->target_day->format('Y-m-d');
+        $this->target_day_str = $this->target_day->format('Y-m-d');
+
+        $module->emDebug("inactive is ".$this->allowed_inactive_days);
+        $module->emDebug("target day is ".$this->target_day_str);
 
         //CRON JOB already checks that
         // enable-portal is set
@@ -90,6 +95,56 @@ class InvitationManager {
         // disable-texts and disable-emails ARE NOT both set
 
     }
+
+    /******************************************************************************************************************
+     *  METHODS FOR TESTING COUNT
+     *
+     ******************************************************************************************************************/
+
+    /**
+     *
+     * @param $sub
+     * @throws Exception
+     */
+    public function countInvitations($sub)
+    {
+        global $module;
+
+        $module->emDebug("inactive is ".$this->allowed_inactive_days);
+        $module->emDebug("target day is ".$this->target_day_str);
+
+
+        if ($sub != $this->portalConfig->subSettingID) {
+            $module->emError("Wrong subsetting received while sending Invitations from cron");
+            return null;
+        }
+
+        $msgs= array();
+        // search all records where config_id = ConfigID
+        // AND email not null and not disabled
+        /// OR phonenum not null and not idsabled
+        //redo the search by SQL not by filter getData
+        //$candidates = $this->getInviteReminderCandidates();
+        $candidates = $this->getInviteReminderCandidates();
+        $msgs[] = "Count by getData: ".count($candidates);
+
+        $sql_result = $this->getInviteReminderCandidatesBySQL($this->allowed_inactive_days);
+        //$not_empty = $this->getRecordsBySql();
+        $msgs[] = "Count by sql on inactives only : ". $sql_result->num_rows;
+
+        //count how many inactive there were
+        $inactive = $this->getInactiveRecords($this->project_id, $this->allowed_inactive_days);
+        $msgs[] = "Count of inactive records : ".$inactive->num_rows;
+        $module->emDebug($msgs);
+        return $msgs;
+    }
+
+
+
+    /******************************************************************************************************************
+     *  METHODS
+     *
+     ******************************************************************************************************************/
 
     /**
      *
@@ -110,7 +165,7 @@ class InvitationManager {
         /// OR phonenum not null and not idsabled
         //redo the search by SQL not by filter getData
         //$candidates = $this->getInviteReminderCandidates();
-        $candidates = $this->getInviteReminderCandidatesBySQL();
+        $candidates = $this->getInviteReminderCandidatesBySQL($this->allowed_inactive_days);
 
         //report count for debugging:
         $module->emDebug("Count of {$this->email_type} retrieved for pid ". $this->project_id . " : ". $candidates->num_rows);
@@ -181,14 +236,16 @@ class InvitationManager {
                     ($candidate[$this->portalConfig->emailField] <> '') &&
                     ($this->config_email_disabled === false))
                 {
-                    $this->sendEmail($rec_id, $survey_link, $candidate[$this->portalConfig->emailField], $repeat_instance,$valid_day);
+                    $this->sendEmail($rec_id, $survey_link, $candidate[$this->portalConfig->emailField], $repeat_instance,
+                                     $valid_day,$this->email_subject,$this->email_text,$this->email_url_label,$this->email_from, $this->email_type);
                 }
 
                 if (($disable_sms <> '1') &&
                     ($candidate[$this->portalConfig->phoneField] <> '') &&
                     ($this->config_text_disabled === false))
                 {
-                    $this->sendSms($rec_id,$survey_link, $candidate[$this->portalConfig->phoneField], $repeat_instance, $valid_day);
+                    $this->sendSms($rec_id,$survey_link, $candidate[$this->portalConfig->phoneField], $repeat_instance,
+                                   $valid_day, $this->sms_text, $this->email_type);
 
                 }
 
@@ -202,6 +259,11 @@ class InvitationManager {
 
     public function getSurveyLink($rec_id, $valid_day, $personal_hash, $personal_url, $target_day) {
         global $module;
+
+        if (!isset($personal_hash)) {
+            $module->emError("Hash missing for record $rec_id: ".$personal_hash);
+            return null;
+        }
 
         //set up the new record and prefill it with survey metadata
         //create participant object. we need it to know the next instance.
@@ -234,30 +296,31 @@ class InvitationManager {
         //$survey_link = REDCap::getSurveyLink($participant->participant_id, $participant->surveyInstrument,
         //$participant->surveyEventName, $next_id);
 
-        $portal_url   = $module->getUrl("src/landing.php", true,true);
+        //$portal_url   = $module->getUrl("src/landing.php", true,true);
         $survey_link = $personal_url."&d=" . $valid_day;
 
         return $survey_link;
 
     }
 
-    public function sendEmail($rec_id, $survey_link, $email_addr, $repeat_instance, $valid_day) {
+    public function sendEmail($rec_id, $survey_link, $email_addr, $repeat_instance, $valid_day, $email_subject, $email_text,
+                              $email_url_label, $email_from, $email_type) {
         global $module;
         $module->emDebug("Sending email invite to participant record id: ".$rec_id);
 
         $msg = $this->formatEmailMessage(
-            $this->email_text, // $this->portalConfig->invitationEmailText,
+            $email_text, // $this->portalConfig->invitationEmailText,
             $survey_link,
-            $this->email_url_label //$this->portalConfig->invitationUrlLabel);
+            $email_url_label //$this->portalConfig->invitationUrlLabel);
         );
 
         //prep email
-        $piped_email_subject = Piping::replaceVariablesInLabel( $this->email_subject, $rec_id, $this->portalConfig->surveyEventID, $repeat_instance,array(), false, null, false);
+        $piped_email_subject = Piping::replaceVariablesInLabel( $email_subject, $rec_id, $this->portalConfig->surveyEventID, $repeat_instance,array(), false, null, false);
         $piped_email_msg = Piping::replaceVariablesInLabel($msg, $rec_id, $this->portalConfig->surveyEventID, $repeat_instance,array(), false, null, false);
 
         $email = new Message();
         $email->setTo($email_addr);
-        $email->setFrom($this->email_from);
+        $email->setFrom($email_from);
         $email->setSubject($piped_email_subject);
         $email->setBody($piped_email_msg); //format message??
 
@@ -265,12 +328,12 @@ class InvitationManager {
 
         //TODO: log send status to REDCap Logging?
         if ($send_status == false) {
-            $send_status_msg = "Error sending {$this->email_type} email to ";
+            $send_status_msg = "Error sending {$email_type} email to ";
         } else {
-            $send_status_msg = "{$this->email_type} email sent to ";
+            $send_status_msg = "{$email_type} email sent to ";
         }
         REDCap::logEvent(
-            "Email {$this->email_type}  Sent from Survey Portal EM",  //action
+            "Email {$email_type}  Sent from Survey Portal EM",  //action
             $send_status_msg . $email . " for day_number " . $valid_day . " with status " .$send_status,  //changes
             NULL, //sql optional
             $rec_id, //$participant->getParticipantID(), //record optional
@@ -279,12 +342,12 @@ class InvitationManager {
         );
     }
 
-    public function sendSms($rec_id, $survey_link, $phone_num, $repeat_instance, $valid_day) {
+    public function sendSms($rec_id, $survey_link, $phone_num, $repeat_instance, $valid_day, $sms_text, $email_type) {
         global $module;
         $module->emDebug("Sending text invite to record id: ".$rec_id);
 
         //TODO: implement text sending of URL
-        $msg = $this->formatTextMessage($this->sms_text,
+        $msg = $this->formatTextMessage($sms_text,
                                         $survey_link,
                                         $rec_id,
                                         $this->portalConfig->surveyEventID,
@@ -296,10 +359,10 @@ class InvitationManager {
         $twilio_status = $module->emText($phone_num, $msg);
 
         if ($twilio_status !== true) {
-            $module->emError("TWILIO  {$this->email_type}  Failed to send to ". $phone_num . " with status ". $twilio_status);
+            $module->emError("TWILIO  {$email_type}  Failed to send to ". $phone_num . " with status ". $twilio_status);
             REDCap::logEvent(
-                "Text {$this->email_type} failed to send from Survey Portal EM",  //action
-                "Text {$this->email_type} failed to send to " . $phone_num . " with status " .  $twilio_status . " for day_number " . $valid_day ,  //changes
+                "Text {$email_type} failed to send from Survey Portal EM",  //action
+                "Text {$email_type} failed to send to " . $phone_num . " with status " .  $twilio_status . " for day_number " . $valid_day ,  //changes
                 NULL, //sql optional
                 $rec_id, //record optional
                 $this->portalConfig->surveyEventName, //event optional
@@ -308,8 +371,8 @@ class InvitationManager {
         } else {
             $module->emDebug($twilio_status);
             REDCap::logEvent(
-                "Text {$this->email_type} Sent from Survey Portal EM",  //action
-                " {$this->email_type} text sent to " . $phone_num,  //changes
+                "Text {$email_type} Sent from Survey Portal EM",  //action
+                " {$email_type} text sent to " . $phone_num,  //changes
                 NULL, //sql optional
                 $rec_id, //record optional
                 $this->portalConfig->surveyEventName, //event optional
@@ -381,10 +444,10 @@ class InvitationManager {
             }
         }
 
-        $sql_result = $this->getInviteReminderCandidatesBySQL();
+        //$sql_result = $this->getInviteReminderCandidatesBySQL();
         //$not_empty = $this->getRecordsBySql();
 
-        $module->emDebug("count by getData: ".count($not_empty). " / count by sql: ".count($sql_result));
+        //$module->emDebug("count by getData: ".count($not_empty). " / count by sql: ".count($sql_result));
 
        //$module->emDebug($result, $not_empty, "Count of invitations to be sent:  ".count($result). " not empty". count($not_empty));
        //exit;
@@ -394,16 +457,15 @@ class InvitationManager {
 
     }
 
-    public function getInviteReminderCandidatesBySQL() {
+    public function getInviteReminderCandidatesBySQL($allowed_inactive_days) {
         global $module;
+
+        $module->emDebug("get sql: inactive: ". $allowed_inactive_days);
 
         if ($this->portalConfig->configID  == null) {
             $module->emError("config ID is not set!");
             return false;
         }
-
-        $allowed_inactive_days = $this->portalConfig->invitationDaysModInactivity;
-        $allowed_logic         = $this->portalConfig->invitationDaysModLogic;
 
         $fields = array(
             $this->portalConfig->emailField,
@@ -438,7 +500,6 @@ class InvitationManager {
         array_push($fields, $this->project_id, $this->portalConfig->mainConfigEventID);
 
         //If an allowed inactive window is set, then create a sql fragment and add this to the sql query.
-        //todo check that it is a number
         $inactive_sql = '';
         if ((!empty($allowed_inactive_days)) && (is_numeric($allowed_inactive_days))) {
 
@@ -463,7 +524,7 @@ class InvitationManager {
 
             return $q;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $module->emError("Exception while executing sql to find inactive records", $e->getMessage());
             return null;
         }
@@ -525,14 +586,11 @@ where
                 $project_id
            );
 
-            $module->emDebug($sql);
+            //$module->emDebug($sql);
 
             $q = db_query($sql);
-            $foo = db_fetch_array($q);
-            $foo1 = db_fetch_object($q);
-            $foo2 = db_fetch_assoc($q);
 
-            return $foo;
+            return $q;
 
         } catch (\Exception $e) {
             $module->emError("Exception while executing sql to find inactive records", $e->getMessage());

@@ -12,6 +12,8 @@ class PortalConfig {
     public $configID;
 
     public $enablePortal;
+    public $disableTexts;
+    public $disableEmails;
 
     /**Participant Level fields **/
     public $mainConfigEventName;
@@ -190,7 +192,7 @@ class PortalConfig {
 
 
     /**
-     * @param $input    A string like 1,2,3-55,44,67
+     * @param $input    String like 1,2,3-55,44,67
      * @return mixed    An array with each number enumerated out [1,2,3,4,5,...]
      */
     static function parseRangeString($input) {
