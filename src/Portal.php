@@ -65,22 +65,6 @@ class Portal
 
     }
 
-    public function setPortalConfigs() {
-        global $module;
-
-        //$filter = "[" . $this->event_name . "][" . $this->personalHashField . "] = '$hash'";
-
-        // Use alternative passing of parameters as an associate array
-        $params = array(
-            'return_format' => 'array',
-            'events'        => REDCap::getEventNames(true, false, $this->mainConfigEventName),
-            'fields'        => array( REDCap::getRecordIdField(), $this->validDayNumber, $this->validDayLag)
-        );
-
-        $records = REDCap::getData($params);
-
-    }
-
     /**
      * @param $input    A string like 1,2,3-55,44,67
      * @return mixed    An array with each number enumerated out [1,2,3,4,5,...]

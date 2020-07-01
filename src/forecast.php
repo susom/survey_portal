@@ -61,7 +61,7 @@ try {
 }
 echo "<br>";
 echo "<br>";
-echo "------- Starting INHERITED METHOD Repeating Survey Portal:  Reminder Count for $project_id with config sub-setting $sub-------<br>";
+echo "------- Starting Repeating Survey Portal:  Reminder Count for $project_id with config sub-setting $sub-------<br>";
 //check if this $sub is enabled
 $enabled = $module->getSubSettings('survey-portals')[$sub]['enable-portal'];
 $reminder_enabled = $module->getSubSettings('survey-portals')[$sub]['enable-reminders'];
