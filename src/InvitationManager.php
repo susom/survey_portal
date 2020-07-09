@@ -75,6 +75,7 @@ class InvitationManager {
         $this->email_url_label       = $this->portalConfig->invitationUrlLabel;
         $this->sms_text              = $this->portalConfig->invitationSmsText;
         $this->modifier_by_logic     = $this->portalConfig->invitationDaysModLogic;
+        $this->logic_event           = $this->portalConfig->invitationDaysModLogicEvent;
         $this->allowed_inactive_days = $this->portalConfig->invitationDaysModInactivity;
 
         $this->config_text_disabled  = $this->portalConfig->disableTexts;
@@ -197,7 +198,7 @@ class InvitationManager {
             //check the logic if there is logic
             if (isset($this->modifier_by_logic)) {
                 //$logic_result = REDCap::evaluateLogic($modifier_by_logic, $this->project_id, $candidate[REDCap::getRecordIdField()], $this->portalConfig->surveyEventID); // repeat instance
-                $logic_result = REDCap::evaluateLogic($this->modifier_by_logic, $this->project_id, $rec_id,$this->portalConfig->surveyEventID, $repeat_instance);
+                $logic_result = REDCap::evaluateLogic($this->modifier_by_logic, $this->project_id, $rec_id, $this->logic_event);
                 if ($logic_result == false) {
                     //logic failed for this candidate
                     continue;

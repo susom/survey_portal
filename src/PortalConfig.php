@@ -56,6 +56,7 @@ class PortalConfig {
     public $invitationDays;
     public $invitationDaysModInactivity;
     public $invitationDaysModLogic;
+    public $invitationDaysModLogicEvent;
     public $invitationTime;
     public $invitationEmailText;
     public $invitationUrlLabel;
@@ -67,6 +68,7 @@ class PortalConfig {
     public $reminderDays;
     public $reminderDaysModInactivity;
     public $reminderDaysModLogic;
+    public $reminderDaysModLogicEvent;
     public $reminderTime;
     public $reminderLag;
     public $reminderEmailText;
@@ -123,6 +125,7 @@ class PortalConfig {
         'invitation-days'                 => 'invitationDays',
         'invitation-days-mod-inactivity'  => 'invitationDaysModInactivity',
         'invitation-days-mod-logic'       => 'invitationDaysModLogic',
+        'invitation-days-mod-logic-event' => 'invitationDaysModLogicEvent',
         'invitation-time'                 => 'invitationTime',
         'invitation-email-text'           => 'invitationEmailText',
         'invitation-url-label'            => 'invitationUrlLabel',
@@ -135,6 +138,7 @@ class PortalConfig {
         'reminder-days'                   => 'reminderDays',
         'reminder-days-mod-inactivity'    => 'reminderDaysModInactivity',
         'reminder-days-mod-logic'         => 'reminderDaysModLogic',
+        'reminder-days-mod-logic-event'   => 'reminderDaysModLogicEvent',
         'reminder-email-text'             => 'reminderEmailText',
         'reminder-url-label'              => 'reminderUrlLabel',
         'reminder-email-subject'          => 'reminderEmailSubject',

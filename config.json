@@ -72,7 +72,8 @@
     "src/landing",
     "src/InviteCron",
     "src/ReminderCron",
-    "src/incoming"
+    "src/incoming",
+    "src/Test"
   ],
 
   "system-settings": [
@@ -266,9 +267,15 @@
         },
         {
           "key": "invitation-days-mod-logic",
-          "name": "<div class='alert alert-info'><b><span class='text-lg badge badge-lg badge-info'>Optional Invitation Days Modifier - Logic</span></h6></b><br>Before sending the invite, this logic will be checked before sending. ",
+          "name": "<div class='alert alert-info'><b><span class='text-lg badge badge-lg badge-light'>Optional Invitation Days Modifier - Logic</span></h6></b><br>Before sending the invite, this logic will be checked before sending. ",
           "required": false,
-          "type": "text"
+          "type": "textarea"
+        },
+        {
+          "key": "invitation-days-mod-logic-event",
+          "name": "<div class='alert alert-info'><b><span class='text-lg badge badge-lg badge-light'>Optional Invitation Days Modifier - Logic Event</span></h6></b><br>In which event should the logic be evaluated ",
+          "required": false,
+          "type": "event-list"
         },
         {
           "key": "invitation-time",
@@ -352,7 +359,7 @@
           "key": "reminder-days-mod-logic",
           "name": "<div class='alert alert-primary'><b><span class='text-lg badge badge-lg badge-info'>Optional Reminder Days Modifier - Logic</span></h6></b><br>Before sending the reminder, this logic will be checked before sending. ",
           "required": false,
-          "type": "text"
+          "type": "textarea"
         },
         {
           "key": "reminder-email-subject",

@@ -2,6 +2,57 @@
 namespace Stanford\RepeatingSurveyPortal;
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 
+use REDCap;
+
+
+$sub = isset($_GET['s']) ? $_GET['s'] : "";
+
+$module->emLog("Starting Test for " . $module->getProjectId() . " with config $sub");
+// echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------";
+
+$project_id =  $module->getProjectId();
+
+//get the config id from the passed in hash
+$configID = $module->getConfigIDFromSubID($sub);
+
+if ($configID != null) {
+    $portalConfig = new PortalConfig($configID);
+} else {
+    $err_msg ="Cron job attempted to send invites for a non-existent configId: ". $configID . " in this subsetting :  ". $sub;
+    $module->emError($err_msg);
+    throw new Exception($err_msg);
+}
+
+$email_from            = $portalConfig->invitationEmailFrom;
+$email_subject         = $portalConfig->invitationEmailSubject;
+$email_type            = "Invite";
+$email_text            = $portalConfig->invitationEmailText;
+$email_url_label       = $portalConfig->invitationUrlLabel;
+$sms_text              = $portalConfig->invitationSmsText;
+$modifier_by_logic     = $portalConfig->invitationDaysModLogic;
+
+$modifier_by_logic_1 = "[current_instance_field][last-instance] = '2'";
+$modifier_by_logic_2 = "[covid_symptoms_arm_1][covid_symptoms(990)][last-instance] <> '1'";
+$modifier_by_logic_3 = "[covid_symptoms(990)][last-instance] <> '1'";  // having the event name prepended syntax error in the form
+
+$modifier_by_logic_4 = "[foo]='bar'";
+
+$test = array(
+
+);
+
+
+$rec_id = '1';
+$logic_event = $portalConfig->invitationDaysModLogicEvent;
+$repeat_instance =3;
+$repeat_instrument = 'covid19_symptoms';
+
+$logic_result = REDCap::evaluateLogic($modifier_by_logic, $project_id,$rec_id, $logic_event  );
+
+echo "HELLO".$logic_result;
+exit;
+
+
 
 class InstrumentHelper {
 
