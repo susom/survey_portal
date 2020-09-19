@@ -126,7 +126,15 @@ class RepeatingSurveyPortal extends \ExternalModules\AbstractExternalModule
     }
 
 
-    public function redcap_module_link_check_display($project_id, $link) {
+    /**
+     * 18Sep20 : occasion when this is called without a pid.
+     * so disabling for now
+     *
+     * @param $project_id
+     * @param $link
+     * @return mixed
+     */
+    public function disable_redcap_module_link_check_display($project_id, $link) {
         // TODO: Loop through each portal config that is enabled and see if they are all valid.
         //TODO: ask andy123; i'm not sure what KEY_VALID_CONFIGURATION is for...
         //if ($this->getSystemSetting(self::KEY_VALID_CONFIGURATION) == 1) {

@@ -3,9 +3,10 @@ namespace Stanford\RepeatingSurveyPortal;
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 
 use REDCap;
+use Exception;
 
 
-$sub = isset($_GET['s']) ? $_GET['s'] : "";
+$sub = isset($_GET['s']) ? $_GET['s'] : "0";
 
 $module->emLog("Starting Test for " . $module->getProjectId() . " with config $sub");
 // echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------";
@@ -47,9 +48,33 @@ $logic_event = $portalConfig->invitationDaysModLogicEvent;
 $repeat_instance =3;
 $repeat_instrument = 'covid19_symptoms';
 
+//$modifier_by_logic = "((rounddown(datediff([ts_send_update], 'today', 'd', 'ymd')))%7) = 0";
+//$modifier_by_logic = "(isinteger([diff_days]/14))";
+
+$modifier_by_logic = "(([send_survey] <> '0'))";
+
 $logic_result = REDCap::evaluateLogic($modifier_by_logic, $project_id,$rec_id, $logic_event  );
 
-echo "HELLO".$logic_result;
+echo "<br>1 LOGIC WAS . ".$modifier_by_logic;
+echo "<br>1 result WAS . ".$logic_result;
+echo "<br>1 record was . ".$rec_id;
+
+$modifier_by_logic = "( ([send_survey] = 0) AND (isinteger((rounddown(datediff([ts_send_update], 'today', 'd', 'ymd')))/14)))";
+
+$logic_result = REDCap::evaluateLogic($modifier_by_logic, $project_id,$rec_id, $logic_event  );
+
+echo "<br>2 LOGIC WAS . ".$modifier_by_logic;
+echo "<br>2 result WAS . ".$logic_result;
+echo "<br>2 record was . ".$rec_id;
+
+$modifier_by_logic = "([send_survey] <> '0') OR (([send_survey] = 0) AND (isinteger((rounddown(datediff([ts_send_update], 'today', 'd', 'ymd')))/14)))";
+
+$logic_result = REDCap::evaluateLogic($modifier_by_logic, $project_id,$rec_id, $logic_event  );
+
+echo "<br> LOGIC WAS . ".$modifier_by_logic;
+echo "<br> result WAS . ".$logic_result;
+echo "<br> record was . ".$rec_id;
+
 exit;
 
 
