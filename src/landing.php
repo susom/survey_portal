@@ -292,9 +292,7 @@ if (($error_msg == null) &&  (isset($day_number)) && (isset($survey_date))) {
             <div class="alert alert-danger" role="alert">
                 <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                 <span class="sr-only">Error:</span>
-                <?php
-
-                echo implode("<br>", $error_msg) ?>
+                <?php echo implode("<br>", $error_msg) ?>
             </div>
         <?php } ?>
         <p><?php echo $portalConfig->landingPageHeader; ?></p>

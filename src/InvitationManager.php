@@ -357,7 +357,7 @@ class InvitationManager {
         }
         REDCap::logEvent(
             "Email {$email_type}  Sent from Survey Portal EM",  //action
-            $send_status_msg . $email . " for day_number " . $valid_day . " with status " .$send_status,  //changes
+            $send_status_msg . $email_addr . " for day_number " . $valid_day . " with status " .$send_status,  //changes
             NULL, //sql optional
             $rec_id, //$participant->getParticipantID(), //record optional
             $this->portalConfig->surveyEventName, //event optional

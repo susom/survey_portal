@@ -26,7 +26,6 @@ require_once 'src/InsertInstrumentHelper.php';
  * WEB
  *
  * Portal Landing Page
- *
  * src/landing.php   NOAUTH
  * src/forecast.php (tries to show what will happen based on certain dates)
  * src/cron.php     NOAUTH (landing page to instantiate cron)
