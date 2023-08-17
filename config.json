@@ -22,6 +22,8 @@
     }
   ],
 
+  "framework-version": 7,
+
   "permissions": [
     "redcap_save_record",
     "redcap_survey_complete",
@@ -30,6 +32,8 @@
     "redcap_module_save_configuration",
     "redcap_data_entry_form_top"
   ],
+
+
 
   "crons": [
     {

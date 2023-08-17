@@ -14,16 +14,12 @@ use Exception;
 use Message;
 use Piping;
 
-
-
 /** @var \Stanford\RepeatingSurveyPortal\RepeatingSurveyPortal $module */
 /** @var \Stanford\RepeatingSurveyPortal\Portal $Portal */
 /** @var  Stanford\RepeatingSurveyPortal\PortalConfig $portalConfig */
 
 /**
  * Class called by InvitationCron job. Evaluates date and participants and then sends day invitations by email/text
- *
- *
  * Class InvitationManager
  * @package Stanford\RepeatingSurveyPortal
  */
