@@ -40,14 +40,14 @@ class Participant {
         global $module;
         $this->portalConfig = $portalConfig;
 
-        $this->event_name = REDCap::getEventNames(true, false, $this->surveyEventName);
+        //$this->event_name = REDCap::getEventNames(true, false, $this->surveyEventName);
 
 
         //setup the participant surveys
         //given the hash, find the participant and set id and start date in object
         // $module->emDebug("locating participant from hash");
         $this->participantID =  $this->locateParticipantFromHash($hash);
-        //$module->emDebug($this->participantID, $hash);
+        $module->emDebug("ParticipantID: ". $this->participantID, $hash);
 
         if ($this->participantID == null) {
             $module->emLog("Participant not found from this hash: ".$hash);
@@ -61,11 +61,13 @@ class Participant {
 
 
         //get all Surveys for this particpant and determine status
-        // $module->emDebug("getting survey status");
+        $module->emDebug("getting survey status");
         $this->survey_status = $this->getAllSurveyStatus(
             $this->participantID,
             min($this->portalConfig->validDayArray),
             max($this->portalConfig->validDayArray));
+
+        $module->emDebug("Here is survey status", $this->survey_status);
 
         //update the survey_status to reflect day lag validity. have to do it in separate steps
         if ( isset($this->portalConfig->validDayLag)) {
