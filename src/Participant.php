@@ -118,7 +118,14 @@ class Participant {
 
         $all_surveys = $this->getAllSurveys($participantID);
         //$this->max_instance = max(array_keys($all_surveys));
-        $max_repeat_instance = max(array_column($all_surveys, 'redcap_repeat_instance'));
+
+        //since php8, max on an empty throws fatal error, not a warning, so split out the max call on non-zero count array_column
+        if (empty($all_surveys)) {
+            $max_repeat_instance = 0; // handle cases where there are no surveys
+        } else {
+            $max_repeat_instance = max(array_column($all_surveys, 'redcap_repeat_instance'));
+        }
+
         $this->max_instance = $max_repeat_instance;
 
         //$module->emDebug($all_surveys, $this->max_instance, $max_repeat_instance, $min, $max); exit;
