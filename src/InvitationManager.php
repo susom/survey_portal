@@ -276,7 +276,8 @@ class InvitationManager {
 
     }
 
-    public function getSurveyLink($rec_id, $valid_day, $personal_hash, $personal_url, $target_day) {
+    public function getSurveyLink($rec_id, $valid_day, $personal_hash, $personal_url, $target_day)
+    {
         global $module;
 
         if (!isset($personal_hash)) {
@@ -301,8 +302,8 @@ class InvitationManager {
         }
 
         //check that the survey already not completed for today
-        if ( $participant->isSurveyComplete($target_day)) {
-            $module->emDebug("Participant # ".$participant->getParticipantID().": Survey for day number $valid_day is already complete. Don't send invite for today");
+        if ($participant->isSurveyComplete($target_day)) {
+            $module->emDebug("Participant # " . $participant->getParticipantID() . ": Survey for day number $valid_day is already complete. Don't send invite for today");
             return null;
         }
 
@@ -498,10 +499,11 @@ class InvitationManager {
             $this->portalConfig->personalHashField,
             $this->portalConfig->participantConfigIDField
         );
+        $data_table = method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($this->project_id) : "redcap_data";
 
         $select_str = "select distinct(r0.record), r0.event_id, r0.instance";
-        $from_str   = " from redcap_data r0 ";
-        $where_str  = " where r0.project_id = %d and r0.event_id = %d";
+        $from_str = " from $data_table r0 ";
+        $where_str = " where r0.project_id = %d and r0.event_id = %d";
         $cross_str = " and (
     (coalesce(r5.value,'') != '1') and (coalesce(r1.value,'') != '')
     or
@@ -512,8 +514,8 @@ class InvitationManager {
         $i = 1;
         foreach ($fields as $k => $v) {
             $select_str .= ",r{$i}.value as '{$v}'";
-            $from_str .= " left join redcap_data r{$i} on r0.project_id = r{$i}.project_id and ".
-                "r0.event_id = r{$i}.event_id and r0.record = r{$i}.record and ".
+            $from_str .= " left join $data_table r{$i} on r0.project_id = r{$i}.project_id and " .
+                "r0.event_id = r{$i}.event_id and r0.record = r{$i}.record and " .
                 "r0.instance <=> r{$i}.instance and r{$i}.field_name = '%s'\n ";
             $i++;
         }
@@ -525,19 +527,19 @@ class InvitationManager {
         if ((!empty($allowed_inactive_days)) && (is_numeric($allowed_inactive_days))) {
 
 
-            $inactive_sql = $this->getInactiveSql();
+            $inactive_sql = $this->getInactiveSql($data_table);
 
             //
-            array_push($fields,$this->project_id,
-                       $this->portalConfig->surveyInstrument,
-                       $this->portalConfig->surveyEventID,
-                       $allowed_inactive_days,
-                       $this->project_id);
+            array_push($fields, $this->project_id,
+                $this->portalConfig->surveyInstrument,
+                $this->portalConfig->surveyEventID,
+                $allowed_inactive_days,
+                $this->project_id);
         }
 
         try {
             $sql = vsprintf($select_str . $from_str . $where_str . $cross_str . $inactive_sql,
-                            $fields);
+                $fields);
 
             //$module->emDebug($sql);
 
@@ -551,9 +553,9 @@ class InvitationManager {
         }
     }
 
-    public function getInactiveSql()
+    public function getInactiveSql($data_table)
     {
-        $sql_str = " and r0.record in (select distinct(rd.record) from  redcap_data rd
+        $sql_str = " and r0.record in (select distinct(rd.record) from  $data_table rd
     left join (
         select
             rsr.record
@@ -575,14 +577,17 @@ where
         return $sql_str;
     }
 
-    public function getInactiveRecords($project_id, $allowed_inactive_days) {
+    public function getInactiveRecords($project_id, $allowed_inactive_days)
+    {
         global $module;
 
         try {
+            $data_table = method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($project_id) : "redcap_data";
+
             $sql = sprintf("
 select distinct(rd.record)
 from
-    redcap_data rd
+    %s rd
     left join (
         select
             rsr.record
@@ -600,12 +605,13 @@ from
 where
     rd.project_id = %d
     and old.record is null",
+                $data_table,
                 $project_id,
                 $this->portalConfig->surveyInstrument,
                 $this->portalConfig->surveyEventID,
                 $allowed_inactive_days,
                 $project_id
-           );
+            );
 
             //$module->emDebug($sql);
 
@@ -619,7 +625,6 @@ where
         }
 
 
-
     }
 
     /**
@@ -630,7 +635,8 @@ where
      * @param $date_str
      * @return int|null  : day number for date passed in, NULL if not valid date.
      */
-    public function checkIfDateValid($start_str, $valid_day_number, $date_str = null) {
+    public function checkIfDateValid($start_str, $valid_day_number, $date_str = null)
+    {
         global $module;
         //$module->emDebug("Incoming to check If this date valid:". $date_str . ' with this start date: '. $start_str);
         //$module->emDebug("valid day array: ".implode(',',$valid_day_number));
@@ -651,7 +657,7 @@ where
         // need at add one day since start is day 0??
         //Need to check that the diff in hours is greater than 0 as date diff is calculating against midnight today
         //and partial days > 12 hours was being considered as 1 day.
-        if ( ($diff_hours >= 0) && (in_array($diff_date, $valid_day_number))) {
+        if (($diff_hours >= 0) && (in_array($diff_date, $valid_day_number))) {
             //actually, don't add 1. start date should be 0.
             //return ($interval->days + 1);
             return ($diff_date);
@@ -670,7 +676,8 @@ where
      * @param $survey_link
      * @return mixed|string
      */
-    function formatEmailMessage($msg, $survey_link, $survey_link_label) {
+    function formatEmailMessage($msg, $survey_link, $survey_link_label)
+    {
         $target_str = "[invitation-url]";
 
         if (empty($survey_link_label)) {
@@ -683,7 +690,7 @@ where
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $tagged_link, $msg);
         } else {
-            $msg = $msg . "<br>Use this link to take the survey: ".$tagged_link;
+            $msg = $msg . "<br>Use this link to take the survey: " . $tagged_link;
         }
 
         return $msg;
@@ -698,7 +705,8 @@ where
      * @param $survey_link
      * @return mixed|string
      */
-    function formatTextMessage($msg, $survey_link, $record, $event_id, $repeat_instance) {
+    function formatTextMessage($msg, $survey_link, $record, $event_id, $repeat_instance)
+    {
 
         $target_str = "[invitation-url]";
 
@@ -706,10 +714,10 @@ where
         if (strpos($msg, $target_str) !== false) {
             $msg = str_replace($target_str, $survey_link, $msg);
         } else {
-            $msg = $msg . "  Use this link to take the survey:".$survey_link;
+            $msg = $msg . "  Use this link to take the survey:" . $survey_link;
         }
 
-        $piped_msg = Piping::replaceVariablesInLabel($msg, $record, $event_id, $repeat_instance,array(), false, null, false);
+        $piped_msg = Piping::replaceVariablesInLabel($msg, $record, $event_id, $repeat_instance, array(), false, null, false);
 
         return $piped_msg;
     }

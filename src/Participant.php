@@ -33,7 +33,7 @@ class Participant {
     private $participantID;   //PK of this participant
     private $participant_portal_disabled; //is this portal enabled for this participant
 
-
+    private $data_table = 'redcap_data';
 
 
     public function __construct($portalConfig, $hash) {
@@ -93,6 +93,7 @@ class Participant {
 
         // Get the status' for each date in the window array
         //$window_dates = $module->getSurveyStatusArray($participant, $window_dates, $cfg);
+        $this->data_table = method_exists('\REDCap', 'getDataTable') ? \REDCap::getDataTable($module->getProjectId()) : "redcap_data";
 
     }
 
@@ -235,8 +236,8 @@ class Participant {
                     rd.record,
                     rd2.value as 'start_date'
                 from
-                    redcap_data rd
-                join redcap_data rd2
+                    %s rd
+                join %s rd2
                     on rd.project_id = rd2.project_id
                     and rd.event_id = rd2.event_id
                     and rd.record = rd2.record
@@ -247,6 +248,8 @@ class Participant {
                 and rd.event_id = %d
                 and rd.project_id = %d
                 and rd.value = '%s'",
+                $this->data_table,
+                $this->data_table,
                 $this->portalConfig->startDateField,
                 $this->portalConfig->personalHashField,
                 $this->portalConfig->mainConfigEventID,
@@ -519,13 +522,14 @@ class Participant {
             select
                rd.record, max(instance) as 'max_instance'
             from
-                redcap_data rd
+                %s rd
             where
                 rd.record = '%s'
             and rd.event_id = %d
             and rd.project_id = %d
             and rd.field_name = '%s'
             and rd.value = '%s'",
+            $this->data_table,
             db_escape($this->participantID),
             db_escape($this->portalConfig->surveyEventID),
             $module->getProjectId(),
@@ -594,8 +598,8 @@ class Participant {
                 rd.value  as 'survey_day_number',
                 rd2.value as 'survey_config'
             from
-                redcap_data rd
-            join redcap_data rd2
+                %s rd
+            join %s rd2
                 on rd.project_id = rd2.project_id
                 and rd.event_id = rd2.event_id
                 and rd.record = rd2.record
@@ -608,6 +612,8 @@ class Participant {
             and rd.field_name = 'rsp_survey_day_number'
             and rd.value = '%d'           -- day number
             and rd2.value = '%s'          -- config, e.g. daily",
+            $this->data_table,
+            $this->data_table,
             db_escape($this->portalConfig->surveyConfigField),
             db_escape($this->participantID),
             $this->portalConfig->surveyEventID,
