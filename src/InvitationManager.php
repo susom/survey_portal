@@ -587,7 +587,7 @@ where
             $sql = sprintf("
 select distinct(rd.record)
 from
-    %s rd
+    $data_table rd
     left join (
         select
             rsr.record
@@ -605,7 +605,6 @@ from
 where
     rd.project_id = %d
     and old.record is null",
-                $data_table,
                 $project_id,
                 $this->portalConfig->surveyInstrument,
                 $this->portalConfig->surveyEventID,
