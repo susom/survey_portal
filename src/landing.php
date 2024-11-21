@@ -19,9 +19,13 @@ $module->emDebug("===== Firing up the landing page ====");
 $config_ids = $module->getProjectSetting('config-id');
 
 
-$p_hash = isset($_REQUEST['h']) ? $_REQUEST['h'] : "";
-$p_config = isset($_REQUEST['c']) ? $_REQUEST['c'] : "";
-$p_daynumber = isset($_REQUEST['d']) ? $_REQUEST['d'] : "";
+//$p_hash = isset($_REQUEST['h']) ? $_REQUEST['h'] : "";
+//$p_config = isset($_REQUEST['c']) ? $_REQUEST['c'] : "";
+//$p_daynumber = isset($_REQUEST['d']) ? $_REQUEST['d'] : "";
+$p_hash = isset($_REQUEST['h']) ? htmlspecialchars($_REQUEST['h']) : "";
+$p_config = isset($_REQUEST['c']) ? htmlspecialchars($_REQUEST['c']) : "";
+$p_daynumber = isset($_REQUEST['d']) ? htmlspecialchars($_REQUEST['d']) : "";
+
 $error_msg = null;
 
 
@@ -52,7 +56,9 @@ try {
     }
 
     //Need to set up a cookie so that after the survey completion, it will redirect back to the portal.
-    $cookie_key = $module->PREFIX."_".$project_id."_".$participant->getParticipantID();
+    $proj_id = $module->getProjectId();
+    $module->emDebug("Proj id is ". $proj_id);
+    $cookie_key = $module->PREFIX."_".$proj_id."_".$participant->getParticipantID();
     $module->emDebug("Setting COOKIE KEY to ".$cookie_key);
     setcookie($cookie_key, $p_config, time()+(12*3600), "/");
 
@@ -125,7 +131,7 @@ $today = new DateTime();
 //Get survey_date and daynumber from the various entry points
 
 if(isset($_POST['cal_submit'])) {
-    $survey_date = DateTime::createFromFormat('Y-m-d', $_POST['cal_date']);
+    $survey_date = DateTime::createFromFormat('Y-m-d', htmlspecialchars($_POST['cal_date']));
 
     //if (isset($survey_date)) {
     if (!empty($survey_date)) {

@@ -14,7 +14,7 @@ require_once 'ReminderManager.php';
 $begin = '';
 $end = '';
 
-$sub = isset($_GET['s']) ? $_GET['s'] : "0";
+$sub = isset($_GET['s']) ? htmlspecialchars($_GET['s']) : "0";
 
 $module->emLog("Starting Invitation Manager for " . $module->getProjectId() . " with config $sub");
 echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------<br>";

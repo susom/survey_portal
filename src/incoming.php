@@ -19,12 +19,12 @@ $module->emDebug($webhook);
 
 
 // Get phone number from Twilio from incoming
-$from = $_POST['From'];
+$from = htmlspecialchars($_POST['From']);
 
 // lookup phonenumber in REDCap project to locate record
 
 // Forward body of text to email set in config
-$body = $_POST['Body'];
+$body = htmlspecialchars($_POST['Body']);
 
 //log incoming to record in REDCap
 

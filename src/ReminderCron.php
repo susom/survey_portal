@@ -9,9 +9,9 @@ use REDCap;
 require_once 'ReminderManager.php';
 
 
-$sub = isset($_GET['s']) ? $_GET['s'] : "";
+$sub = isset($_GET['s']) ? htmlspecialchars($_GET['s']) : "";
 
-$module->emLog("------- Starting Repeating Survey Portal:  Reminder Cron for $project_id with config sub-setting $sub-------");
+$module->emLog("------- Starting Repeating Survey Portal:  Reminder Cron config sub-setting $sub-------");
 //echo "------- Starting Repeating Survey Portal:  Reminder Cron for $project_id with config sub-setting $sub-------";
 
 //This page is only triggered if the 'Enable Reminders' checkbox has been checked for this subsetting in the Survey Portal config

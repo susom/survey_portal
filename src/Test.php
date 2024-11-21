@@ -6,7 +6,7 @@ use REDCap;
 use Exception;
 
 
-$sub = isset($_GET['s']) ? $_GET['s'] : "0";
+$sub = isset($_GET['s']) ? htmlspecialchars($_GET['s']) : "0";
 
 $module->emLog("Starting Test for " . $module->getProjectId() . " with config $sub");
 // echo "------- Starting Repeating Survey Portal:  Invitation Cron for $project_id with config sub-setting $sub-------";

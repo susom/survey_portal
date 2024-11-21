@@ -9,14 +9,14 @@ require_once 'InsertInstrumentHelper.php';
 
 // HANDLE BUTTON ACTION
 if (!empty($_POST['action'])) {
-    $action = $_POST['action'];
+    $action = htmlspecialchars($_POST['action']);
     //$zip_loader = InsertInstrumentHelper::getInstance($module);
     //$module->emDebug($_POST);
     $message = $delay = $callback = null;
 
     switch ($action) {
         case "insert_form":
-            $form = $_POST['form'];
+            $form = htmlspecialchars($_POST['form']);
             list($result, $message) = $module->insertForm($form);
 
 
@@ -26,8 +26,8 @@ if (!empty($_POST['action'])) {
             break;
         case "designate_event":
             $module->emDebug("!DESIGNATING EVENT");
-            $form = $_POST['form'];
-            $event = $_POST['event'];
+            $form = htmlspecialchars($_POST['form']);
+            $event = htmlspecialchars($_POST['event']);
             list($result, $message) = $module->designateEvent($form, $event);
 
             $module->emDebug("result",  $result);
@@ -35,15 +35,15 @@ if (!empty($_POST['action'])) {
 
         case "set_form_repeating":
             $module->emDebug("Make form repeating");
-            $form = $_POST['form'];
-            $event = $_POST['event'];
+            $form = htmlspecialchars($_POST['form']);
+            $event = htmlspecialchars($_POST['event']);
             list($result, $message) = $module->makeFormRepeat($form, $event);
 
             //$module->emDebug("result",  $result);
             break;
         case "set_event_repeating":
             $module->emDebug("!Make EVENT repeating");
-            $event = $_POST['event'];
+            $event = htmlspecialchars($_POST['event']);
 
             list($result, $message) = $module->makeEventRepeat($event);
 
